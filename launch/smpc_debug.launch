@@ -1,0 +1,14 @@
+<launch>
+  <arg name="waypoint_directory" default="$(find waypoint_system)/data/default"/>
+  <arg name="target_source" default="tracked_objects"/>
+  <arg name="tracked_objects_topic" default="/tracked_objects"/>
+  <arg name="use_lidar_tracker" default="true"/>
+
+  <include file="$(find smpc_lane_change)/launch/smpc_integration.launch">
+    <arg name="waypoint_directory" value="$(arg waypoint_directory)"/>
+    <arg name="target_source" value="$(arg target_source)"/>
+    <arg name="tracked_objects_topic" value="$(arg tracked_objects_topic)"/>
+    <arg name="use_lidar_tracker" value="$(arg use_lidar_tracker)"/>
+    <arg name="use_rviz" value="true"/>
+  </include>
+</launch>

@@ -1,0 +1,12 @@
+std_msgs/Header header
+uint8 KEEP=0
+uint8 CHANGE_LEFT=1
+uint8 mode
+bool request
+int32 current_lane_id
+int32 target_lane_id
+float64 target_speed_mps
+float64 keep_cost
+float64 change_cost
+float64 collision_risk
+string reason

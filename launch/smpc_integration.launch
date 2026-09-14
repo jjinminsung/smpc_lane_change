@@ -1,0 +1,159 @@
+<launch>
+  <arg name="waypoint_directory" default="$(find waypoint_system)/data/default"/>
+  <arg name="use_smpc_decision" default="true"/>
+  <arg name="use_gap_test_decision" default="false"/>
+  <arg name="target_source" default="tracked_objects"/>
+  <arg name="tracked_objects_topic" default="/tracked_objects"/>
+  <arg name="use_lidar_tracker" default="true"/>
+  <arg name="lidar_cloud_topic" default="/velodyne_points"/>
+  <arg name="lidar_odom_topic" default="/odom"/>
+  <arg name="lidar_imu_topic" default="/imu"/>
+  <arg name="lidar_use_ego_topic" default="false"/>
+  <arg name="use_rviz" default="false"/>
+  <arg name="rviz_config" default="$(find smpc_lane_change)/rviz/smpc_debug.rviz"/>
+
+  <node if="$(arg use_lidar_tracker)" pkg="lidar_ttc_tracker" type="lidar_ttc_tracker_node.py"
+        name="lidar_ttc_tracker" output="screen">
+    <param name="cloud_topic" value="$(arg lidar_cloud_topic)"/>
+    <param name="odom_topic" value="$(arg lidar_odom_topic)"/>
+    <param name="imu_topic" value="$(arg lidar_imu_topic)"/>
+    <param name="ego_topic" value="/Ego_topic"/>
+    <param name="use_ego_topic" value="$(arg lidar_use_ego_topic)"/>
+    <param name="heading_source" value="imu"/>
+    <!-- IONIQ 5: rear-axle frame, LiDAR mounted 1.0 m forward on centreline. -->
+    <param name="lidar_x" value="1.0"/>
+    <param name="lidar_y" value="0.0"/>
+    <param name="cloud_latency" value="0.0"/>
+    <param name="pose_buffer_sec" value="1.0"/>
+    <param name="min_range" value="1.5"/>
+    <!-- lidar_x=+1.0 m이므로 차량 기준 후방 120 m를 실제로 포함하려면
+         센서 반경 게이트에 1 m 여유가 필요하다. -->
+    <param name="max_range" value="130.0"/>
+    <!-- IONIQ 5 footprint in the LiDAR frame, including 0.2 m clearance.
+         Vehicle extents from rear axle: x=-0.790..3.845 m, |y|=0.946 m. -->
+    <param name="ego_x_min" value="-2.0"/>
+    <param name="ego_x_max" value="3.05"/>
+    <param name="ego_y_half" value="1.15"/>
+    <!-- 차량 기준 3차선 ROI: 차로폭 3.5 m 기준 좌우 1개 차선씩 + 0.25 m 여유.
+         고속도로 차선변경의 빠른 후방 접근차를 일찍 추적하기 위해
+         후방·전방 모두 차량 기준 120 m까지 유지한다. -->
+    <param name="roi_enabled" value="true"/>
+    <param name="roi_x_min" value="-120.0"/>
+    <param name="roi_x_max" value="120.0"/>
+    <param name="roi_y_half" value="5.5"/>
+    <!-- 곡선로 원거리 보정. 실측: 목표 차선 뒤차의 |sensor_y| 중앙이
+         40~60 m 에서 5.13 m, 60~80 m 에서 6.26 m 라 고정 5.5 m 에 잘렸다.
+         상한 8.0 m 는 40~60 m 회수율 100% 를 유지하면서(12.0 과 동일)
+         60 m 밖(링 간격 2.1 m > 차량 높이, 검출률 0%) 유입만 줄인다. -->
+    <param name="roi_y_growth_per_m" value="0.07"/>
+    <param name="roi_y_half_max" value="12.0"/>
+    <!-- 지면 추정을 거리 구간별로 한다.  기본 0(전역 percentile)은 240 m ROI 전체를
+         한 평면으로 가정해, 노면 굴곡이 조금만 있어도 먼 거리 지면이 clearance 위로
+         올라와 장애물로 샌다.  lc_gt 2026-09-08-17-52 에서 차선 0 앞 25 m 노면이
+         새어 length 14 m 짜리 정지 트랙이 되고 ACC 가 current_front:hard 로
+         목표속도 0 을 명령해 자차가 14.0 -> 4.5 m/s 로 급제동했다(점군 z 중앙
+         -1.3 m, 지면 z 약 -1.6 m).  코드 주석의 대조 실험: bin 10 m 에서
+         누출 평균 172 -> 84, 중앙값 8 -> 0, 누출 스캔 85% -> 42%. -->
+    <param name="ground_pct_bin_m" value="10.0"/>
+    <param name="ground_clearance" value="0.3"/>
+    <param name="z_max" value="2.5"/>
+    <param name="cluster_res" value="0.4"/>
+    <param name="min_cluster_pts" value="5"/>
+    <param name="max_box_size" value="15.0"/>
+    <!-- PCA yaw 품질과 ID 연관: 희소/대칭 군집의 대각선 yaw 및 ID 교환 억제. -->
+    <param name="yaw_confidence_full_points" value="20"/>
+    <param name="yaw_confidence_anisotropy_min" value="1.5"/>
+    <param name="yaw_confidence_anisotropy_full" value="4.0"/>
+    <param name="yaw_confidence_axis_swap_penalty" value="0.25"/>
+    <param name="yaw_confidence_alpha" value="0.35"/>
+    <param name="yaw_update_min_confidence" value="0.35"/>
+    <!-- Keep the obstacle after two scans, but expose yaw confidence only
+         after two measured displacements and adequate PCA quality. -->
+    <param name="yaw_maturity_hits" value="3"/>
+    <param name="yaw_maturity_confidence" value="0.55"/>
+    <param name="association_size_weight" value="0.35"/>
+    <param name="association_yaw_weight" value="0.75"/>
+    <param name="association_yaw_min_confidence" value="0.55"/>
+    <param name="association_feature_min_hits" value="3"/>
+    <!-- 8 m allowed nearby lanes to exchange IDs; 5 m remains generous at a
+         VLP-16 scan interval while forcing the Kalman prediction to matter. -->
+    <param name="gate_dist" value="5.0"/>
+    <param name="max_age" value="8"/>
+    <param name="min_hits" value="2"/>
+    <!-- A confirmed rear vehicle may survive three missed VLP-16 scans with
+         decaying confidence.  This is only an occlusion bridge, not a long
+         blind extrapolation. -->
+    <param name="publish_predicted_tracks" value="true"/>
+    <param name="predicted_track_max_age" value="3"/>
+    <param name="predicted_track_confidence_decay" value="0.90"/>
+    <param name="tracker_yaw_alpha" value="0.25"/>
+    <!-- Geometry score is temporally accumulated: vehicle candidates need both
+         a plausible 3-D box and three matched scans. -->
+    <param name="vehicle_score_enabled" value="true"/>
+    <param name="vehicle_confidence_alpha" value="0.35"/>
+    <param name="vehicle_confirm_score" value="0.60"/>
+    <param name="vehicle_confirm_hits" value="3"/>
+    <!-- Robust vehicle footprint: grow quickly, shrink only after repeated
+         credible measurements, and cover sparse/occluded VLP-16 boxes. -->
+    <param name="size_increase_alpha" value="0.65"/>
+    <param name="size_decrease_alpha" value="0.08"/>
+    <param name="size_low_confidence_threshold" value="0.55"/>
+    <param name="size_history_len" value="12"/>
+    <param name="size_history_percentile" value="80.0"/>
+    <param name="vehicle_min_width" value="1.70"/>
+    <param name="vehicle_min_length" value="3.80"/>
+    <param name="size_uncertainty_width_margin" value="0.20"/>
+    <param name="size_uncertainty_length_margin" value="0.40"/>
+    <param name="dynamic_on_speed" value="1.0"/>
+    <param name="dynamic_off_speed" value="0.5"/>
+    <param name="dynamic_on_per_m" value="0.04"/>
+    <param name="dynamic_persist_up" value="2"/>
+    <param name="dynamic_persist_down" value="3"/>
+    <param name="dynamic_vhist_len" value="6"/>
+    <param name="dynamic_vconsistency_min" value="0.6"/>
+    <param name="dynamic_with_ego_eps" value="0.8"/>
+    <param name="ttc_range_margin" value="0.0"/>
+    <param name="min_closing_speed" value="0.1"/>
+    <!-- /odom and MORAI ego position are the IONIQ 5 rear axle. -->
+    <param name="ego_front_overhang" value="3.845"/>
+    <param name="lane_half_width" value="1.75"/>
+    <param name="cpa_gate_margin" value="0.5"/>
+    <remap from="/tracked_objects" to="$(arg tracked_objects_topic)"/>
+  </node>
+
+  <node pkg="smpc_lane_change" type="target_selector_node" name="smpc_target_selector" output="screen">
+    <rosparam command="load" file="$(find smpc_lane_change)/config/target_selector.yaml"/>
+    <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
+    <param name="target_source" value="$(arg target_source)"/>
+    <param name="tracked_objects_topic" value="$(arg tracked_objects_topic)"/>
+  </node>
+
+  <node pkg="smpc_lane_change" type="acc_speed_planner_node" name="smpc_acc_speed_planner" output="screen">
+    <rosparam command="load" file="$(find smpc_lane_change)/config/acc_planner.yaml"/>
+  </node>
+
+  <group unless="$(arg use_gap_test_decision)">
+    <node if="$(arg use_smpc_decision)" pkg="smpc_lane_change" type="smpc_decision_node"
+          name="smpc_decision" output="screen">
+      <rosparam command="load" file="$(find smpc_lane_change)/config/smpc_decision.yaml"/>
+      <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
+    </node>
+  </group>
+
+  <node if="$(arg use_gap_test_decision)" pkg="smpc_lane_change" type="gap_test_decision_node"
+        name="gap_test_decision" output="screen">
+    <param name="enabled" value="true"/>
+    <param name="ego_length_m" value="4.635"/>
+    <param name="ego_front_extent_m" value="3.845"/>
+    <param name="ego_rear_extent_m" value="0.790"/>
+  </node>
+
+  <node pkg="smpc_lane_change" type="lane_change_supervisor_node"
+        name="lane_change_supervisor" output="screen">
+    <rosparam command="load" file="$(find smpc_lane_change)/config/supervisor.yaml"/>
+    <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
+  </node>
+
+  <node if="$(arg use_rviz)" type="rviz" name="smpc_debug_rviz" pkg="rviz"
+        args="-d $(arg rviz_config)"/>
+</launch>

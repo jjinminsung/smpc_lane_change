@@ -1,0 +1,340 @@
+enabled: true
+publish_rate_hz: 20.0
+target_timeout_sec: 0.5
+
+# Prediction horizon. 40 * 0.2 = 8.0 s covers a preparation phase, the
+# waypoint-blend prediction, and a post-merge safety buffer.  The blend time
+# is a prediction parameter, not a claim about the measured vehicle duration.
+horizon_steps: 40
+prediction_dt_sec: 0.2
+risk_epsilon: 0.04
+# Lane-end pressure may change the *desire* to merge, never the probability of
+# collision that is accepted.  Keep the chance-risk limit identical in normal,
+# urgent, and emergency states.
+urgent_risk_epsilon: 0.04
+
+# A/B test: target_selector continues to publish nearby_vehicles for RViz and
+# diagnostics, but behavior-risk evaluation uses only current_front,
+# target_front, and target_rear unless this is enabled.
+risk_include_nearby_vehicles: false
+
+ego_length_m: 4.635
+ego_width_m: 1.892
+# /odom origin is the IONIQ 5 rear axle.
+ego_front_extent_m: 3.845  # wheelbase 3.000 + front overhang 0.845
+ego_rear_extent_m: 0.790
+# MPC publishes the CSV mission_state speed target here.  Keep the speed policy
+# in mpc_path_tracking/config/mpc_params.yaml; SMPC only consumes it.
+mission_speed_topic: "/control_feedback/mission_speed_target_mps"
+mission_speed_timeout_sec: 0.5
+mission_speed_fallback_mps: 15.0
+# Use the lower fresh ACC output in ego trajectory prediction.  This keeps a
+# vehicle waiting at the lane-end stop line from being modelled as instantly
+# accelerating at mission speed.
+ego_prediction_use_acc_target_speed: true
+ego_prediction_acc_target_speed_topic: "/smpc/target_speed_mps"
+ego_prediction_acc_target_speed_timeout_sec: 0.5
+standstill_gap_m: 5.0
+time_headway_sec: 1.0
+
+# Deterministic bbox-edge safety gates.
+current_front_trigger_gap_m: 35.0
+current_front_safe_gap_m: 7.0
+target_front_safe_gap_m: 14.0
+target_rear_safe_gap_m: 9.0
+# Lane-end pressure affects only the desire to change lanes.  It must never
+# reduce the physical entry gap used by CHANGE_NOW.
+prepare_merge_front_safe_gap_m: 14.0
+prepare_merge_rear_safe_gap_m: 9.0
+target_front_min_ttc_sec: 3.0
+target_front_min_headway_sec: 1.2
+target_rear_min_ttc_sec: 3.0
+# Extra rear gap due to a vehicle approaching from behind. This is applied to
+# closing speed (v_rear - v_ego), not ego's absolute speed; the independent
+# 9 m bumper gap, 3 s TTC, and all-step predicted-gap checks still apply.
+target_rear_min_headway_sec: 1.2
+urgent_merge_front_safe_gap_m: 14.0
+urgent_merge_rear_safe_gap_m: 9.0
+emergency_merge_front_safe_gap_m: 14.0
+emergency_merge_rear_safe_gap_m: 9.0
+emergency_merge_risk_epsilon: 0.04
+
+# Commit CHANGE_LEFT only after the target-lane scene has been continuously
+# observed.  A newly assigned rear ID needs the same observation duration;
+# during this short window SMPC publishes WAIT/HOLD, never a speed YIELD.
+change_commit_scene_observation_sec: 1.5
+change_commit_vehicle_observation_sec: 0.6
+change_commit_observation_gap_timeout_sec: 0.35
+# scene 안정 판정에서 신뢰할 뒤차 거리.  VLP-16 유효 검출 한계(측정: 40 m 까지
+# 94~98 %, 40~60 m 47 %, 60 m 이상 0 %)에 맞춘다.  이 밖의 뒤차가 깜빡여도
+# scene 시계를 리셋하지 않는다.  gap/TTC 게이트는 영향 없음.  0 이면 비활성.
+change_commit_scene_rear_max_range_m: 60.0
+# A CHANGE_NOW command is forbidden while ACC is still in a hard/lane-end
+# braking transient or the measured speed has not converged to ACC's target.
+change_commit_acc_stable_sec: 0.50
+change_commit_acc_speed_error_mps: 1.50
+change_commit_acc_max_decel_mps2: 1.00
+
+# Highway pass-gap commit.  When a faster, continuously observed target-lane
+# vehicle changes role from rear -> overlap -> front, preserve the lane-pair
+# observation clock and evaluate the opening behind it immediately.  The next
+# target-lane rear vehicle is still subject to the full time-based rear gap,
+# TTC, and every-step stochastic-risk constraints.
+pass_gap_enabled: true
+pass_gap_min_relative_speed_mps: 2.0
+pass_gap_front_max_distance_m: 40.0
+pass_gap_entry_front_clearance_m: 2.0
+pass_gap_lane_pair_observation_sec: 1.5
+# 추월 차량이 아직 멀어지는 중(tv 속도 > 자차 예측속도)인 스텝에서는
+# occupancy 램프를 적용하지 않고 진입 클리어런스 2.0 m 만 요구한다.
+# TTC 검사, 2.0 m 클리어런스, front_brake 모드의 확률적 위험도는 유지.
+# false 면 기존 램프 동작.
+pass_gap_skip_ramp_while_receding: true
+
+# 위험도 평가에서 자차의 종방향 반응을 모델링한다.  전방 차량이 어떤 모드에서
+# 자차보다 느려지면, 지연 후 제한된 감속으로 따라간다고 본다.  상대 차량의
+# 의도가 아니라 자차 ACC 의 확정 동작이므로 가정이 아니다.  감속 한계는 ACC
+# 실제값(braking_decel 3.8)보다 보수적으로 잡는다.  전방 역할 차량에만 적용하며
+# 후방 차량 판정은 그대로 두므로 뒤차 쪽이 느슨해지지 않는다.
+ego_brake_reaction_enabled: true
+ego_brake_reaction_delay_sec: 0.5
+ego_brake_reaction_max_decel_mps2: 4.0   # 실측: 자차 감속 p50 2.69, p90 9.28. 상대차 가정(2.5)보다 커야 속도차가 좁혀진다.
+
+# Rear entry margin = base gap + conservative closing speed *
+# (remaining lateral-manoeuvre time + perception/control delay).
+rear_gap_perception_control_delay_sec: 0.50
+# A close newly-created rear track does not get trusted at its initial zero or
+# noisy velocity estimate.  For 0.8 s use a highway closing-speed upper bound.
+new_rear_track_guard_sec: 0.80
+new_rear_track_max_gap_m: 40.0
+new_rear_track_closing_upper_mps: 15.0
+# Match target_selector's perception-only extension when rolling out a rear
+# TV whose Frenet s is before the target CSV start.
+tv_lane_projection_extension_before_m: 100.0
+
+# Keep the nominal TV model longitudinal-only for now.  This separate
+# measurement gate does not assign a lateral mode/probability: it simply
+# vetoes a new merge when a measured nearby rear is already entering the
+# target-lane corridor during ego's planned blend.
+observed_cutin_safety_enabled: true
+# 0.25 m/s reaches 1.1 m during the 4.5 s merge look-ahead.  Treat a close
+# rear vehicle with this measured lateral motion as an ambiguous target-lane
+# intrusion; this is a deterministic interlock, not a TV lateral mode.
+observed_cutin_min_lateral_speed_mps: 0.25
+observed_cutin_max_entry_time_sec: 4.5
+observed_cutin_max_rear_distance_m: 60.0
+
+# Do not relax target-lane rear safety at highway speed. A previous merge
+# priority could reduce the rear requirement while ego was moving laterally.
+merge_priority_enabled: false
+merge_priority_rear_safe_gap_m: 4.5
+merge_priority_rear_min_gap_m: 4.0
+merge_priority_rear_max_closing_mps: 3.5
+merge_priority_rear_min_ttc_sec: 1.8
+merge_priority_rear_risk_scale: 0.10
+merge_priority_nearby_rear_risk_scale: 0.05
+
+# A stopped/slow ego needs much more room to launch and finish a 4 s merge.
+# Below 6 m/s, do not start a slow lateral manoeuvre unless the target-lane
+# rear remains clear for the manoeuvre plus a 1 s reserve.
+low_speed_rear_safety_enabled: true
+low_speed_rear_ego_speed_mps: 6.0
+low_speed_rear_safe_gap_m: 15.0
+low_speed_rear_min_ttc_sec: 5.0
+
+# Ego current-lane ownership priority: in multi-lane merge zones, side-lane
+# vehicles that are trying to enter ego's current lane should not make ego yield
+# too early. They still become hard hazards once they are very close in front.
+ego_lane_priority_enabled: true
+ego_lane_priority_current_max_abs_d_m: 1.25
+ego_lane_priority_front_hard_gap_m: 8.0
+ego_lane_priority_side_risk_scale: 0.08
+
+# V2 trajectory rollout.
+lane_width_m: 3.5
+lane_change_duration_sec: 2.5          # fallback when use_waypoint_linear_blend=false
+use_waypoint_linear_blend: true        # legacy fallback only; normal path uses /path_switch_preview
+waypoint_blend_steps: 120               # legacy fallback matching waypoint_system/config/base.yaml
+waypoint_blend_rate_hz: 30.0           # legacy fallback
+waypoint_blend_duration_sec: 4.0       # legacy candidate-duration fallback
+lane_center_decay_tau_sec: 1000000.0   # Hold target-vehicle d; no lane-centering drift.
+
+# SMPC must evaluate the reference that waypoint_system will actually pass to
+# the MPC.  A stale/missing preview fails closed for CHANGE_LEFT rather than
+# falling back to an independent CSV centre-line blend.
+ego_reference_preview_enabled: true
+ego_reference_preview_required_for_change: true
+ego_reference_preview_topic: /path_switch_preview
+ego_reference_preview_timeout_sec: 0.50
+# The measured 0->1 manoeuvre reached |target d|<0.5 m in 4.15 s while the
+# waypoint preview nominally says 4.0 s.
+ego_reference_preview_duration_scale: 1.04
+# Must match waypoint_system/config/base.yaml.  A stopped ego does not consume
+# a time blend until it has actually started moving.
+ego_reference_preview_motion_start_speed_mps: 0.20
+ego_reference_preview_motion_start_distance_m: 0.30
+# Must match ACC's endpoint_connector_speed_cap_mps/max_accel contract.  This
+# models a stopped endpoint handoff as a spatial connector with 0 -> 7.0 m/s
+# launch, never as a lateral-only zero-speed transition.
+# ACC 의 endpoint_connector_speed_cap_mps / endpoint_connector_max_accel_mps2 와
+# 짝이다.  connector 길이를 10 -> 20 m 로 늘리면서 ACC 를 7.0 / 4.0 으로 올렸으므로
+# 여기도 같이 올린다.  4.0 / 2.0 으로 두면 완주 시간이 6.14 s 가 되어
+# 0.55(execution_delay) + 6.14 + 1.50(post_merge_buffer) = 8.19 s > 8.0 s 지평을
+# 넘어 connector_horizon_short 로 빈 궤적이 되고, 정지 상태 차선변경이 아예
+# 불가능해진다(lc_gt 2026-09-08-17-37 에서 764 프레임).  7.0 / 4.0 이면 3.82 s 로
+# 합계 5.87 s, 여유 2.13 s.
+stopped_launch_connector_speed_cap_mps: 7.0
+stopped_launch_connector_max_accel_mps2: 4.0
+stopped_launch_connector_max_preswitch_distance_m: 0.50
+# Do not approve a normal 4 s BLEND if the ego prediction remains on the
+# source lane (for example, stationary with no motion-clock start). A stopped
+# lane-end change must use waypoint_system's CONNECTOR preview and reach the
+# target lane plus post-merge buffer within the horizon.
+ego_reference_preview_require_target_completion: true
+ego_reference_preview_target_completion_max_abs_d_m: 0.75
+
+# Receding-horizon behavior candidates.  t_LC means the predicted start of
+# the path transition, not a future lane-change reservation: the supervisor
+# still receives CHANGE_LEFT only after a fresh CHANGE_NOW check.
+behavior_planner_enabled: true
+# Enable validated YIELD/HOLD preparation execution.  ACC retains all
+# lead/TTC/lane-end hard safety authority and rechecks this request every cycle.
+behavior_execute_decel_hold: true
+# A bounded acceleration candidate is executable only for a closing target
+# rear, only outside the emergency-close region, and still loses to every
+# front/ACC hard-safety limit.
+behavior_execute_accel: true
+# Keep the legacy mode-max scalar only for telemetry/comparison.  Feasibility
+# is decided by the time-indexed risk gate and deterministic safety gates.
+behavior_require_legacy_risk_gate: false
+behavior_min_signed_clearance_m: 0.0
+# Includes supervisor confirmation/path-switch latency in the candidate model.
+behavior_execution_delay_sec: 0.55
+# 2.0 s t_LC + 0.55 s delay + 4.16 s measured blend + 1.5 s buffer = 8.21 s.
+behavior_post_merge_buffer_sec: 1.5
+# Legacy fallback if no candidate list is supplied.  Normal operation tests
+# the lightest comfortable YIELD first; ACC rate-limits the selected request.
+behavior_decel_accel_mps2: -0.8
+behavior_yield_decel_candidates_mps2: [-0.25, -0.40, -0.60, -0.80]
+# This applies only to SMPC's non-emergency YIELD request.  ACC lead/TTC and
+# lane-end emergency braking retain their independent, stronger limits.
+behavior_yield_comfort_max_decel_mps2: 0.80
+# A continuously re-evaluated YIELD may not ratchet below this episode's
+# entry speed minus the following amount.  It prevents a highway lane change
+# from degrading into a very-low-speed merge without a separate ACC hazard.
+behavior_yield_max_speed_drop_mps: 3.0
+# A YIELD candidate must retain the same target-lane front/rear association
+# for this interval before it can lower ACC's speed cap. Until then SMPC stays
+# in WAIT_FOR_GAP and preserves ordinary ACC speed.
+behavior_yield_confirm_sec: 0.6
+behavior_hold_accel_mps2: 0.0
+behavior_accel_accel_mps2: 1.0
+behavior_rear_accel_min_closing_mps: 1.0
+behavior_rear_accel_gain: 0.25
+behavior_rear_accel_min_mps2: 0.40
+behavior_rear_accel_emergency_ttc_sec: 2.0
+# With a closing rear the order is CHANGE_NOW -> bounded ACCEL -> HOLD -> WAIT;
+# YIELD is prohibited because it worsens rear closing. Otherwise HOLD remains
+# ahead of YIELD. Within one action, the lowest-cost t_LC is selected.
+behavior_lc_start_times_sec: [0.4, 0.8, 1.2, 1.6, 2.0]
+behavior_delay_cost_weight: 1.0
+behavior_accel_cost_weight: 0.25
+# ACC acknowledges whether its lower target is this exact behavior cap or an
+# independent safety restriction.  Required before behavior execution is on.
+behavior_status_topic: "/smpc/behavior_longitudinal_status"
+behavior_status_timeout_sec: 0.35
+
+# Multimodal TV prediction modes.
+# Front vehicles: {nominal, braking}; rear vehicle: {nominal, accelerating}.
+# The two base probabilities below are now only priors.  The decision node
+# increases/decreases them using gap, TTC, relative speed, and observed v_long
+# trend from LiDAR tracking history.
+front_brake_probability: 0.25
+rear_accel_probability: 0.25
+min_front_brake_probability: 0.05
+max_front_brake_probability: 0.65
+min_rear_accel_probability: 0.05
+max_rear_accel_probability: 0.65
+front_brake_accel_mps2: -2.5
+rear_accel_mps2: 2.0
+nominal_target_accel_mps2: 0.0
+ego_assumed_accel_mps2: 0.0
+probability_ttc_safe_sec: 5.0
+probability_ttc_critical_sec: 1.5
+probability_rel_speed_scale_mps: 8.0
+probability_accel_scale_mps2: 3.0
+observed_accel_alpha: 0.35
+max_observed_accel_mps2: 6.0
+
+# Ego prediction rollout for KEEP/CHANGE evaluation only.
+# 실제 /ctrl_cmd를 바꾸는 값이 아니라, SMPC가 "내 차가 앞으로 어떻게 움직일 것인가"를
+# 평가할 때 쓰는 가정이다. true이면 현재 속도가 0이어도 mission_state 속도까지
+# 아래 가속 한계로 회복한다고 보고, 제자리 lateral-only 차선변경 예측을 피한다.
+ego_prediction_use_mission_speed_rollout: true
+ego_prediction_max_accel_mps2: 2.4
+ego_prediction_max_decel_mps2: 9.0
+
+# Optional lateral/cut-in mode.  For this fitting pass, target vehicles are
+# assumed to never change lanes: no observed_lateral mode is generated and
+# their current Frenet d offset is kept almost constant over the horizon.
+lateral_mode_enabled: false
+lateral_mode_probability: 0.0
+max_lateral_mode_probability: 0.0
+lateral_mode_v_threshold_mps: 0.90
+yaw_lateral_threshold_rad: 0.28
+yaw_lateral_probability_gain: 0.04
+max_lateral_prediction_mps: 0.0
+lateral_mode_allow_nearby: false
+lateral_mode_allow_rear: false
+lateral_mode_allow_yaw_only: false
+lateral_mode_min_abs_d_m: 1.40
+lateral_mode_require_yaw_agreement: true
+lateral_mode_require_away_from_center: true
+tv_yaw_rate_weight: 0.05
+tv_csv_yaw_weight: 0.40
+tv_no_lateral_probability_floor: 1.00
+tv_yaw_rate_horizon_sec: 0.8
+max_abs_tv_yaw_rate: 0.6
+
+# Gaussian prediction uncertainty used for chance-risk estimates.
+prediction_sigma_base_m: 0.5
+prediction_sigma_growth_mps: 0.35
+# Mode-specific longitudinal 1-sigma envelopes fitted from time-matched TV
+# residuals in lc_debug_20260904_113630.bag. Brake events were not numerous
+# enough to fit independently, so they conservatively use the nominal bound.
+prediction_nominal_sigma_base_m: 0.60
+prediction_nominal_sigma_growth_mps: 0.55
+prediction_front_brake_sigma_base_m: 0.75
+prediction_front_brake_sigma_growth_mps: 0.70
+prediction_rear_accel_sigma_base_m: 0.65
+prediction_rear_accel_sigma_growth_mps: 0.45
+prediction_lateral_sigma_base_m: 0.25
+prediction_lateral_sigma_growth_mps: 0.10
+collision_margin_m: 0.45
+
+# Cost shaping for KEEP vs CHANGE_LEFT.
+lane_change_base_cost: 0.5
+risk_cost_weight: 80.0
+gap_cost_weight: 2.5
+blocked_cost_weight: 35.0
+lane_end_prepare_cost: 60.0
+lane_end_urgent_cost: 180.0
+lane_end_emergency_cost: 500.0
+decision_hysteresis_cost: 0.1
+
+# RViz debug text marker near ego.
+debug_publish_marker: true
+debug_marker_lifetime_sec: 0.5
+debug_marker_height_m: 4.0
+
+# RViz ego/target future prediction markers.
+debug_prediction_publish_markers: true
+debug_prediction_marker_lifetime_sec: 0.5
+debug_prediction_line_width_m: 0.25
+debug_prediction_z_m: 0.35
+debug_prediction_footprint_height_m: 0.15
+debug_prediction_ego_footprint_stride: 5
+debug_prediction_target_footprint_stride: 5
+debug_prediction_target_max_vehicles: 20
+debug_prediction_show_target_modes: true
+debug_prediction_show_labels: true

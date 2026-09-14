@@ -1,0 +1,131 @@
+# 상대 차량 yaw 는 조건 없이 항상 차선 접선 100% 를 쓴다.
+# blend_weight/lane_change_weight_scale 를 1.0 으로, max_error_rad 를 pi 이상으로
+# 두어 게이트와 감쇠를 모두 무력화한다.  PCA 각도는 사용하지 않는다.
+waypoint_directory: ""
+target_source: "tracked_objects"   # tracked_objects/lidar or object_topic/morai
+tracked_objects_topic: "/tracked_objects"
+object_topic: "/Object_topic"
+odom_topic: "/odom"
+state_topic: "/gps_state"
+lane_half_width: 2.2
+max_front_range: 120.0
+max_rear_range: 120.0
+# Perception-only tangent extension behind a target CSV start.  This lets the
+# selector keep fast rear traffic in the target-lane set before it reaches the
+# first merge waypoint; the MPC's 0.1 m path is not changed.
+target_lane_projection_extension_before_m: 100.0
+min_tracked_hits: 2
+tracked_dynamic_only: false        # false keeps stopped vehicles/static obstacles available for ACC safety
+# A partly occluded vehicle can expose less than 1 m of its true length.  The
+# tracker confidence below removes pole/wall noise before it reaches SMPC.
+min_object_length_m: 0.7
+max_object_length_m: 15.0
+min_object_width_m: 0.4
+max_object_width_m: 3.5
+
+# A partially observed vehicle's measured extent swings across the size limits
+# between scans, and failing the filter removes it from every role at once, so
+# one physical vehicle is torn out of target_front/target_rear and reinstated a
+# frame later.  A vehicle already holding one of those roles may shrink this
+# much further before it is discarded.  Measured on lc_debug_20260904 and
+# smpc_debug: role switches 78->58 and 72->58, same-id flaps 10->2 and 12->5.
+sticky_role_selection_enabled: true
+sticky_role_size_hysteresis_m: 0.15
+tracked_vehicle_filter_enabled: true
+tracked_vehicle_min_confidence: 0.60
+# 0.42~0.60: no multi-vehicle prediction, but retain it as a conservative
+# current/target-lane obstacle.  <0.42: reject geometry that looks structural.
+tracked_unknown_obstacle_min_confidence: 0.42
+align_tracked_yaw_with_velocity: true
+min_yaw_align_speed_mps: 1.0
+bbox_overlap_margin_m: 0.2
+
+# Representative current_front/target_front/target_rear should be vehicles
+# established near that lane center.  Boundary-touching adjacent-lane vehicles
+# remain in nearby_vehicles for SMPC trajectory-risk evaluation, but they should
+# not be promoted to ACC front leads.
+representative_lane_center_filter_enabled: true
+representative_lane_center_max_abs_d_m: 1.35
+# 길고 납작한 트랙은 대표 차량으로 승격시키지 않는다.  VLP-16 링 한 줄이 여러
+# 물체를 가로질러 그은 선분이라 위치와 속도가 함께 틀린다.  lc_gt 14-18 실측:
+# 걸린 current_front 13건 모두 GT 대비 속도 부호/크기가 어긋났고 10건이 ACC
+# 하드 브레이크를 유발(목표속도 0).  target_front 는 실차 손실 0.
+# 대형차는 근거리에서 높이가 잡히므로 걸리지 않는다.  0 이면 비활성.
+representative_flat_max_length_m: 8.0
+representative_flat_height_m: 0.25
+target_lane_offset: 1
+yaw_rate_alpha: 0.15
+max_abs_yaw_rate: 0.6
+
+# Stabilize LiDAR PCA OBB yaw before publishing /smpc/targets and RViz vehicle markers.
+# Raw PCA yaw is noisy/180-deg ambiguous, especially under partial occlusion.  Fuse it
+# with velocity heading and nearby lane yaw, then apply an angular EMA.
+stabilize_tracked_yaw: true
+tracked_yaw_filter_alpha: 0.18
+tracked_yaw_history_timeout_sec: 1.0
+tracked_yaw_max_step_rad: 0.07
+tracked_yaw_velocity_blend_weight: 0.25
+tracked_yaw_lane_blend_weight: 1.0
+tracked_yaw_lane_max_error_rad: 3.15
+tracked_yaw_lateral_reduction_gain: 0.0
+tracked_yaw_lateral_speed_reduce_mps: 0.8
+# At 8 Hz, retain the directed CSV lane-heading prior for 12 hits (about
+# 1.5 s), preventing raw PCA yaw from taking over immediately.  Lane-change
+# evidence is ignored until the 12-hit initial yaw-prior window has completed,
+# then must persist for three frames;
+# it must then be absent for five frames before normal lane-yaw stabilization
+# resumes. This keeps initial Kalman lateral-velocity noise from bypassing the
+# directed lane-yaw prior.
+tracked_yaw_lane_prior_hits: 12
+tracked_yaw_lane_change_boundary_abs_d_m: 1.0
+tracked_yaw_lane_change_lateral_speed_mps: 0.35
+tracked_yaw_lane_change_weight_scale: 1.0
+tracked_yaw_lane_change_confirm_hits: 3
+tracked_yaw_lane_change_release_hits: 5
+tracked_yaw_lane_change_min_track_hits: 12
+
+# Low-confidence PCA yaw is common with sparse/partially occluded VLP16 clusters.
+# Preserve the existing high-confidence behavior; below this band use velocity
+# while moving and the directed lane tangent while slow/stopped.
+tracked_yaw_confidence_enabled: true
+tracked_yaw_confidence_low: 0.35
+tracked_yaw_confidence_high: 0.70
+tracked_yaw_low_confidence_velocity_blend_weight: 0.70
+# A moving q<=low target starts from velocity heading; retain this limited lane
+# pull (rather than snapping it all the way back to the lane tangent).
+tracked_yaw_low_confidence_lane_blend_weight: 1.0
+tracked_yaw_velocity_min_hits: 3
+
+# Lanes 0,1,2 must change left before their CSV endpoint; lane 3 is terminal.
+final_lane_id: 3
+lane_end_prepare_time_sec: 8.0
+lane_end_urgent_time_sec: 5.0
+lane_end_emergency_time_sec: 1.0
+lane_end_prepare_distance_m: 400.0
+lane_end_urgent_distance_m: 120.0
+lane_end_emergency_distance_m: 15.0
+
+# Vehicle candidates beyond the representative current/target gap vehicles.
+nearby_front_range: 150.0
+nearby_rear_range: 120.0
+nearby_lane_margin_m: 1.0
+max_nearby_vehicles: 40
+
+# PCA OBB yaw is 180 deg ambiguous and noisy for slow/stopped traffic.
+lane_yaw_align_when_slow: true
+lane_yaw_align_max_speed_mps: 1.5
+lane_yaw_align_weight: 0.85
+
+# RViz debug visualization.
+debug_publish_csv_paths: true
+debug_show_csv_file_path: true
+debug_show_ego_vehicle: true
+debug_show_nearby_vehicles: true
+debug_show_nearby_labels: false
+debug_use_vehicle_mesh: true
+debug_vehicle_mesh_resource: "package://smpc_lane_change/meshes/debug_vehicle.stl"
+debug_marker_lifetime_sec: 0.5
+debug_vehicle_height_m: 1.5
+debug_label_height_m: 2.5
+debug_csv_path_z_m: 0.05
+debug_max_csv_points_per_lane: 2500
