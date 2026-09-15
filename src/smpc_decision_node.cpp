@@ -104,6 +104,8 @@ class SmpcDecisionNode {
                change_commit_acc_speed_error_mps_, 1.50);
     pnh_.param("change_commit_acc_max_decel_mps2",
                change_commit_acc_max_decel_mps2_, 1.00);
+    pnh_.param("change_commit_allow_lane_end_wait_decel",
+               change_commit_allow_lane_end_wait_decel_, false);
     pnh_.param("pass_gap_enabled", pass_gap_enabled_, true);
     pnh_.param("pass_gap_min_relative_speed_mps",
                pass_gap_min_relative_speed_mps_, 2.0);
@@ -111,6 +113,10 @@ class SmpcDecisionNode {
                pass_gap_front_max_distance_m_, 40.0);
     pnh_.param("pass_gap_entry_front_clearance_m",
                pass_gap_entry_front_clearance_m_, 2.0);
+    pnh_.param("pass_gap_entry_relative_speed_time_sec",
+               pass_gap_entry_relative_speed_time_sec_, 0.0);
+    pnh_.param("pass_gap_entry_length_margin_m",
+               pass_gap_entry_length_margin_m_, 0.0);
     pnh_.param("pass_gap_lane_pair_observation_sec",
                pass_gap_lane_pair_observation_sec_, 1.5);
     pnh_.param("rear_gap_perception_control_delay_sec",
@@ -181,6 +187,10 @@ class SmpcDecisionNode {
                ego_reference_preview_motion_start_distance_m_, 0.30);
     pnh_.param("stopped_launch_connector_speed_cap_mps",
                stopped_launch_connector_speed_cap_mps_, 2.0);
+    // Optional per-target-lane override, indexed by target lane id.  Must be
+    // identical to ACC's endpoint_connector_speed_cap_by_target_lane_mps.
+    pnh_.getParam("stopped_launch_connector_speed_cap_by_target_lane_mps",
+                  stopped_launch_connector_speed_cap_by_target_lane_mps_);
     pnh_.param("stopped_launch_connector_max_accel_mps2",
                stopped_launch_connector_max_accel_mps2_, 1.5);
     pnh_.param("stopped_launch_connector_max_preswitch_distance_m",
@@ -303,6 +313,12 @@ class SmpcDecisionNode {
     pnh_.param("max_rear_accel_probability", max_rear_accel_probability_, 0.65);
     pnh_.param("front_brake_accel_mps2", front_brake_accel_mps2_, -2.0);
     pnh_.param("rear_accel_mps2", rear_accel_mps2_, 1.5);
+    pnh_.param("rear_accel_probability_by_accel_enabled",
+               rear_accel_probability_by_accel_enabled_, false);
+    pnh_.getParam("rear_accel_probability_accel_breaks_mps2",
+                  rear_accel_probability_accel_breaks_mps2_);
+    pnh_.getParam("rear_accel_probability_by_accel",
+                  rear_accel_probability_by_accel_);
     pnh_.param("nominal_target_accel_mps2", nominal_target_accel_mps2_, 0.0);
     pnh_.param("ego_assumed_accel_mps2", ego_assumed_accel_mps2_, 0.0);
     pnh_.param("ego_prediction_use_mission_speed_rollout",
@@ -310,6 +326,10 @@ class SmpcDecisionNode {
                true);
     pnh_.param("ego_prediction_max_accel_mps2", ego_prediction_max_accel_mps2_, 2.5);
     pnh_.param("ego_prediction_max_decel_mps2", ego_prediction_max_decel_mps2_, 2.0);
+    pnh_.param("change_rollout_target_lane_speed_enabled",
+               change_rollout_target_lane_speed_enabled_, false);
+    pnh_.param("change_rollout_release_fraction",
+               change_rollout_release_fraction_, 1.0);
     pnh_.param("probability_ttc_safe_sec", probability_ttc_safe_sec_, 5.0);
     pnh_.param("probability_ttc_critical_sec", probability_ttc_critical_sec_, 1.5);
     pnh_.param("probability_rel_speed_scale_mps", probability_rel_speed_scale_mps_, 8.0);
@@ -1016,6 +1036,16 @@ class SmpcDecisionNode {
       return out;
     }
 
+    return speedTargetRollout(v0, tau, target_speed_mps);
+  }
+
+  // Speed-target rollout from an arbitrary initial speed: accelerate or brake
+  // at the prediction limits until v_ref, then hold it.
+  LongitudinalRollout speedTargetRollout(double v0, double tau,
+                                         double target_speed_mps) const {
+    LongitudinalRollout out;
+    v0 = std::max(0.0, v0);
+    tau = std::max(0.0, tau);
     const double v_ref = std::max(0.0, target_speed_mps);
     constexpr double kSpeedEps = 0.05;
 
@@ -1171,6 +1201,48 @@ class SmpcDecisionNode {
     return out;
   }
 
+  // ACC keeps the current-lane lead until the supervisor completes the lane
+  // change (target_selector holds the source lane while active).  After that
+  // the ego is no longer behind it and recovers toward the target-lane flow:
+  // never faster than the target-lane front vehicle, never slower than the
+  // pre-change cap.
+  double changePostCompletionSpeedMps(const smpc_lane_change::TargetVehicleSet& t,
+                                      double pre_cap_mps) const {
+    double post = currentTargetSpeedMps();
+    if (t.target_front.valid && std::isfinite(t.target_front.v_long)) {
+      post = std::min(post, std::max(0.0, t.target_front.v_long));
+    }
+    return std::max(pre_cap_mps, post);
+  }
+
+  // CHANGE_NOW rollout: the pre-change cap until release (start + fraction of
+  // the lane-change duration), then speedTargetRollout toward the
+  // post-completion speed.  Preparation candidates keep their persistent
+  // worst-case model.
+  LongitudinalRollout changeAwareRollout(const smpc_lane_change::TargetVehicleSet& t,
+                                         double tau, double pre_cap_mps,
+                                         const ActionSpec& spec) const {
+    if (!change_rollout_target_lane_speed_enabled_ ||
+        !ego_prediction_use_mission_speed_rollout_ || !spec.change_left ||
+        spec.action != BehaviorAction::kChangeNow) {
+      return actionLongitudinalRollout(tau, pre_cap_mps, spec);
+    }
+    const double duration = spec.lane_change_duration_sec > 1e-3
+        ? spec.lane_change_duration_sec
+        : egoChangeBlendDuration();
+    const double release_sec = effectiveLaneChangeStartSec(spec) +
+        std::clamp(change_rollout_release_fraction_, 0.0, 1.0) * duration;
+    if (tau <= release_sec) return actionLongitudinalRollout(tau, pre_cap_mps, spec);
+    const LongitudinalRollout pre =
+        actionLongitudinalRollout(release_sec, pre_cap_mps, spec);
+    const LongitudinalRollout post = speedTargetRollout(
+        pre.v, tau - release_sec, changePostCompletionSpeedMps(t, pre_cap_mps));
+    LongitudinalRollout out;
+    out.v = post.v;
+    out.ds = pre.ds + post.ds;
+    return out;
+  }
+
   LongitudinalRollout actionLongitudinalRollout(double tau,
                                                 double safe_speed_cap_mps,
                                                 const ActionSpec& spec) const {
@@ -1191,10 +1263,20 @@ class SmpcDecisionNode {
                                      behaviorYieldSpeedFloorMps(spec));
   }
 
+  double stoppedLaunchConnectorCapMps(int target_lane) const {
+    const auto& by_lane = stopped_launch_connector_speed_cap_by_target_lane_mps_;
+    if (target_lane >= 0 && target_lane < static_cast<int>(by_lane.size()) &&
+        by_lane[target_lane] > 0.0) {
+      return by_lane[target_lane];
+    }
+    return std::max(0.0, stopped_launch_connector_speed_cap_mps_);
+  }
+
   LongitudinalRollout connectorLaunchRollout(double tau,
                                              double safe_speed_cap_mps,
                                              const ActionSpec& spec,
-                                             double lane_change_start_sec) const {
+                                             double lane_change_start_sec,
+                                             int target_lane = -1) const {
     const double start = std::max(0.0, lane_change_start_sec);
     if (tau <= start + 1e-6) {
       return actionLongitudinalRollout(tau, safe_speed_cap_mps, spec);
@@ -1207,7 +1289,7 @@ class SmpcDecisionNode {
         actionLongitudinalRollout(start, safe_speed_cap_mps, spec);
     const double elapsed = tau - start;
     const double accel = std::max(0.0, stopped_launch_connector_max_accel_mps2_);
-    const double cap = std::max(0.0, stopped_launch_connector_speed_cap_mps_);
+    const double cap = stoppedLaunchConnectorCapMps(target_lane);
     const double v0 = std::max(0.0, pre_switch.v);
 
     LongitudinalRollout out;
@@ -1226,12 +1308,13 @@ class SmpcDecisionNode {
   }
 
   double connectorTravelTimeSec(double initial_speed_mps,
-                                double distance_m) const {
+                                double distance_m,
+                                int target_lane = -1) const {
     const double distance = std::max(0.0, distance_m);
     if (distance <= 1e-6) return 0.0;
     const double v0 = std::max(0.0, initial_speed_mps);
     const double accel = std::max(0.0, stopped_launch_connector_max_accel_mps2_);
-    const double cap = std::max(0.0, stopped_launch_connector_speed_cap_mps_);
+    const double cap = stoppedLaunchConnectorCapMps(target_lane);
     if (v0 >= cap - 1e-6) {
       return v0 > 1e-6 ? distance / v0 : std::numeric_limits<double>::infinity();
     }
@@ -1291,6 +1374,23 @@ class SmpcDecisionNode {
   double adaptiveEventProbability(const smpc_lane_change::TargetVehicle& v) const {
     const bool rear = v.role.find("rear") != std::string::npos;
     const double accel_obs = observedLongitudinalAccel(v);
+
+    if (rear && rear_accel_probability_by_accel_enabled_ &&
+        rear_accel_probability_by_accel_.size() ==
+            rear_accel_probability_accel_breaks_mps2_.size() + 1) {
+      // Observed-accel table fitted to target-lane rear vehicles: the event is
+      // "5 s later at least half the rear_accel displacement beyond constant
+      // speed", keyed on the same filtered accel used here.  Closing speed,
+      // TTC and gap were not predictive of that event, so the table replaces
+      // the base + pressure sum (which saturated at the max for most samples).
+      std::size_t bin = 0;
+      while (bin < rear_accel_probability_accel_breaks_mps2_.size() &&
+             accel_obs >= rear_accel_probability_accel_breaks_mps2_[bin]) {
+        ++bin;
+      }
+      return std::clamp(rear_accel_probability_by_accel_[bin],
+                        min_rear_accel_probability_, max_rear_accel_probability_);
+    }
 
     if (rear) {
       const double gap = std::max(0.0, rearBumperGap(v));
@@ -1501,6 +1601,25 @@ class SmpcDecisionNode {
         reason.find("emergency") != std::string::npos;
   }
 
+  // The lane_end_wait_* profile (lane_end_comfort_decel ~2.5 m/s^2) is ACC
+  // holding for this very gap, not a hazard brake, and ACC releases it on
+  // CHANGE_LEFT.  Exempting it from the decel gate lets a merge that becomes
+  // feasible while slowing commit before the ego stops (lc_gt 2026-09-15
+  // 16-00/16-08/16-14: target lane clear for ~1 s at 4-5 m/s before the stop,
+  // blocked only by this gate).  Emergency stop/creep variants stay blocked.
+  bool accPlannedLaneEndWaitDecel() const {
+    if (!change_commit_allow_lane_end_wait_decel_ || !have_behavior_status_) return false;
+    std::string reason = behavior_status_.reason;
+    std::transform(reason.begin(), reason.end(), reason.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return reason.rfind("lane_end_wait", 0) == 0 &&
+        reason.find(":stop") == std::string::npos &&
+        reason.find(":creep") == std::string::npos &&
+        reason.find("emergency") == std::string::npos &&
+        reason.find("hard") == std::string::npos &&
+        reason.find("rapid") == std::string::npos;
+  }
+
   bool accStableForChangeCommit() {
     const ros::Time now = ros::Time::now();
     bool stable_now = have_behavior_status_ &&
@@ -1520,8 +1639,9 @@ class SmpcDecisionNode {
         // the decel gate below plus the hard/rapid/emergency check above
         // still cover that.  Restore this term only together with a rate
         // limit on the ACC target.
-        ego_longitudinal_accel_mps2_ >=
-            -std::max(0.0, change_commit_acc_max_decel_mps2_);
+        (accPlannedLaneEndWaitDecel() ||
+         ego_longitudinal_accel_mps2_ >=
+             -std::max(0.0, change_commit_acc_max_decel_mps2_));
     if (!stable_now) {
       acc_commit_stable_since_ = ros::Time(0.0);
       return false;
@@ -2065,7 +2185,7 @@ class SmpcDecisionNode {
       const double join_distance = std::max(
           0.0, preview.connector_join_arc_m - connector_origin_arc);
       const double completion_time = connectorTravelTimeSec(
-          pre_switch_rollout.v, join_distance);
+          pre_switch_rollout.v, join_distance, preview.target_lane_id);
       const double horizon_sec = std::max(1, horizon_steps_) * prediction_dt_sec_;
       if (!std::isfinite(completion_time) ||
           lane_change_start_sec + completion_time + behavior_post_merge_buffer_sec_ >
@@ -2087,8 +2207,9 @@ class SmpcDecisionNode {
       const LongitudinalRollout rollout =
           preview.mode == waypoint_system::PathSwitchPreview::CONNECTOR
           ? connectorLaunchRollout(tau, target_speed_mps, spec,
-                                   lane_change_start_sec)
-          : actionLongitudinalRollout(tau, target_speed_mps, spec);
+                                   lane_change_start_sec,
+                                   preview.target_lane_id)
+          : changeAwareRollout(t, tau, target_speed_mps, spec);
 
       PredPose p;
       if (!after_switch) {
@@ -2224,7 +2345,7 @@ class SmpcDecisionNode {
     for (int k = 1; k <= std::max(1, horizon_steps_); ++k) {
       const double tau = prediction_dt_sec_ * static_cast<double>(k);
       const LongitudinalRollout rollout =
-          actionLongitudinalRollout(tau, ego_rollout_target_speed_mps, spec);
+          changeAwareRollout(t, tau, ego_rollout_target_speed_mps, spec);
       const double predicted_v = rollout.v;
       const double ds = rollout.ds;
 
@@ -3183,13 +3304,23 @@ class SmpcDecisionNode {
             // 즉시 원래 램프로 복귀한다.
             const bool front_receding = pass_gap_skip_ramp_while_receding_ &&
                 tv_forward_speed > ego.v;
+            // The tracker places a passing vehicle's rear too far forward
+            // (short bbox, position lag): on lc_gt 2026-09-15 0->1 merges SMPC
+            // saw a 2 m opening 0.35-0.45 s before ground truth did, while the
+            // passer (~9 m/s faster) still overlapped ego by 1-2 m.  Scale the
+            // entry clearance with the passer's relative speed; an optional
+            // fixed length margin covers the bbox error.
+            const double pass_entry_clearance =
+                std::max(0.0, pass_gap_entry_front_clearance_m_) +
+                std::max(0.0, pass_gap_entry_length_margin_m_) +
+                std::max(0.0, pass_gap_entry_relative_speed_time_sec_) *
+                    std::max(0.0, tv_forward_speed - ego.v);
             const double required_gap = passing_front
                 ? (front_receding
-                       ? std::max(0.0, pass_gap_entry_front_clearance_m_)
-                       : std::max(0.0, pass_gap_entry_front_clearance_m_) +
+                       ? pass_entry_clearance
+                       : pass_entry_clearance +
                              occupancy_progress *
-                                 std::max(0.0, full_required_gap -
-                                                    pass_gap_entry_front_clearance_m_))
+                                 std::max(0.0, full_required_gap - pass_entry_clearance))
                 : full_required_gap;
             if (!(gap > required_gap)) return false;
             const double closing = std::max(0.0, ego.v - tv_forward_speed);
@@ -3599,9 +3730,22 @@ class SmpcDecisionNode {
         effective_target_rear_safe_gap < active_target_rear_safe_gap;
 
     const bool target_lane_is_left = t.target_lane_id == t.current_lane_id + 1;
+    // A passing vehicle waives the full front gap, but it must already be
+    // ahead of the ego front by the entry clearance now.  The projected gate
+    // only checks steps after the ego reaches the target corridor, when the
+    // passer is far ahead, so it never limited this: lc_gt 2026-09-15 0->1
+    // merges were approved with the passer still 3 m alongside (GT min
+    // clearance 0.70-1.56 m).
+    const double pass_entry_clearance_now =
+        std::max(0.0, pass_gap_entry_front_clearance_m_) +
+        std::max(0.0, pass_gap_entry_length_margin_m_) +
+        std::max(0.0, pass_gap_entry_relative_speed_time_sec_) *
+            std::max(0.0, t.target_front.v_long - ego_speed_mps_);
     const bool deterministic_gap_safe =
-        (passing_front || !t.target_front.valid ||
-         target_front_gap > active_target_front_safe_gap) &&
+        (passing_front
+             ? target_front_gap >= pass_entry_clearance_now
+             : (!t.target_front.valid ||
+                target_front_gap > active_target_front_safe_gap)) &&
         (!effective_target_rear ||
          target_rear_gap > effective_target_rear_safe_gap) &&
         target_front_ttc_safe && target_front_headway_safe &&
@@ -3808,6 +3952,7 @@ class SmpcDecisionNode {
           << " rear_closing=" << target_rear_closing
           << " v_ref=" << currentTargetSpeedMps()
           << " v_rollout=" << egoPredictionTargetSpeedMps()
+          << " v_post=" << changePostCompletionSpeedMps(t, egoPredictionTargetSpeedMps())
           << " ego_rollout=" << (ego_prediction_use_mission_speed_rollout_ ? 1 : 0)
           << " ref_preview=" << (reference_preview_ready ? 1 : 0)
           << "/" << referencePreviewModeName(reference_preview_.mode)
@@ -3969,6 +4114,7 @@ class SmpcDecisionNode {
   double target_rear_min_ttc_sec_{3.0};
   double target_rear_min_headway_sec_{1.2};
   double change_commit_scene_observation_sec_{1.5};
+  bool change_commit_allow_lane_end_wait_decel_{false};
   double change_commit_vehicle_observation_sec_{0.6};
   double change_commit_observation_gap_timeout_sec_{0.35};
   double change_commit_acc_stable_sec_{0.50};
@@ -3978,6 +4124,8 @@ class SmpcDecisionNode {
   double pass_gap_min_relative_speed_mps_{2.0};
   double pass_gap_front_max_distance_m_{40.0};
   double pass_gap_entry_front_clearance_m_{2.0};
+  double pass_gap_entry_relative_speed_time_sec_{0.0};
+  double pass_gap_entry_length_margin_m_{0.0};
   double pass_gap_lane_pair_observation_sec_{1.5};
   double rear_gap_perception_control_delay_sec_{0.50};
   double new_rear_track_guard_sec_{0.80};
@@ -4024,6 +4172,7 @@ class SmpcDecisionNode {
   double ego_reference_preview_motion_start_speed_mps_{0.20};
   double ego_reference_preview_motion_start_distance_m_{0.30};
   double stopped_launch_connector_speed_cap_mps_{2.0};
+  std::vector<double> stopped_launch_connector_speed_cap_by_target_lane_mps_;
   double stopped_launch_connector_max_accel_mps2_{1.5};
   double stopped_launch_connector_max_preswitch_distance_m_{0.50};
   bool ego_reference_preview_require_target_completion_{true};
@@ -4086,6 +4235,9 @@ class SmpcDecisionNode {
 
   double front_brake_probability_{0.25};
   double rear_accel_probability_{0.25};
+  bool rear_accel_probability_by_accel_enabled_{false};
+  std::vector<double> rear_accel_probability_accel_breaks_mps2_;
+  std::vector<double> rear_accel_probability_by_accel_;
   double min_front_brake_probability_{0.05};
   double max_front_brake_probability_{0.65};
   double min_rear_accel_probability_{0.05};
@@ -4096,6 +4248,8 @@ class SmpcDecisionNode {
   double ego_assumed_accel_mps2_{0.0};
   bool ego_prediction_use_mission_speed_rollout_{true};
   double ego_prediction_max_accel_mps2_{2.5};
+  bool change_rollout_target_lane_speed_enabled_{false};
+  double change_rollout_release_fraction_{1.0};
   double ego_prediction_max_decel_mps2_{2.0};
   double probability_ttc_safe_sec_{5.0};
   double probability_ttc_critical_sec_{1.5};

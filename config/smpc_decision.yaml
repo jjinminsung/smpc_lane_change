@@ -73,7 +73,17 @@ change_commit_scene_rear_max_range_m: 60.0
 # braking transient or the measured speed has not converged to ACC's target.
 change_commit_acc_stable_sec: 0.50
 change_commit_acc_speed_error_mps: 1.50
-change_commit_acc_max_decel_mps2: 1.00
+# 1.00 -> 2.00 (2026-09-15).  lc_gt_2026-09-15-14-38-38: 차선1 에서 40 kph 앞차를
+# 따라가는 동안(14~29 s) 추종 감속 출렁임으로 acc_stabilization 이 반복돼 달리는 중
+# 차선변경 기회를 막았다.  ACC 일반 추종 감속은 lead_required_decel_limit 로 대부분
+# 1.5 m/s^2 이하.  hard/rapid/차선끝 정지 중 차단(accHardBrakeOrLaneEndActive)은 그대로.
+change_commit_acc_max_decel_mps2: 2.00
+# 차선 끝 대기 감속(lane_end_wait_*) 중에는 위 감속 조건 제외 (2026-09-15).  ACC 가
+# 이 틈을 기다리며 계획한 감속이고, CHANGE_LEFT 시 ACC 가 즉시 푼다.  최근 백
+# 16-00/16-08/16-14 에서 멈추기 직전 약 1 s (4~5 m/s) 목표차선이 비었는데 이 조건
+# 하나로 막혀 정지 후 합류했다.  비상 stop/creep/hard/rapid 는 계속 차단.
+# ACC lane_change_lane_end_cap_enabled 와 함께 켤 것 (차선 끝 blend 점프 방지).
+change_commit_allow_lane_end_wait_decel: true
 
 # Highway pass-gap commit.  When a faster, continuously observed target-lane
 # vehicle changes role from rear -> overlap -> front, preserve the lane-pair
@@ -84,6 +94,19 @@ pass_gap_enabled: true
 pass_gap_min_relative_speed_mps: 2.0
 pass_gap_front_max_distance_m: 40.0
 pass_gap_entry_front_clearance_m: 2.0
+# 추월 앞차 진입 여유 = 2.0 + length_margin + relative_speed_time * (앞차-자차 속도) (2026-09-15).
+# lc_gt 16-00/16-08/16-14 0->1: SMPC 는 GT 보다 0.35~0.45 s 먼저 "2 m 벌어짐" 을 보고 승인
+# (추월차가 ~9 m/s 빨라 GT 로는 아직 1~2 m 겹침, 최소 여유 0.7~1.6 m).  원인은 트래커
+# bbox 가 짧고(승용차 3.8 vs 4.7 m) 위치가 늦음.  0.4 s 는 그 시간차.  GT 대입 시 최소 여유
+# 3.1~3.9 m, 승인은 0.35~0.45 s 늦어짐.  차 길이 오차 1 m 는 시뮬레이터 확인 후 필요하면
+# pass_gap_entry_length_margin_m: 1.0 으로.
+# [보정] 이 여유는 "지금" 앞차 간격에도 적용한다 (궤적 전 구간 판정은 자차가 목표차선
+# 경계에 들어선 뒤만 봐서 효과가 없었음).  GT 대입 (0->1 3건 / 2->3 3건):
+#   relative_speed_time 0.0 (2 m 만): 지연 +0.53~0.57 / +0.11~0.25 s, 최소여유 3.2~5.8 / 3.9~4.6 m
+#   relative_speed_time 0.4          : 지연 +0.87~1.08 / +0.53~0.69 s, 최소여유 5.2 / 7.1~8.9 m
+# 0.4 -> 0.0 (2026-09-15, 사용자 결정): 2 m 만으로 GT 최소여유 3 m 이상, 지연 최소.
+pass_gap_entry_relative_speed_time_sec: 0.0
+pass_gap_entry_length_margin_m: 0.0
 pass_gap_lane_pair_observation_sec: 1.5
 # 추월 차량이 아직 멀어지는 중(tv 속도 > 자차 예측속도)인 스텝에서는
 # occupancy 램프를 적용하지 않고 진입 클리어런스 2.0 m 만 요구한다.
@@ -183,7 +206,19 @@ ego_reference_preview_motion_start_distance_m: 0.30
 # 넘어 connector_horizon_short 로 빈 궤적이 되고, 정지 상태 차선변경이 아예
 # 불가능해진다(lc_gt 2026-09-08-17-37 에서 764 프레임).  7.0 / 4.0 이면 3.82 s 로
 # 합계 5.87 s, 여유 2.13 s.
+# 목표 차선별 connector 속도 상한 (2026-09-15).  인덱스 = 합류하는 차선 번호.
+# 0->1 (차선1로 합류): 9.0.  정지 출발 0->1 합류 추돌 4건은 connector 구간 자차가
+#   6.6 m/s 에 묶인 채 18 m/s 로 접근하는 뒤차 앞에 들어간 것.  보정 모의에서
+#   페달 0.8 + 9 m/s 로 추돌 3건 -> 0건 (최소 간격은 여전히 0~2.3 m).
+# 1->2, 2->3: 7.0 유지.  전체를 9 로 올리면 SMPC 리플레이에서 차선1 끝 1->2 정지
+#   출발이 3/3 거부됐다 (connector preview 39.2 m 가 6.05 s coverage 를 0.02 s 차로
+#   못 채움).  차선2 는 합류 후 14~22 m 뿐이라 빨리 들어가면 급정거만 커지고,
+#   2->3 은 합류 구간 정체로 들어간다.
+# ACC endpoint_connector_speed_cap_by_target_lane_mps 와
+# SMPC stopped_launch_connector_speed_cap_by_target_lane_mps 는 반드시 같게.
+# 아래 단일 값은 목록 밖/0 이하일 때의 기본값.
 stopped_launch_connector_speed_cap_mps: 7.0
+stopped_launch_connector_speed_cap_by_target_lane_mps: [7.0, 9.0, 7.0, 7.0]
 stopped_launch_connector_max_accel_mps2: 4.0
 stopped_launch_connector_max_preswitch_distance_m: 0.50
 # Do not approve a normal 4 s BLEND if the ego prediction remains on the
@@ -257,6 +292,19 @@ min_rear_accel_probability: 0.05
 max_rear_accel_probability: 0.65
 front_brake_accel_mps2: -2.5
 rear_accel_mps2: 2.0
+# 뒤차 rear_accel 모드 확률을 관측 가속도 표로 (2026-09-15).  기존 식은
+# 0.25 + TTC/접근속도/가속도/근접 가산이라 관측값이 확률을 올리기만 했고,
+# 호환 백 9개 target_rear 1543 표본에서 중앙값이 max 0.65 로 포화.
+# 사건 정의: 5 s 뒤 등속 예측보다 12.5 m(모드 이동량 25 m 의 절반) 이상 앞.
+# 트래커 필터 가속도(여기와 같은 α0.35) 구간별 실측 / 값은 95% 상한:
+#   <-0.5: 7.7% (n391) -> 0.11 | -0.5~0.5: 11.4% (n351) -> 0.15
+#   0.5~1.0: 21.6% (n190) -> 0.28 | 1.0~1.5: 23.0% (n165) -> 0.30 | >=1.5: 26.2% (n446) -> 0.31
+# 접근속도/TTC/간격은 이 사건을 예측하지 못해 표에서 제외.  모든 값이 risk_epsilon
+# (0.04) 보다 커서 이 표만으로는 승인이 늘지 않는다 -> 반응하는 뒤차 모델과 함께.
+# 되돌리려면 enabled: false (기존 식).
+rear_accel_probability_by_accel_enabled: true
+rear_accel_probability_accel_breaks_mps2: [-0.5, 0.5, 1.0, 1.5]
+rear_accel_probability_by_accel: [0.11, 0.15, 0.28, 0.30, 0.31]
 nominal_target_accel_mps2: 0.0
 ego_assumed_accel_mps2: 0.0
 probability_ttc_safe_sec: 5.0
@@ -273,6 +321,17 @@ max_observed_accel_mps2: 6.0
 ego_prediction_use_mission_speed_rollout: true
 ego_prediction_max_accel_mps2: 2.4
 ego_prediction_max_decel_mps2: 9.0
+# CHANGE_NOW 궤적의 차선변경 완료 이후 속도 (2026-09-15).  기존에는 차선변경 후에도
+# min(순항, 현재 ACC 목표) 로 달린다고 가정해, 현재 차선의 느린 앞차 속도가 목표
+# 차선까지 이어졌다.  lc_gt_2026-09-15-14-38-38 차선1 (14~29 s): 40 kph 앞차 뒤에서
+# v_rollout 11 m/s, 목표차선 흐름 14 m/s -> 뒤차가 계속 다가오는 것으로 계산돼
+# risk 0.30~0.39 (허용 0.04), GT 간격 앞 28~57 / 뒤 18~66 m 에서도 chance_risk_high.
+# 완료 시점(시작 + fraction * 소요)까지는 기존 가정, 그 뒤로는
+# max(현재 ACC 목표, min(순항, 목표차선 앞차 속도)) 까지 ego_prediction_max_accel 로
+# 회복.  ACC 가 완료 전까지 현재 차선 앞차를 따르므로 fraction 기본 1.0.
+# 준비 후보(YIELD/HOLD/ACCEL)와 정지 출발 connector 궤적은 영향 없음.
+change_rollout_target_lane_speed_enabled: true
+change_rollout_release_fraction: 1.0
 
 # Optional lateral/cut-in mode.  For this fitting pass, target vehicles are
 # assumed to never change lanes: no observed_lateral mode is generated and

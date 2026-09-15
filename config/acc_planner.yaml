@@ -2,8 +2,18 @@ ego_length_m: 4.635
 ego_width_m: 1.892
 ego_front_extent_m: 3.845
 ego_rear_extent_m: 0.790
-standstill_gap_m: 10.0
-time_headway_sec: 3.0
+# 10.0 -> 5.0 (2026-09-15, 사용자 요청: 정지 시 5 m).  critical_gap_m 6->3,
+# emergency_gap_m 10->5 와 한 묶음.  앞차 급정거 최소간격(모의, 트래커 지연 0.9 s)
+# 10.2 -> 5.2 m 로 여유가 절반.  정체 가다서다 급제동 0 s.  되돌릴 때 셋 다 함께.
+standstill_gap_m: 5.0
+# 3.0 -> 2.0 -> 1.2 (2026-09-15).  1.2: 유지간격 11 m/s 18 m, 25 m/s 35 m (정지간격 5 m).  같은 속도 앞차 추종 시작/유지 간격 15 m/s 55->40 m,
+# 25 m/s 85->60 m.  고속도로 ACC 제한 구간 모의(10 창)에서 이동거리 +8%, 앞차보다
+# 불필요하게 느려 잃은 거리 64->37 m.  안정 추종 중 앞차 4~9 m/s^2 급정거 모의에서
+# 최소간격 13.0~15.6 m (3.0 은 13.9~18.6 m).  lead_required_decel_limit_headway_sec
+# (1.5) 보다 작게 내리면 추종 중 감속 제한이 풀리므로 함께 낮출 것.
+# 뒤차 회피 가속의 목표차선 앞차 간격 조건(max(min_target_front_gap, 차간*속도))도
+# 이 값을 쓴다.
+time_headway_sec: 1.2
 gap_gain: 1.05
 closing_speed_gap_time_sec: 1.6
 # Used by the follow-speed/braking-distance guards. A smaller assumed value
@@ -25,15 +35,37 @@ closing_decel_boost_max_decel_mps2: 11.0
 
 hard_brake_decel_mps2: 12.0
 hard_brake_bypass_filter: true
-emergency_gap_m: 10.0
+# 10.0 -> 5.0: TTC 속도 제한의 여유 거리를 정지간격과 맞춤.
+emergency_gap_m: 5.0
 
 # ACC following behavior: emergency_gap is now a strong-following zone, not an
 # automatic stop.  A full hard stop is reserved for truly critical distance/TTC.
 # These are the hard-brake gates: once crossed ACC publishes 0 m/s without
 # its speed filter so MPC emits a full brake command immediately.
-critical_gap_m: 6.0
+# 6.0 -> 3.0: 정지간격 5 m 보다 작아야 정체 추종 중 급제동이 반복되지 않는다.
+critical_gap_m: 3.0
 critical_ttc_sec: 2.2
 max_follow_speed_drop_mps: 8.0
+
+# 앞차 추종 감속을 실제로 필요한 만큼만 (2026-09-15).
+# 일반 앞차 추종(hard/rapid 아님)에서 목표속도가 떨어지는 속도를
+#   필요 감속 = 접근속도^2 / (2 * (간격 - standstill_gap - headway * 자차속도))
+# 의 gain 배(최소 min)로 제한한다.  원하는 간격/목표속도는 그대로이고 도달 속도만
+# 바뀐다.  hard/rapid 는 필터를 건너뛰므로 영향 없음.  차선 끝/SMPC/connector
+# 상한이 목표를 정할 때도 기존 한도 그대로.
+# 근거: lc_gt 백 브레이크 에피소드 163개 중 앞차 원인 87건, 트래커 간격 20 m 이상
+#   50건 중 34건이 brake>=0.5 (실측 brake 0.6 ~= 6.8 m/s^2).  예) 같은 속도 앞차
+#   45 m 에 brake 0.50, 필요 감속 0.07 m/s^2 에 brake 0.63.  원인은 3.0 s 차간 +
+#   gap_gain 1.05 + 접근속도 1->6 m/s 에서 11 m/s^2 까지 오르는 감속 한도.
+# 폐루프 모의 47건 (트래커 앞차 속도 재생): 최대 brake 중앙 0.53 -> 0.11,
+#   brake>=0.5 24 -> 12건, 새 hard 0건.  앞차 4/8 m/s^2 급정거 스트레스에서 추돌 0,
+#   10 m 미만으로 새로 내려간 건 0.  최소간격 최악 감소 34.5 -> 20.6 m.
+# 되돌리려면 enabled: false.
+lead_required_decel_limit_enabled: true
+lead_required_decel_limit_gain: 1.5
+lead_required_decel_limit_min_mps2: 1.5
+# 1.5 -> 1.2: time_headway_sec 보다 크면 추종 중 감속 제한이 풀린다.
+lead_required_decel_limit_headway_sec: 1.2
 
 # Rapid response for a lead that is first seen in front of ego (cut-in,
 # occlusion release, or delayed LiDAR detection). If TTC is below 3 s or the
@@ -78,11 +110,33 @@ behavior_request_apply_accel: true
 # 20 m 에서 0.049 1/m(반경 20.6 m).  횡가속 = v^2 * k 이므로 4.0 m/s @ 0.186 과
 # 7.0 m/s @ 0.049 는 각각 2.98 / 2.40 m/s^2 로 오히려 낮아진다.
 # 정지 출발 차선변경 소요가 약 4 초에서 2 초로 줄어 후방 노출이 절반이 된다.
+# 목표 차선별 connector 속도 상한 (2026-09-15).  인덱스 = 합류하는 차선 번호.
+# 0->1 (차선1로 합류): 9.0.  정지 출발 0->1 합류 추돌 4건은 connector 구간 자차가
+#   6.6 m/s 에 묶인 채 18 m/s 로 접근하는 뒤차 앞에 들어간 것.  보정 모의에서
+#   페달 0.8 + 9 m/s 로 추돌 3건 -> 0건 (최소 간격은 여전히 0~2.3 m).
+# 1->2, 2->3: 7.0 유지.  전체를 9 로 올리면 SMPC 리플레이에서 차선1 끝 1->2 정지
+#   출발이 3/3 거부됐다 (connector preview 39.2 m 가 6.05 s coverage 를 0.02 s 차로
+#   못 채움).  차선2 는 합류 후 14~22 m 뿐이라 빨리 들어가면 급정거만 커지고,
+#   2->3 은 합류 구간 정체로 들어간다.
+# ACC endpoint_connector_speed_cap_by_target_lane_mps 와
+# SMPC stopped_launch_connector_speed_cap_by_target_lane_mps 는 반드시 같게.
+# 아래 단일 값은 목록 밖/0 이하일 때의 기본값.
 endpoint_connector_speed_cap_mps: 7.0
+endpoint_connector_speed_cap_by_target_lane_mps: [7.0, 9.0, 7.0, 7.0]
 # Only while the endpoint connector is actively tracked, restore the target
 # speed at 4.0 m/s^2. Normal ACC recovery uses the same limit above.
 endpoint_connector_max_accel_mps2: 4.0
 endpoint_connector_status_timeout_sec: 0.5
+# 차선 끝 근처에서 주행 중 시작한 차선변경의 속도 상한 (2026-09-15).
+# waypoint blend 는 source/target 점을 인덱스로 짝짓고 source 끝 뒤로는 target 점을
+# 그대로 붙인다.  blend(4 s) 가 끝나기 전에 source 끝에 닿으면 경로에
+# (1-alpha)*차선간격 계단이 생긴다 (5.3 m/s, 29 m 전 시작 + 가속 시 alpha~0.8,
+# 약 0.7 m).  상한 = (차선끝까지 - margin) / 남은 차선변경 시간(최소 0.5 s),
+# 하한 min_cap (차선 중간 정지 방지).  차선 끝에서 멀면 상한이 순항보다 커서 무영향.
+# connector 는 자체 상한.  SMPC change_commit_allow_lane_end_wait_decel 과 한 묶음.
+lane_change_lane_end_cap_enabled: true
+lane_change_lane_end_margin_m: 3.0
+lane_change_lane_end_min_cap_mps: 3.0
 
 # Target-lane gap and lane-end fallback braking.
 min_target_front_gap_m: 11.0

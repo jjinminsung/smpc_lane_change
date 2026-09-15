@@ -58,6 +58,16 @@ class AccSpeedPlanner {
     pnh_.param("rapid_lead_required_decel_mps2",
                rapid_lead_required_decel_mps2_, 5.0);
     pnh_.param("max_follow_speed_drop_mps", max_follow_speed_drop_mps_, 5.0);
+    // Ordinary (non hard/rapid) lead following: bound how fast the target may
+    // fall by what the binding lead actually requires.
+    pnh_.param("lead_required_decel_limit_enabled",
+               lead_required_decel_limit_enabled_, false);
+    pnh_.param("lead_required_decel_limit_gain",
+               lead_required_decel_limit_gain_, 1.5);
+    pnh_.param("lead_required_decel_limit_min_mps2",
+               lead_required_decel_limit_min_mps2_, 1.5);
+    pnh_.param("lead_required_decel_limit_headway_sec",
+               lead_required_decel_limit_headway_sec_, 1.5);
     pnh_.param("target_timeout_sec", target_timeout_sec_, 0.8);
     pnh_.param("decision_request_timeout_sec", decision_request_timeout_sec_, 0.5);
     pnh_.param("publish_rate_hz", publish_rate_hz_, 20.0);
@@ -80,10 +90,19 @@ class AccSpeedPlanner {
     // Its Bool topic has no header, so freshness is measured at receipt time.
     pnh_.param("endpoint_connector_speed_cap_mps",
                endpoint_connector_speed_cap_mps_, 2.0);
+    // Optional per-target-lane override, indexed by target lane id.  Must be
+    // identical to SMPC's stopped_launch_connector_speed_cap_by_target_lane_mps.
+    pnh_.getParam("endpoint_connector_speed_cap_by_target_lane_mps",
+                  endpoint_connector_speed_cap_by_target_lane_mps_);
     pnh_.param("endpoint_connector_max_accel_mps2",
                endpoint_connector_max_accel_mps2_, max_accel_mps2_);
     pnh_.param("endpoint_connector_status_timeout_sec",
                endpoint_connector_status_timeout_sec_, 0.5);
+    pnh_.param("lane_change_lane_end_cap_enabled",
+               lane_change_lane_end_cap_enabled_, false);
+    pnh_.param("lane_change_lane_end_margin_m", lane_change_lane_end_margin_m_, 3.0);
+    pnh_.param("lane_change_lane_end_min_cap_mps",
+               lane_change_lane_end_min_cap_mps_, 3.0);
     pnh_.param("min_target_front_gap_m", min_target_front_gap_m_, 11.0);
     pnh_.param("min_target_rear_gap_m", min_target_rear_gap_m_, 6.0);
     pnh_.param("target_front_acc_requires_target_lane_entry",
@@ -481,6 +500,25 @@ class AccSpeedPlanner {
     return closing_speed * closing_speed / (2.0 * clearance);
   }
 
+  // Deceleration that removes the closing speed before the gap shrinks to
+  // standstill_gap + headway * ego speed, assuming a constant-speed lead.
+  // Infinite once that margin is used up (the existing limits then apply).
+  double leadRequiredDecelForHeadway(const smpc_lane_change::TargetVehicle& lead) const {
+    const double closing_speed = leadClosingSpeedMps(lead);
+    if (closing_speed <= 1e-3) return 0.0;
+    const double margin = frontBumperGap(lead) - standstill_gap_m_ -
+        std::max(0.0, lead_required_decel_limit_headway_sec_) * ego_speed_mps_;
+    if (margin <= 0.5) return std::numeric_limits<double>::infinity();
+    return closing_speed * closing_speed / (2.0 * margin);
+  }
+
+  // The lead whose follow speed last lowered raw_target.
+  struct LeadBinding {
+    bool valid{false};
+    double target_mps{0.0};
+    double required_decel_mps2{0.0};
+  };
+
   bool rapidBrakeRequiredForLead(const smpc_lane_change::TargetVehicle& lead) const {
     // A newly appearing lead has no previous ACC gap history.  If maintaining
     // the standstill gap already needs a strong brake, bypass the target-speed
@@ -493,6 +531,22 @@ class AccSpeedPlanner {
   }
 
   // 미성숙 트랙이면 완전 정지 대신 이 하한까지만 내린다.
+  // The endpoint connector always drives onto the waypoint system's active
+  // path (switched when the connector is armed), so that path is the merge
+  // lane: /gps_state lane_number matched it in 1920/1920 connector frames of
+  // 18 lc_gt connectors.  targets_.target_lane_id follows supervisor state and
+  // flipped to the next lane in 5/597 frames (4 in the last 0.35 s), which
+  // would briefly drop a 0->1 cap to the lane-2 value while merging.
+  double endpointConnectorSpeedCapMps() const {
+    const auto& by_lane = endpoint_connector_speed_cap_by_target_lane_mps_;
+    const int lane = have_active_path_number_ ? active_path_number_
+                                              : targets_.target_lane_id;
+    if (lane >= 0 && lane < static_cast<int>(by_lane.size()) && by_lane[lane] > 0.0) {
+      return by_lane[lane];
+    }
+    return endpoint_connector_speed_cap_mps_;
+  }
+
   double leadStopFloorMps(const smpc_lane_change::TargetVehicle& lead) const {
     if (immature_lead_min_hits_ <= 0) return 0.0;
     if (lead.track_hits >= immature_lead_min_hits_) return 0.0;
@@ -827,10 +881,16 @@ class AccSpeedPlanner {
                       double& max_active_closing_speed_mps,
                       bool allow_hard_brake = true,
                       bool soft_target_front_acc = false,
-                      bool* soft_target_front_limited_speed = nullptr) const {
+                      bool* soft_target_front_limited_speed = nullptr,
+                      LeadBinding* binding = nullptr) const {
     const double candidate_speed = speedForLead(lead, cruise_speed_mps);
     if (lead.valid && candidate_speed < raw_target) {
       raw_target = candidate_speed;
+      if (binding != nullptr) {
+        binding->valid = true;
+        binding->target_mps = candidate_speed;
+        binding->required_decel_mps2 = leadRequiredDecelForHeadway(lead);
+      }
       max_active_closing_speed_mps =
           std::max(max_active_closing_speed_mps, leadClosingSpeedMps(lead));
       const bool hard_brake = allow_hard_brake && hardBrakeRequiredForLead(lead);
@@ -1019,6 +1079,7 @@ class AccSpeedPlanner {
     bool external_speed_limit_active = false;
     bool soft_target_front_limited_speed = false;
     double applied_behavior_cap_mps = std::numeric_limits<double>::quiet_NaN();
+    LeadBinding lead_binding;
 
     const bool fresh_targets = have_targets_ &&
         (ros::Time::now() - targets_stamp_).toSec() <= target_timeout_sec_;
@@ -1034,7 +1095,7 @@ class AccSpeedPlanner {
       applyLeadLimit(targets_.current_front, "current_front",
                      cruise_speed_mps, raw_target, active_lead, hard_brake_active,
                      max_active_closing_speed_mps, true, false,
-                     &soft_target_front_limited_speed);
+                     &soft_target_front_limited_speed, &lead_binding);
 
       if ((laneChangeIntentActive() || behavior_preparation_active ||
            laneEndPressureActive()) &&
@@ -1051,7 +1112,7 @@ class AccSpeedPlanner {
                          cruise_speed_mps, raw_target, active_lead, hard_brake_active,
                          max_active_closing_speed_mps,
                          target_front_hard_acc, target_front_soft_acc,
-                         &soft_target_front_limited_speed);
+                         &soft_target_front_limited_speed, &lead_binding);
         }
       }
 
@@ -1071,7 +1132,7 @@ class AccSpeedPlanner {
                        raw_target, active_lead, hard_brake_active,
                        max_active_closing_speed_mps,
                        allow_hard_brake, false,
-                       &soft_target_front_limited_speed);
+                       &soft_target_front_limited_speed, &lead_binding);
       }
 
       // A lane endpoint is a merge deadline for lanes 0,1,2. If target-front
@@ -1192,13 +1253,40 @@ class AccSpeedPlanner {
     // Do not retain it after the Bool stops being refreshed by the path node.
     if (endpoint_connector_active) {
       const double connector_cap = std::clamp(
-          endpoint_connector_speed_cap_mps_, min_speed_mps_, cruise_speed_mps);
+          endpointConnectorSpeedCapMps(), min_speed_mps_, cruise_speed_mps);
       if (connector_cap < raw_target) {
         raw_target = connector_cap;
         soft_target_front_limited_speed = false;
         active_lead = active_lead == "none"
             ? "endpoint_connector"
             : active_lead + ":endpoint_connector";
+      }
+    }
+
+    // A moving lane change that starts near the source CSV end must not reach
+    // that end before the waypoint blend finishes.  The blend pairs source and
+    // target points by index and appends unblended target points past the
+    // source end, so arriving early leaves a (1 - alpha) * lane-offset step in
+    // the reference (5.3 m/s at 29 m, accelerating: alpha ~0.8 -> ~0.7 m).
+    // Cap speed so the remaining source length lasts the remaining change
+    // time.  The stopped-launch connector keeps its own cap.
+    if (lane_change_lane_end_cap_enabled_ && lane_change_active_ &&
+        !endpoint_connector_active && fresh_targets &&
+        std::isfinite(targets_.distance_to_lane_end)) {
+      const double remaining_sec = std::max(
+          0.5, lane_change_expected_duration_sec_ - lane_change_elapsed_sec_);
+      const double usable_m = targets_.distance_to_lane_end -
+          std::max(0.0, lane_change_lane_end_margin_m_);
+      const double lane_end_cap = std::clamp(
+          usable_m / remaining_sec,
+          std::min(std::max(0.0, lane_change_lane_end_min_cap_mps_), cruise_speed_mps),
+          cruise_speed_mps);
+      if (lane_end_cap < raw_target) {
+        raw_target = lane_end_cap;
+        soft_target_front_limited_speed = false;
+        active_lead = active_lead == "none"
+            ? "lane_change_lane_end_cap"
+            : active_lead + ":lane_change_lane_end_cap";
       }
     }
 
@@ -1225,6 +1313,19 @@ class AccSpeedPlanner {
       effective_decel_limit = std::min(
           effective_decel_limit,
           std::max(0.0, target_front_overlap_soft_max_decel_mps2_));
+    }
+    // Ordinary lead following brakes only as hard as that lead requires.  Only
+    // while the lead still sets raw_target: a lane-end, SMPC or connector cap
+    // below it keeps the existing limits.  hard/rapid bypass the filter below.
+    if (lead_required_decel_limit_enabled_ && !hard_brake_active &&
+        lead_binding.valid &&
+        std::abs(raw_target - lead_binding.target_mps) <= 1e-6 &&
+        std::isfinite(lead_binding.required_decel_mps2)) {
+      effective_decel_limit = std::min(
+          effective_decel_limit,
+          std::max(std::max(0.0, lead_required_decel_limit_min_mps2_),
+                   std::max(0.0, lead_required_decel_limit_gain_) *
+                       lead_binding.required_decel_mps2));
     }
     if (hard_brake_active && hard_brake_bypass_filter_) {
       filtered_speed_mps_ = raw_target;
@@ -1308,8 +1409,12 @@ class AccSpeedPlanner {
   bool behavior_request_apply_while_lane_change_{false};
   bool behavior_request_apply_accel_{false};
   double endpoint_connector_speed_cap_mps_{2.0};
+  std::vector<double> endpoint_connector_speed_cap_by_target_lane_mps_;
   double endpoint_connector_max_accel_mps2_{1.5};
   double endpoint_connector_status_timeout_sec_{0.5};
+  bool lane_change_lane_end_cap_enabled_{false};
+  double lane_change_lane_end_margin_m_{3.0};
+  double lane_change_lane_end_min_cap_mps_{3.0};
   ros::Time endpoint_connector_active_stamp_;
   double ego_length_m_{4.635};
   double ego_width_m_{1.892};
@@ -1339,6 +1444,10 @@ class AccSpeedPlanner {
   double rapid_lead_min_closing_speed_mps_{4.0};
   double rapid_lead_required_decel_mps2_{5.0};
   double max_follow_speed_drop_mps_{5.0};
+  bool lead_required_decel_limit_enabled_{false};
+  double lead_required_decel_limit_gain_{1.5};
+  double lead_required_decel_limit_min_mps2_{1.5};
+  double lead_required_decel_limit_headway_sec_{1.5};
   double target_timeout_sec_{0.8};
   double decision_request_timeout_sec_{0.5};
   double publish_rate_hz_{20.0};

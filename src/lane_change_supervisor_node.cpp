@@ -92,6 +92,8 @@ class LaneChangeSupervisor {
                active_rear_guard_new_track_guard_sec_, 0.80);
     pnh_.param("active_rear_guard_new_track_max_gap_m",
                active_rear_guard_new_track_max_gap_m_, 40.0);
+    pnh_.param("rear_track_observation_gap_timeout_sec",
+               rear_track_observation_gap_timeout_sec_, 0.35);
     pnh_.param("active_rear_guard_new_track_closing_upper_mps",
                active_rear_guard_new_track_closing_upper_mps_, 15.0);
     pnh_.param("active_rear_guard_abort_confirmation_sec",
@@ -567,7 +569,7 @@ class LaneChangeSupervisor {
     const auto it = rear_track_first_seen_.find(rear.unique_id);
     const double gap = rearBumperGap(rear);
     if (it != rear_track_first_seen_.end() &&
-        (ros::Time::now() - it->second).toSec() <
+        (ros::Time::now() - it->second.first).toSec() <
             std::max(0.0, active_rear_guard_new_track_guard_sec_) &&
         gap <= std::max(0.0, active_rear_guard_new_track_max_gap_m_)) {
       closing = std::max(
@@ -715,6 +717,36 @@ class LaneChangeSupervisor {
     rear_abort_candidate_since_ = ros::Time(0.0);
   }
 
+  // First-seen stamps must cover the time before a lane change starts.  They
+  // used to be cleared at the start and recorded only while active, so every
+  // rear vehicle looked new for the first new-track guard window and got the
+  // closing upper bound (lc_gt 2026-09-15-16-19-10: id23, tracked for 13.5 s
+  // at 0.9 m/s closing, was floored to 15 m/s at 1->2 start and aborted a
+  // safe change).  Same rule as SMPC's vehicle history: a track unseen for
+  // longer than the timeout starts a new clock (re-acquisition / ID reuse).
+  void updateRearTrackFirstSeen(const smpc_lane_change::TargetVehicleSet& msg,
+                                const ros::Time& now) {
+    const double timeout = std::max(0.0, rear_track_observation_gap_timeout_sec_);
+    const auto observe = [&](const smpc_lane_change::TargetVehicle& v) {
+      if (!v.valid || v.unique_id < 0 || v.lane_id != msg.target_lane_id ||
+          v.rear_delta_s > 0.0) {
+        return;
+      }
+      auto& seen = rear_track_first_seen_[v.unique_id];
+      if (seen.first.isZero() || (now - seen.last).toSec() > timeout) seen.first = now;
+      seen.last = now;
+    };
+    observe(msg.target_rear);
+    for (const auto& nearby : msg.nearby_vehicles) observe(nearby);
+    for (auto it = rear_track_first_seen_.begin(); it != rear_track_first_seen_.end();) {
+      if ((now - it->second.last).toSec() > timeout) {
+        it = rear_track_first_seen_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+
   void targetsCallback(const smpc_lane_change::TargetVehicleSet::ConstPtr& msg) {
     latest_targets_ = *msg;
     have_targets_ = true;
@@ -743,13 +775,8 @@ class LaneChangeSupervisor {
         latest_target_abs_d_ = abs_d;
         target_lateral_sample_stamp_ = now;
       }
-      const auto observe_rear = [&](const smpc_lane_change::TargetVehicle& rear) {
-        if (!isTargetLaneRearOrOverlap(rear) || rear.unique_id < 0) return;
-        rear_track_first_seen_.emplace(rear.unique_id, now);
-      };
-      observe_rear(msg->target_rear);
-      for (const auto& nearby : msg->nearby_vehicles) observe_rear(nearby);
     }
+    updateRearTrackFirstSeen(*msg, now);
     bool emergency_abort = false;
     if (!activeRearGuardRequiresAbort(*msg, &emergency_abort)) {
       resetRearAbortConfirmation();
@@ -832,7 +859,6 @@ class LaneChangeSupervisor {
     last_completion_d_ = std::numeric_limits<double>::infinity();
     last_completion_yaw_error_ = std::numeric_limits<double>::infinity();
     change_start_ = ros::Time::now();
-    rear_track_first_seen_.clear();
     resetRearAbortConfirmation();
     filtered_target_lateral_rate_mps_ = 0.0;
     target_lateral_sample_stamp_ = ros::Time(0.0);
@@ -1155,7 +1181,12 @@ class LaneChangeSupervisor {
   bool inactive_sync_targets_seen_{false};
   smpc_lane_change::TargetVehicleSet latest_targets_;
   bool have_targets_{false};
-  std::unordered_map<int, ros::Time> rear_track_first_seen_;
+  struct RearTrackSeen {
+    ros::Time first;
+    ros::Time last;
+  };
+  std::unordered_map<int, RearTrackSeen> rear_track_first_seen_;
+  double rear_track_observation_gap_timeout_sec_{0.35};
   double active_initial_target_abs_d_{4.0};
   double latest_target_abs_d_{std::numeric_limits<double>::infinity()};
   double filtered_target_lateral_rate_mps_{0.0};

@@ -57,6 +57,9 @@
     <param name="ground_pct_bin_m" value="10.0"/>
     <param name="ground_clearance" value="0.3"/>
     <param name="z_max" value="2.5"/>
+    <!-- 지면 추정 후보 점의 센서 z 상한. wp 2420 대형 표지판이 지면 추정을 +4~5 m 로
+         끌어올려 차선1 유령(hard brake)을 만들던 것을 막는다. 99 = 기존 동작. -->
+    <param name="ground_candidate_max_z" value="0.8"/>
     <param name="cluster_res" value="0.4"/>
     <param name="min_cluster_pts" value="5"/>
     <param name="max_box_size" value="15.0"/>

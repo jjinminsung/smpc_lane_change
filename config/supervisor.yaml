@@ -62,6 +62,12 @@ active_rear_guard_lateral_rate_alpha: 0.30
 active_rear_guard_new_track_guard_sec: 0.80
 active_rear_guard_new_track_max_gap_m: 40.0
 active_rear_guard_new_track_closing_upper_mps: 15.0
+# 새 트랙 판정용 "처음 본 시각"은 차선변경 전부터 매 입력 기록 (2026-09-15).
+# 이전에는 차선변경 시작 시 지우고 진행 중에만 기록해, 오래 추적하던 뒤차도 시작
+# 후 0.8 s 동안 15 m/s 로 취급됐다 (lc_gt 16-19-10 34.31 s: 13.5 s 추적, 실측 접근
+# 0.9 m/s 뒤차로 안전한 1->2 중단).  이 시간보다 오래 안 보이면 새 트랙으로 다시 봄
+# (SMPC change_commit_observation_gap_timeout_sec 과 같게).
+rear_track_observation_gap_timeout_sec: 0.35
 # Ignore a one-frame ID/role association jump. Confirm ordinary rear danger
 # for both a short time and several target updates; truly critical proximity
 # still aborts immediately.
