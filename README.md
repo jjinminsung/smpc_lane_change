@@ -5,7 +5,7 @@
 확률적 행동 계획기(stochastic behavior planner) ROS 패키지입니다.
 
 Multimodal SMPC를 저수준 차량 제어기로 쓰지 않고, **높은 수준의 행동 결정기**로 사용하는 것이 목표입니다.
-실제 조향·속도 추종은 기존 MPC waypoint follower(`waypoint_system`)가 담당합니다.
+실제 조향·속도 추종은 Kinematic 이륜차 model을 사용한 MPC를 사용합니다.
 
 - 환경: ROS1 (catkin), MORAI 시뮬레이터, IONIQ 5 차량 모델, VLP-16 LiDAR
 - 시나리오: 고속도로 합류 구간에서 차선 0 → 1 → 2 → 3 순차 좌측 차선 변경
