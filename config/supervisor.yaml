@@ -54,6 +54,16 @@ active_rear_guard_min_remaining_sec: 0.30
 # stopped or target-d is not decreasing, expose the rear gate to 8 s.
 active_rear_guard_perception_control_delay_sec: 0.50
 active_rear_guard_stationary_remaining_sec: 8.0
+# 정지 출발 직후 유예 (2026-09-15).  시작 후 이 시간 안에는 "서 있으면 즉시 중단"
+# 대신, 정지 상태에서 escape_accel 로 출발해 connector 상한까지 가속하는 롤아웃으로
+# 뒤차를 판단한다 (상한 도달 후 그 속도 유지, 남은 시간은 stationary_remaining).
+# 정상 출발은 0.30~0.65 s 에 0.2 m/s 도달 (lc_gt 09-10~09-15 정지 출발 32건);
+# 이 시간이 지나도 서 있으면 출발 실패로 보고 예전처럼 중단.  긴급(gap/TTC)은 즉시.
+# 정지 출발 중단 7건 GT: 실제 위험 6건은 계속 중단, 불필요 1건(19-33-03 10.38 s,
+# 뒤차 72 m/11 m/s, GT 최소간격 41.6 m)만 진행.  0 = 예전 동작.
+active_rear_guard_stationary_launch_grace_sec: 1.5
+# ACC endpoint_connector_speed_cap_by_target_lane_mps 와 같게 (인덱스 = 목표 차선).
+active_rear_guard_launch_speed_cap_by_target_lane_mps: [7.0, 9.0, 7.0, 7.0]
 active_rear_guard_max_remaining_sec: 10.0
 active_rear_guard_min_lateral_rate_mps: 0.05
 active_rear_guard_lateral_rate_alpha: 0.30

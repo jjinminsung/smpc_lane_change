@@ -48,6 +48,14 @@ class TargetSelectorNode {
     pnh_.param("tracked_dynamic_only", tracked_dynamic_only_, false);
     pnh_.param("tracked_vehicle_filter_enabled", tracked_vehicle_filter_enabled_, true);
     pnh_.param("tracked_vehicle_min_confidence", tracked_vehicle_min_confidence_, 0.60);
+    pnh_.param("tracked_vehicle_confidence_hold_enabled",
+               tracked_vehicle_confidence_hold_enabled_, false);
+    pnh_.param("tracked_vehicle_confidence_hold_min_hits",
+               tracked_vehicle_confidence_hold_min_hits_, 20);
+    pnh_.param("tracked_vehicle_confidence_hold_stale_sec",
+               tracked_vehicle_confidence_hold_stale_sec_, 0.50);
+    pnh_.param("tracked_vehicle_confidence_hold_timeout_sec",
+               tracked_vehicle_confidence_hold_timeout_sec_, 0.35);
     pnh_.param("tracked_unknown_obstacle_min_confidence",
                tracked_unknown_obstacle_min_confidence_, 0.42);
     pnh_.param("min_object_length_m", min_object_length_m_, 1.0);
@@ -228,6 +236,54 @@ class TargetSelectorNode {
     double half_s{0.0};
     double half_d{0.0};
   };
+
+  // 한 번 차량으로 확정된 트랙은 확신도가 잠깐 떨어져도 목록에 남긴다.
+  // lc_gt 2026-09-15-19-33-03 37.4~39.6 s: 자차 옆에 붙은 id31 의 확신도가
+  // 0.10~0.33 으로 내려가 2.2 s 동안 /smpc/targets 에서 빠졌고 (그동안에도
+  // hits 96->107 로 계속 새로 검출됨), SMPC 는 빈 차선으로 보고 승인했다.
+  // 백 15개: 이렇게 빠진 옆차선 성숙 트랙 269 프레임 중 239 (89%) 가 GT 실차.
+  struct ConfidenceHold {
+    bool confirmed{false};
+    int last_hits{-1};
+    ros::Time last_stamp;
+    ros::Time last_growth_stamp;
+  };
+
+  // hits 증가(새 검출)가 이어지는 동안만 유지한다.  트래커가 관성으로만 끌고
+  // 가는 트랙은 유지하지 않는다.  오래 안 보이면 번호 재사용일 수 있어 초기화.
+  bool updateConfidenceHold(const CandidateObject& obj, const ros::Time& now) {
+    if (!tracked_vehicle_confidence_hold_enabled_ || obj.id < 0) return false;
+    auto& h = confidence_hold_[obj.id];
+    const double timeout =
+        std::max(0.0, tracked_vehicle_confidence_hold_timeout_sec_);
+    if (!h.last_stamp.isZero() && (now - h.last_stamp).toSec() > timeout) {
+      h = ConfidenceHold{};
+    }
+    if (h.last_hits < 0 || obj.track_hits > h.last_hits) h.last_growth_stamp = now;
+    if (obj.is_vehicle &&
+        obj.vehicle_confidence >= tracked_vehicle_min_confidence_ &&
+        obj.track_hits >= tracked_vehicle_confidence_hold_min_hits_) {
+      h.confirmed = true;
+    }
+    h.last_hits = obj.track_hits;
+    h.last_stamp = now;
+    if (!h.confirmed || h.last_growth_stamp.isZero()) return false;
+    return (now - h.last_growth_stamp).toSec() <=
+        std::max(0.0, tracked_vehicle_confidence_hold_stale_sec_);
+  }
+
+  void pruneConfidenceHold(const ros::Time& now) {
+    const double keep = std::max(
+        1.0, 4.0 * std::max(0.0, tracked_vehicle_confidence_hold_timeout_sec_));
+    for (auto it = confidence_hold_.begin(); it != confidence_hold_.end();) {
+      if (!it->second.last_stamp.isZero() &&
+          (now - it->second.last_stamp).toSec() > keep) {
+        it = confidence_hold_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
 
   bool loadLanes() {
     if (waypoint_directory_.empty() || !fs::is_directory(waypoint_directory_)) return false;
@@ -820,15 +876,20 @@ class TargetSelectorNode {
     std::vector<TargetVehicle> nearby_vehicles;
     nearby_vehicles.reserve(objects.size());
 
+    const ros::Time hold_now = header.stamp.isZero() ? ros::Time::now() : header.stamp;
+    pruneConfidenceHold(hold_now);
+
     for (const auto& obj : objects) {
       // The LiDAR tracker keeps every geometry cluster alive.  Only confirmed
       // vehicles may influence the SMPC multi-vehicle prediction.  A partly
       // vehicle-like but unconfirmed track is retained as a conservative
       // current/target-lane obstacle for ACC and merge-gap safety; clear
       // structures below this threshold are ignored.
+      const bool confidence_held = updateConfidenceHold(obj, hold_now);
       const bool confirmed_vehicle =
           !tracked_vehicle_filter_enabled_ ||
-          (obj.is_vehicle && obj.vehicle_confidence >= tracked_vehicle_min_confidence_);
+          (obj.is_vehicle && obj.vehicle_confidence >= tracked_vehicle_min_confidence_) ||
+          confidence_held;
       const bool unknown_safety_obstacle =
           tracked_vehicle_filter_enabled_ && !confirmed_vehicle &&
           obj.vehicle_confidence >= tracked_unknown_obstacle_min_confidence_;
@@ -1356,6 +1417,11 @@ class TargetSelectorNode {
   std::map<int, LanePath> lanes_;
   std::map<int, std::string> lane_csv_paths_;
   std::unordered_map<int, YawHistory> yaw_history_;
+  std::unordered_map<int, ConfidenceHold> confidence_hold_;
+  bool tracked_vehicle_confidence_hold_enabled_{false};
+  int tracked_vehicle_confidence_hold_min_hits_{20};
+  double tracked_vehicle_confidence_hold_stale_sec_{0.50};
+  double tracked_vehicle_confidence_hold_timeout_sec_{0.35};
   std::unordered_map<int, LaneChangeCandidateHistory> lane_change_candidate_history_;
   bool ego_ready_{false}, lane_ready_{false};
   double ego_x_{0.0}, ego_y_{0.0}, ego_yaw_{0.0}, ego_speed_mps_{0.0};

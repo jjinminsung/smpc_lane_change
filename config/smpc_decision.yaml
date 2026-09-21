@@ -48,6 +48,16 @@ prepare_merge_front_safe_gap_m: 14.0
 prepare_merge_rear_safe_gap_m: 9.0
 target_front_min_ttc_sec: 3.0
 target_front_min_headway_sec: 1.2
+# 전방 헤드웨이의 기준 속도 (2026-09-17).  true 이면 절대속도 max(자차, 앞차)
+# 대신 접근속도 max(0, 자차 - 앞차)를 쓴다.  차선변경 후 뒤따라갈 앞차에게
+# 절대속도 헤드웨이를 요구하면 자차가 가속할수록 요구 간격이 커져 합류가
+# 멀어진다.  절대 하한 target_front_safe_gap_m(14 m)과 TTC 3 초는 그대로다.
+target_front_headway_use_closing_speed: true
+# 추월(pass_gap) 분기의 전방 헤드웨이 기준 속도.  true 이면 절대 자차속도 대신
+# 접근속도를 쓴다.  앞차가 자차보다 빠른 추월 상황에서는 간격이 벌어지는데
+# 절대속도 기준은 자차가 빨라질수록 요구를 키우는 모순이 있다.
+# 아직 미검증이라 기본값은 기존 동작(false)으로 두고 오버라이드로 시험한다.
+pass_gap_headway_use_closing_speed: false
 target_rear_min_ttc_sec: 3.0
 # Extra rear gap due to a vehicle approaching from behind. This is applied to
 # closing speed (v_rear - v_ego), not ego's absolute speed; the independent
@@ -65,6 +75,28 @@ emergency_merge_risk_epsilon: 0.04
 change_commit_scene_observation_sec: 1.5
 change_commit_vehicle_observation_sec: 0.6
 change_commit_observation_gap_timeout_sec: 0.35
+# 사라진 목표차선 차량 유지 (2026-09-16).  목표 차선 판단 구간에서 관측이 끊긴
+# 성숙 트랙을 이 시간 동안 등속으로 밀어 유지한다.  트래커 출력 공백은 차가 사라진
+# 것이 아니다: 백 15개에서 GT 실차 트랙 공백 383건 중 289건이 0.3 s 이하, 89% 가
+# 0.5 s 이하, 1 s 초과 0건.  lc_gt 2026-09-10-13-33-17 207.1 s: 42 m 뒤차(21.6 m/s)가
+# 0.35 s 사라진 사이 승인 -> GT 최소여유 -0.88 m.  비용 측정: 판단 구간에서 사라진
+# 유령 74건 중 0.5 s 안에 차선변경 요청이 있던 경우 0건.  등속 예측 오차(1 s 중앙
+# 2.4 m)를 감안해 자차 쪽으로 margin 만큼 보수적으로 두고, 차단 용도로만 쓴다.
+vanished_target_hold_enabled: true
+vanished_target_hold_sec: 0.50
+vanished_target_hold_min_hits: 20
+vanished_target_hold_zone_rear_m: 60.0
+vanished_target_hold_zone_front_m: 30.0
+vanished_target_hold_margin_m: 1.5
+# 자차 옆(앞뒤 ±ds_m)에서 사라진 차만 더 오래 유지 (2026-09-17).  옆은 라이다
+# 사각지대라 트랙이 죽고 다른 번호로 재획득돼, 같은 번호로 돌아오는 공백(최대
+# 0.77 s)보다 길다.  lc_gt 2026-09-16-13-07-43: -3.2 m 옆 차가 1.86 s 사라져
+# 3차선이 비어 보였고 30.67 s 에 승인 -> GT -0.38 m, 0.25 s 뒤 긴급 중단, 그 여파로
+# 9.5 s 정지(주행 63.4 s, 다른 3회는 42~47.6 s).  소실~첫 요청이 1.51 s 라 2.0 s 필요.
+# 백 19개 측정(±4 m): 위험 시작 1건 차단, 유령 지연 0건, 안전한 시작 지연 0건.
+# (±10 m 로 넓히면 유령 지연 1건 발생.)  0 이면 위 공통 유지 시간만 사용.
+vanished_target_hold_alongside_sec: 2.00
+vanished_target_hold_alongside_ds_m: 4.0
 # scene 안정 판정에서 신뢰할 뒤차 거리.  VLP-16 유효 검출 한계(측정: 40 m 까지
 # 94~98 %, 40~60 m 47 %, 60 m 이상 0 %)에 맞춘다.  이 밖의 뒤차가 깜빡여도
 # scene 시계를 리셋하지 않는다.  gap/TTC 게이트는 영향 없음.  0 이면 비활성.
@@ -77,7 +109,10 @@ change_commit_acc_speed_error_mps: 1.50
 # 따라가는 동안(14~29 s) 추종 감속 출렁임으로 acc_stabilization 이 반복돼 달리는 중
 # 차선변경 기회를 막았다.  ACC 일반 추종 감속은 lead_required_decel_limit 로 대부분
 # 1.5 m/s^2 이하.  hard/rapid/차선끝 정지 중 차단(accHardBrakeOrLaneEndActive)은 그대로.
-change_commit_acc_max_decel_mps2: 2.00
+# 2.00 -> 99.0 (2026-09-21, 사용자 요청: ACC 감속 중에도 차선 변경을 허용).
+# 위험 사유(hard/rapid/emergency, 비-wait lane_end)는 accHardBrakeOrLaneEndActive()
+# 가 그대로 차단하므로 급제동·비상 시 진입은 여전히 막힌다.  되돌리려면 2.00.
+change_commit_acc_max_decel_mps2: 99.0
 # 차선 끝 대기 감속(lane_end_wait_*) 중에는 위 감속 조건 제외 (2026-09-15).  ACC 가
 # 이 틈을 기다리며 계획한 감속이고, CHANGE_LEFT 시 ACC 가 즉시 푼다.  최근 백
 # 16-00/16-08/16-14 에서 멈추기 직전 약 1 s (4~5 m/s) 목표차선이 비었는데 이 조건
@@ -140,6 +175,12 @@ tv_lane_projection_extension_before_m: 100.0
 # vetoes a new merge when a measured nearby rear is already entering the
 # target-lane corridor during ego's planned blend.
 observed_cutin_safety_enabled: true
+# 타 차량이 차선을 바꾸지 않는 시나리오 (2026-09-21, 사용자 확인).  true 이면
+# 차선 변경을 "예측"하는 두 분기만 끈다: (1) |v_lat| 기반 측방속도 거부,
+# (2) 4.5 초 내 목표차선 진입 예측.  지금 이미 목표 코리도/경계를 물고 있는
+# 차량에 대한 뒤간격·TTC 검사는 그대로 유지된다 (차선 라벨이 흔들리는 차를
+# 놓치지 않기 위함).  전체를 끄려면 observed_cutin_safety_enabled: false.
+observed_cutin_assume_no_lane_change: true
 # 0.25 m/s reaches 1.1 m during the 4.5 s merge look-ahead.  Treat a close
 # rear vehicle with this measured lateral motion as an ambiguous target-lane
 # intrusion; this is a deterministic interlock, not a TV lateral mode.
@@ -332,6 +373,37 @@ ego_prediction_max_decel_mps2: 9.0
 # 준비 후보(YIELD/HOLD/ACCEL)와 정지 출발 connector 궤적은 영향 없음.
 change_rollout_target_lane_speed_enabled: true
 change_rollout_release_fraction: 1.0
+# 완료 후 속도의 pre_cap 바닥값 (2026-09-17).  false 이면 목표차선 앞차 속도를
+# 관측한 경우 max(pre_cap, ...) 바닥값을 적용하지 않고 min(순항, 앞차속도)를
+# 그대로 쓴다 = 차선변경 후 그 앞차를 ACC 로 따라간다는 가정.  앞차가 없으면
+# 따라갈 대상이 없으므로 기존대로 pre_cap 을 유지한다.
+# lc_gt 2026-09-17-12-23-58 차선2->3: 앞차 16~17 m/s 인데 24.4 s 부터 바닥값이
+# 덮어 v_post 25.0 고정 -> 요구 전방간격 19.8 -> 30.0 m, 실제 최대 14.6 m.
+change_rollout_post_completion_use_pre_cap_floor: false
+# 블렌드 중 기준속도를 "합류 후 목표차선 앞차를 따라갈 속도"로 상한만 건다 (2026-09-21).
+# 실측: 자차가 2차선에서 22~24 m/s 까지 가속하는데 3차선 흐름은 17 m/s 라, 예측 자차가
+# 앞차를 따라잡는 것으로 계산돼 pgtc 전방 간격이 τ=1.2~3.6 s 에서 무너졌다.
+# 상한이므로 ACC 가 자차를 더 느리게 붙들 때는 영향이 없다(속도를 올리지 않음).
+change_rollout_blend_speed_cap_enabled: false
+# ACC 3단계 모델 (2026-09-21).  ACC 의 실제 동작을 그대로 옮긴다.
+#   |d_target| > 2.7 m  : 아직 소스 차선 기준 (pre_cap)
+#   |d_target| <= 2.7 m : 목표차선 앞차 추종 (min(순항, 앞차속도))
+# 상한(cap) 방식은 tau=0 부터 앞차를 따른다고 보아 첫 ~1 초를 낙관했다.
+change_rollout_blend_stage_enabled: true
+change_rollout_soft_acc_start_abs_d_m: 2.7
+# 이 속도 미만이면 정지 출발로 보고 stage1 기준을 정지출발 캡으로 올린다.
+# 그대로 두면 pre_cap=0 이라 옆으로만 미끄러지는 궤적이 나온다.
+change_rollout_launch_speed_threshold_mps: 1.0
+# 차선 변경 중 기준속도 보간 (2026-09-21, 사용자 설계).  현재차선 목표속도 -> 합류 후
+# ACC 추종속도(min(순항, 목표차선 앞차속도)) 를 블렌드 진행률로 선형 보간한다.
+# 상한(cap) 방식과 달리 ACC 가 자차를 더 느리게 붙들 때 예측 자차가 올라갈 수 있다.
+# 보간 방식 측정 결과(2026-09-21): 단축 효과는 상한과 동일(7.7초)하나 차선변경 1건
+# 소실(13-06-29 0→1), 예측 자차 +0.28 m/s(빨라짐), front_gap 실패 1330->1463.
+# ACC 가 자차를 느리게 붙들 때 예측을 끌어올리는 경로가 있어 상한 방식을 채택한다.
+change_rollout_blend_speed_interp_enabled: false
+# 그 상한으로 내려가는 감속률.  기존 롤아웃의 9.0 m/s^2 는 실제 ACC 제동(3.8~4.0)보다
+# 훨씬 빨라 주행거리를 과소평가하므로 분리한다.
+change_rollout_blend_cap_decel_mps2: 4.0
 
 # Optional lateral/cut-in mode.  For this fitting pass, target vehicles are
 # assumed to never change lanes: no observed_lateral mode is generated and

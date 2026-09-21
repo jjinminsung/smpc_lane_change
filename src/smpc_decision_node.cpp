@@ -90,6 +90,24 @@ class SmpcDecisionNode {
                7.0);
     pnh_.param("target_front_min_ttc_sec", target_front_min_ttc_sec_, 3.0);
     pnh_.param("target_front_min_headway_sec", target_front_min_headway_sec_, 1.2);
+    pnh_.param("target_front_headway_use_closing_speed",
+               target_front_headway_use_closing_speed_, false);
+    pnh_.param("pass_gap_headway_use_closing_speed",
+               pass_gap_headway_use_closing_speed_, false);
+    pnh_.param("change_rollout_post_completion_use_pre_cap_floor",
+               change_rollout_post_completion_use_pre_cap_floor_, true);
+    pnh_.param("change_rollout_blend_speed_cap_enabled",
+               change_rollout_blend_speed_cap_enabled_, false);
+    pnh_.param("change_rollout_blend_speed_interp_enabled",
+               change_rollout_blend_speed_interp_enabled_, false);
+    pnh_.param("change_rollout_blend_stage_enabled",
+               change_rollout_blend_stage_enabled_, false);
+    pnh_.param("change_rollout_soft_acc_start_abs_d_m",
+               change_rollout_soft_acc_start_abs_d_m_, 2.7);
+    pnh_.param("change_rollout_launch_speed_threshold_mps",
+               change_rollout_launch_speed_threshold_mps_, 1.0);
+    pnh_.param("change_rollout_blend_cap_decel_mps2",
+               change_rollout_blend_cap_decel_mps2_, 4.0);
     pnh_.param("target_rear_min_ttc_sec", target_rear_min_ttc_sec_, 3.0);
     pnh_.param("target_rear_min_headway_sec", target_rear_min_headway_sec_, 1.2);
     pnh_.param("change_commit_scene_observation_sec",
@@ -106,6 +124,18 @@ class SmpcDecisionNode {
                change_commit_acc_max_decel_mps2_, 1.00);
     pnh_.param("change_commit_allow_lane_end_wait_decel",
                change_commit_allow_lane_end_wait_decel_, false);
+    pnh_.param("vanished_target_hold_enabled", vanished_target_hold_enabled_, false);
+    pnh_.param("vanished_target_hold_sec", vanished_target_hold_sec_, 0.50);
+    pnh_.param("vanished_target_hold_min_hits", vanished_target_hold_min_hits_, 20);
+    pnh_.param("vanished_target_hold_zone_rear_m",
+               vanished_target_hold_zone_rear_m_, 60.0);
+    pnh_.param("vanished_target_hold_zone_front_m",
+               vanished_target_hold_zone_front_m_, 30.0);
+    pnh_.param("vanished_target_hold_margin_m", vanished_target_hold_margin_m_, 1.5);
+    pnh_.param("vanished_target_hold_alongside_sec",
+               vanished_target_hold_alongside_sec_, 0.0);
+    pnh_.param("vanished_target_hold_alongside_ds_m",
+               vanished_target_hold_alongside_ds_m_, 4.0);
     pnh_.param("pass_gap_enabled", pass_gap_enabled_, true);
     pnh_.param("pass_gap_min_relative_speed_mps",
                pass_gap_min_relative_speed_mps_, 2.0);
@@ -128,6 +158,8 @@ class SmpcDecisionNode {
     pnh_.param("tv_lane_projection_extension_before_m",
                tv_lane_projection_extension_before_m_, 100.0);
     pnh_.param("observed_cutin_safety_enabled", observed_cutin_safety_enabled_, true);
+    pnh_.param("observed_cutin_assume_no_lane_change",
+               observed_cutin_assume_no_lane_change_, false);
     pnh_.param("observed_cutin_min_lateral_speed_mps",
                observed_cutin_min_lateral_speed_mps_, 0.5);
     pnh_.param("observed_cutin_max_entry_time_sec",
@@ -622,11 +654,108 @@ class SmpcDecisionNode {
   };
 
   void targetsCallback(const smpc_lane_change::TargetVehicleSet::ConstPtr& msg) {
-    targets_ = *msg;
-    targets_stamp_ = ros::Time::now();
-    have_targets_ = true;
+    // 이력/장면 판단은 실제 관측만 쓴다.  유지 차량은 판정용 사본에만 넣는다.
     updateVehicleHistories(*msg);
     updateTargetLaneSceneHistory(*msg);
+    smpc_lane_change::TargetVehicleSet held = *msg;
+    updateHeldTargetVehicles(held);
+    targets_ = held;
+    targets_stamp_ = ros::Time::now();
+    have_targets_ = true;
+  }
+
+  // 목표 차선 판단 구간에서 관측이 끊긴 차량을 짧게 유지한다 (D2-lite).
+  // 트래커 출력 공백은 차가 사라졌다는 뜻이 아니다: lc_gt 백 15개에서 GT 실차
+  // 트랙의 공백 383건 중 289건이 0.3 s 이하, 89% 가 0.5 s 이하, 1 s 초과는 없다.
+  // lc_gt 2026-09-10-13-33-17 207.1 s 에서 42 m 뒤차(21.6 m/s)가 0.35 s 사라진
+  // 사이에 승인이 나 GT 최소여유 -0.88 m 가 됐다.  등속 예측 오차(1 s 중앙 2.4 m)
+  // 때문에 정확한 간격 계산용이 아니라 차단용으로만 쓰고, 자차 쪽으로 여유를 준다.
+  void updateHeldTargetVehicles(smpc_lane_change::TargetVehicleSet& t) {
+    // 디버그의 held= 는 이번 프레임에 실제로 주입한 대수를 뜻한다.  맵 크기를
+    // 찍으면 관측 중인 차까지 세어 유지가 걸린 것처럼 보인다.
+    held_injected_count_ = 0;
+    if (!vanished_target_hold_enabled_) {
+      held_target_vehicles_.clear();
+      return;
+    }
+    const ros::Time stamp = t.header.stamp.isZero() ? ros::Time::now() : t.header.stamp;
+    const double hold = std::max(0.0, vanished_target_hold_sec_);
+    const double zone_front = std::max(0.0, vanished_target_hold_zone_front_m_);
+    const double zone_rear = std::max(0.0, vanished_target_hold_zone_rear_m_);
+    std::vector<int> seen;
+    const auto consider = [&](const smpc_lane_change::TargetVehicle& v) {
+      if (!v.valid || v.unique_id < 0) return;
+      seen.push_back(v.unique_id);
+      if (v.lane_id != t.target_lane_id) return;
+      if (v.track_hits < vanished_target_hold_min_hits_) return;
+      if (v.delta_s > zone_front || v.delta_s < -zone_rear) return;
+      auto& h = held_target_vehicles_[v.unique_id];
+      h.vehicle = v;
+      h.last_seen_stamp = stamp;
+      h.current_lane_id = t.current_lane_id;
+      h.target_lane_id = t.target_lane_id;
+    };
+    consider(t.current_front);
+    consider(t.target_front);
+    consider(t.target_rear);
+    for (const auto& v : t.nearby_vehicles) consider(v);
+
+    for (auto it = held_target_vehicles_.begin(); it != held_target_vehicles_.end();) {
+      const double age = (stamp - it->second.last_seen_stamp).toSec();
+      const bool observed_now =
+          std::find(seen.begin(), seen.end(), it->first) != seen.end();
+      // 이번 프레임에 관측된 차량은 consider() 가 방금 최신값으로 갱신한 것이다.
+      // 여기서 지우면 다음 프레임에 유지할 대상이 남지 않는다 (held 가 항상 0 이던 원인).
+      if (observed_now) {
+        ++it;
+        continue;
+      }
+      // 자차 옆에서 사라진 차는 더 오래 유지한다.  옆은 라이다 사각지대라 트랙이
+      // 죽고 다른 번호로 재획득되며, 공백이 같은 번호로 돌아오는 경우(실측 최대
+      // 0.77 s)보다 길다: lc_gt 2026-09-16-13-07-43 에서 -3.2 m 옆 차가 29.06~
+      // 30.92 s (1.86 s) 사라져 3차선이 비어 보였고 30.67 s 에 승인 -> GT -0.38 m,
+      // 0.25 s 뒤 긴급 중단.  백 19개 측정(±4 m / 2.0 s): 위험 시작 1건 차단,
+      // 유령 지연 0건, 안전한 시작 지연 0건 (차가 다시 잡히면 유지는 즉시 풀린다).
+      const double entry_hold =
+          std::abs(it->second.vehicle.delta_s) <=
+                  std::max(0.0, vanished_target_hold_alongside_ds_m_)
+              ? std::max(hold, std::max(0.0, vanished_target_hold_alongside_sec_))
+              : hold;
+      if (age < 0.0 || age > entry_hold ||
+          it->second.current_lane_id != t.current_lane_id ||
+          it->second.target_lane_id != t.target_lane_id) {
+        it = held_target_vehicles_.erase(it);
+        continue;
+      }
+      smpc_lane_change::TargetVehicle v = it->second.vehicle;
+      const double shift = (v.v_long - ego_speed_mps_) * age;
+      const double margin = std::max(0.0, vanished_target_hold_margin_m_);
+      const double bias = v.delta_s >= 0.0 ? -margin : margin;
+      v.delta_s += shift + bias;
+      v.front_delta_s += shift + bias;
+      v.rear_delta_s += shift + bias;
+      v.s += v.v_long * age;
+      v.x += v.v_long * std::cos(v.yaw) * age;
+      v.y += v.v_long * std::sin(v.yaw) * age;
+      if (v.delta_s > zone_front || v.delta_s < -zone_rear) {
+        it = held_target_vehicles_.erase(it);
+        continue;
+      }
+      const bool rear_side = v.rear_delta_s <= 0.0;
+      v.role = rear_side ? "nearby_rear_held" : "nearby_front_held";
+      t.nearby_vehicles.push_back(v);
+      ++held_injected_count_;
+      if (rear_side && !t.target_rear.valid) {
+        smpc_lane_change::TargetVehicle r = v;
+        r.role = "target_rear";
+        t.target_rear = r;
+      } else if (!rear_side && !t.target_front.valid) {
+        smpc_lane_change::TargetVehicle f = v;
+        f.role = "target_front";
+        t.target_front = f;
+      }
+      ++it;
+    }
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {
@@ -1209,16 +1338,142 @@ class SmpcDecisionNode {
   double changePostCompletionSpeedMps(const smpc_lane_change::TargetVehicleSet& t,
                                       double pre_cap_mps) const {
     double post = currentTargetSpeedMps();
+    bool have_target_front_speed = false;
     if (t.target_front.valid && std::isfinite(t.target_front.v_long)) {
       post = std::min(post, std::max(0.0, t.target_front.v_long));
+      have_target_front_speed = true;
     }
-    return std::max(pre_cap_mps, post);
+    // lc_gt 2026-09-17-12-23-58 차선2->3 (20.6~32.3 s) 측정: 목표차선 앞차가
+    // 내내 유효하고 16~17 m/s 인데, 자차 ACC 목표가 그 속도를 넘어서는 24.4 s
+    // 부터 pre_cap 바닥값이 앞차 속도를 덮어 v_post 가 25.0 으로 고정됐다.
+    // 차선변경 후 그 앞차를 따라갈 것이 자명한데도 정속 25 로 달린다고 보아
+    // 요구 전방간격이 19.8 -> 30.0 m 까지 올랐고, 실제 간격은 최대 14.6 m 라
+    // 정상 게이트로는 끝내 통과하지 못했다(실제 합류는 pass_gap 예외로 32.34 s).
+    // 앞차 속도를 실제로 관측한 경우에는 바닥값을 적용하지 않는다.  앞차가
+    // 없을 때는 따라갈 대상이 없으므로 기존대로 pre_cap 을 유지한다.
+    if (change_rollout_post_completion_use_pre_cap_floor_ ||
+        !have_target_front_speed) {
+      return std::max(pre_cap_mps, post);
+    }
+    return post;
   }
 
   // CHANGE_NOW rollout: the pre-change cap until release (start + fraction of
   // the lane-change duration), then speedTargetRollout toward the
   // post-completion speed.  Preparation candidates keep their persistent
   // worst-case model.
+  // 합류 상한 롤아웃 (2026-09-21).  v_ref 를 향해 굴리되 감속률만 ACC 실제값에
+  // 가깝게 제한한다.  기존 speedTargetRollout 의 감속 한계 9.0 m/s^2 는 실제 ACC
+  // 제동(3.8~4.0)보다 훨씬 빨라 예측 주행거리를 과소평가하고 간격을 낙관한다.
+  LongitudinalRollout blendCapRollout(double v0, double tau, double v_ref,
+                                      double decel) const {
+    LongitudinalRollout out;
+    v0 = std::max(0.0, v0);
+    tau = std::max(0.0, tau);
+    v_ref = std::max(0.0, v_ref);
+    constexpr double kEps = 0.05;
+    double a = 0.0;
+    if (v_ref > v0 + kEps) a = std::max(0.0, ego_prediction_max_accel_mps2_);
+    else if (v_ref < v0 - kEps) a = -std::max(0.1, decel);
+    if (std::abs(a) < 1e-6) {
+      out.v = v0;
+      out.ds = v0 * tau;
+      return out;
+    }
+    const double t_ref = std::max(0.0, (v_ref - v0) / a);
+    const double ta = std::min(tau, t_ref);
+    out.v = std::max(0.0, v0 + a * ta);
+    out.ds = std::max(0.0, v0 * ta + 0.5 * a * ta * ta);
+    if (tau > ta) {
+      out.v = v_ref;
+      out.ds += v_ref * (tau - ta);
+    }
+    return out;
+  }
+
+  // 차선 변경 중 기준속도 보간 (2026-09-21, 사용자 설계).
+  //   현재 차선 구간:  목표 속도(pre_cap)
+  //   블렌드 구간:     목표 속도 -> 합류 후 ACC 추종속도 선형 보간
+  //   완료 이후:       합류 후 ACC 추종속도 = min(순항, 목표차선 앞차속도)
+  // 앞차가 자차보다 빠르면 min 이 순항을 고르므로 목표 속도로 주행하고,
+  // 느리면 앞차 속도를 따른다 -- ACC 의 정상 동작과 같다.
+  LongitudinalRollout blendInterpRollout(const smpc_lane_change::TargetVehicleSet& t,
+                                         double tau, double pre_cap_mps,
+                                         const ActionSpec& spec) const {
+    const double lc_start = effectiveLaneChangeStartSec(spec);
+    const double duration = std::max(0.1, spec.lane_change_duration_sec > 1e-3
+        ? spec.lane_change_duration_sec : egoChangeBlendDuration());
+    const double v_post = changePostCompletionSpeedMps(t, pre_cap_mps);
+    const double dt = std::max(0.02, prediction_dt_sec_);
+    double v = std::max(0.0, ego_speed_mps_);
+    double ds = 0.0;
+    for (double s = 0.0; s + 1e-9 < tau; s += dt) {
+      const double step = std::min(dt, tau - s);
+      const double alpha = std::clamp((s - lc_start) / duration, 0.0, 1.0);
+      const double v_ref = (1.0 - alpha) * std::max(0.0, pre_cap_mps) +
+          alpha * std::max(0.0, v_post);
+      double v_next = v;
+      if (v_ref > v + 0.05) {
+        v_next = std::min(v_ref, v + std::max(0.0, ego_prediction_max_accel_mps2_) * step);
+      } else if (v_ref < v - 0.05) {
+        v_next = std::max(v_ref,
+            v - std::max(0.1, change_rollout_blend_cap_decel_mps2_) * step);
+      }
+      ds += 0.5 * (v + v_next) * step;
+      v = std::max(0.0, v_next);
+    }
+    LongitudinalRollout out;
+    out.v = v;
+    out.ds = ds;
+    return out;
+  }
+
+  // ACC 3단계 모델 (2026-09-21, 사용자 설계).  ACC 가 실제로 하는 동작을 그대로 옮긴다:
+  //   |d_target| > soft_start : 아직 소스 차선 기준 -> pre_cap
+  //   |d_target| <= soft_start: 목표차선 앞차 추종  -> v_post = min(순항, 앞차속도)
+  // (ACC: targetFrontOverlapSoftAccAllowed 는 |d|<=2.7, HardAcc 는 |d|<=0.75 에서 켜진다)
+  // 블렌드는 선형이므로 |d(tau)| = (1-alpha)*|d0| 로 환산해 전환 시각을 구한다.
+  // 정지/저속 대기에서는 pre_cap 이 0 이라 그대로 쓰면 종방향 이동이 없는(옆으로만
+  // 미끄러지는) 궤적이 된다.  ACC 는 차선변경이 시작되면 정지 홀드를 풀고 출발하므로
+  // 정지 출발 캡으로 대체한다.  BLEND 프리뷰 + 정지/저속은 백 7개에서 109 프레임 존재.
+  LongitudinalRollout blendStageRollout(const smpc_lane_change::TargetVehicleSet& t,
+                                        double tau, double pre_cap_mps,
+                                        const ActionSpec& spec) const {
+    const double lc_start = effectiveLaneChangeStartSec(spec);
+    const double duration = std::max(0.1, spec.lane_change_duration_sec > 1e-3
+        ? spec.lane_change_duration_sec : egoChangeBlendDuration());
+    const double soft = std::max(0.0, change_rollout_soft_acc_start_abs_d_m_);
+    const double d0 = std::isfinite(t.ego_d_target) ? std::abs(t.ego_d_target) : 0.0;
+    double switch_sec = lc_start;
+    if (d0 > soft + 1e-3) switch_sec = lc_start + duration * (1.0 - soft / d0);
+    const double v_post = changePostCompletionSpeedMps(t, pre_cap_mps);
+    const bool launching = ego_speed_mps_ <
+        std::max(0.0, change_rollout_launch_speed_threshold_mps_);
+    const double stage1_ref = launching
+        ? std::max(pre_cap_mps, stoppedLaunchConnectorCapMps(t.target_lane_id))
+        : pre_cap_mps;
+    const double accel = launching
+        ? std::max(0.0, stopped_launch_connector_max_accel_mps2_)
+        : std::max(0.0, ego_prediction_max_accel_mps2_);
+    const double decel = std::max(0.1, change_rollout_blend_cap_decel_mps2_);
+    const double dt = std::max(0.02, prediction_dt_sec_);
+    double v = std::max(0.0, ego_speed_mps_);
+    double ds = 0.0;
+    for (double sec = 0.0; sec + 1e-9 < tau; sec += dt) {
+      const double step = std::min(dt, tau - sec);
+      const double ref = (sec < switch_sec) ? stage1_ref : v_post;
+      double vn = v;
+      if (ref > v + 0.05) vn = std::min(ref, v + accel * step);
+      else if (ref < v - 0.05) vn = std::max(ref, v - decel * step);
+      ds += 0.5 * (v + vn) * step;
+      v = std::max(0.0, vn);
+    }
+    LongitudinalRollout out;
+    out.v = v;
+    out.ds = ds;
+    return out;
+  }
+
   LongitudinalRollout changeAwareRollout(const smpc_lane_change::TargetVehicleSet& t,
                                          double tau, double pre_cap_mps,
                                          const ActionSpec& spec) const {
@@ -1232,9 +1487,30 @@ class SmpcDecisionNode {
         : egoChangeBlendDuration();
     const double release_sec = effectiveLaneChangeStartSec(spec) +
         std::clamp(change_rollout_release_fraction_, 0.0, 1.0) * duration;
-    if (tau <= release_sec) return actionLongitudinalRollout(tau, pre_cap_mps, spec);
-    const LongitudinalRollout pre =
-        actionLongitudinalRollout(release_sec, pre_cap_mps, spec);
+    if (change_rollout_blend_stage_enabled_) {
+      return blendStageRollout(t, tau, pre_cap_mps, spec);
+    }
+    if (change_rollout_blend_speed_interp_enabled_) {
+      return blendInterpRollout(t, tau, pre_cap_mps, spec);
+    }
+    // 블렌드 중 기준속도를 "합류 후 따라갈 속도"로 상한만 건다 (2026-09-21).
+    // 올리지 않는다: ACC 가 자차를 목표차선 흐름보다 느리게 붙들고 있으면 그대로
+    // 둔다.  release_fraction 을 낮춰 완료 후 속도를 앞당겨 적용했을 때는 그 값이
+    // 오히려 예측 자차를 빠르게 만들어(ACC 10 m/s vs 목표차선 16.2 m/s) 요구가
+    // 1.2 x 예측속도로 커지며 차선변경 3건이 사라졌다.  상한 형태는 그 경로가 없다.
+    const double blend_ref = change_rollout_blend_speed_cap_enabled_
+        ? std::min(pre_cap_mps, changePostCompletionSpeedMps(t, pre_cap_mps))
+        : pre_cap_mps;
+    if (tau <= release_sec) {
+      return change_rollout_blend_speed_cap_enabled_
+          ? blendCapRollout(ego_speed_mps_, tau, blend_ref,
+                            change_rollout_blend_cap_decel_mps2_)
+          : actionLongitudinalRollout(tau, pre_cap_mps, spec);
+    }
+    const LongitudinalRollout pre = change_rollout_blend_speed_cap_enabled_
+        ? blendCapRollout(ego_speed_mps_, release_sec, blend_ref,
+                          change_rollout_blend_cap_decel_mps2_)
+        : actionLongitudinalRollout(release_sec, pre_cap_mps, spec);
     const LongitudinalRollout post = speedTargetRollout(
         pre.v, tau - release_sec, changePostCompletionSpeedMps(t, pre_cap_mps));
     LongitudinalRollout out;
@@ -1507,8 +1783,10 @@ class SmpcDecisionNode {
   bool targetFrontHeadwaySafe(const smpc_lane_change::TargetVehicle& front) const {
     if (!front.valid) return true;
     const double gap = std::max(0.0, frontBumperGap(front));
-    const double reference_speed = std::max(
-        std::max(0.0, ego_speed_mps_), std::max(0.0, front.v_long));
+    // projectedTargetGapTtcSafe 의 전방 헤드웨이와 같은 기준을 쓴다.
+    const double reference_speed = target_front_headway_use_closing_speed_
+        ? std::max(0.0, ego_speed_mps_ - std::max(0.0, front.v_long))
+        : std::max(std::max(0.0, ego_speed_mps_), std::max(0.0, front.v_long));
     return gap >= std::max(0.0, target_front_min_headway_sec_) * reference_speed;
   }
 
@@ -1825,7 +2103,10 @@ class SmpcDecisionNode {
       // therefore an ambiguous corridor intrusion, regardless of direction.
       // Wait for it to settle instead of certifying a merge into a gap that
       // can disappear one LiDAR update later.
-      if (std::abs(v.v_lat) >=
+      // 시나리오상 타 차량이 차선을 바꾸지 않으면 이 분기는 순수한 오검출원이다
+      // (GT 대조: 발동 차량의 약 74% 가 자기 차선 직진 중, 2 초간 횡방향 변화 중앙 0.03 m).
+      if (!observed_cutin_assume_no_lane_change_ &&
+          std::abs(v.v_lat) >=
               std::max(0.0, observed_cutin_min_lateral_speed_mps_) &&
           coarse_rear_gap <= std::max(0.0, observed_cutin_max_rear_distance_m_)) {
         return false;
@@ -1889,6 +2170,10 @@ class SmpcDecisionNode {
         }
       }
 
+      // 아래는 "이 차가 목표 차선으로 진입할 것"을 예측하는 분기다.
+      // 차선 변경이 없는 시나리오에서는 건너뛴다.  위의 현재 점유 검사(발자국이
+      // 이미 목표 코리도/경계를 물고 있는 경우)는 그대로 유지된다.
+      if (observed_cutin_assume_no_lane_change_) continue;
       const double source_yaw = laneYawAtVehicle(v);
       const double vx = v.v_long * std::cos(source_yaw) -
           v.v_lat * std::sin(source_yaw);
@@ -3208,6 +3493,7 @@ class SmpcDecisionNode {
       const ActionSpec& spec,
       const smpc_lane_change::TargetVehicle* rear_override = nullptr,
       bool passing_front = false) const {
+    proj_fail_ = ProjGateFail{};
     if (!spec.change_left || ego_traj.empty()) return false;
 
     const double lane_change_start = effectiveLaneChangeStartSec(spec);
@@ -3282,10 +3568,27 @@ class SmpcDecisionNode {
 
           if (front) {
             const double gap = longitudinal - ego_extent - tv_extent;
+            // 뒤따라갈 앞차에게 절대속도 기반 헤드웨이를 요구하면, 자차가
+            // 가속할수록 요구 간격이 함께 커져 합류가 오히려 멀어진다.
+            // 접근속도(자차 - 앞차)가 0 이하이면 간격이 줄지 않으므로 절대
+            // 하한(target_front_safe_gap_m)만 요구한다.  TTC 3 초 검사와
+            // 진입 클리어런스, front_brake 확률 항은 그대로 유지된다.
+            // 추월 분기의 기준 속도 (2026-09-17).  앞차가 자차보다 빠르면
+            // 간격은 벌어지는데, 절대속도 기준은 자차가 빨라질수록 요구를 키운다.
+            // lc_gt 09-16/09-17 측정: ACC 가 자차를 10.7 m/s 로 붙든 채 목표차선
+            // 흐름이 16.2 m/s 인 구간에서 완료 후 속도를 앞당겨 적용하자 요구가
+            // 1.2 x 예측속도로 18.85 m 까지 올라, 통과하던 279 프레임이 실패했다.
+            const double front_headway_reference = passing_front
+                ? (pass_gap_headway_use_closing_speed_
+                       ? std::max(0.0, ego.v - tv_forward_speed)
+                       : ego.v)
+                : (target_front_headway_use_closing_speed_
+                       ? std::max(0.0, ego.v - tv_forward_speed)
+                       : std::max(ego.v, tv_forward_speed));
             const double full_required_gap = std::max(
                 front_required_gap,
                 std::max(0.0, target_front_min_headway_sec_) *
-                    (passing_front ? ego.v : std::max(ego.v, tv_forward_speed)));
+                    front_headway_reference);
             // 추월 차량이 아직 멀어지는 중이면 occupancy 램프를 적용하지 않고
             // 진입 클리어런스만 요구한다.  full_required_gap 은 "앞차가 급제동해도
             // 받지 않을 거리"인데, passing_front 의 front_brake 모드는 바로 위에서
@@ -3322,10 +3625,21 @@ class SmpcDecisionNode {
                              occupancy_progress *
                                  std::max(0.0, full_required_gap - pass_entry_clearance))
                 : full_required_gap;
-            if (!(gap > required_gap)) return false;
+            if (!(gap > required_gap)) {
+              proj_fail_ = ProjGateFail{true, true, false, ego.t, gap,
+                                        required_gap, vehicle.unique_id,
+                                        mode.name, ego.v, tv_forward_speed,
+                                        ego.yaw, tv.yaw};
+              return false;
+            }
             const double closing = std::max(0.0, ego.v - tv_forward_speed);
             if (closing > 0.1 &&
                 gap / closing < std::max(0.0, target_front_min_ttc_sec_)) {
+              proj_fail_ = ProjGateFail{
+                  true, true, true, ego.t, gap,
+                  closing * std::max(0.0, target_front_min_ttc_sec_),
+                  vehicle.unique_id, mode.name, ego.v, tv_forward_speed,
+                  ego.yaw, tv.yaw};
               return false;
             }
           } else {
@@ -3347,12 +3661,23 @@ class SmpcDecisionNode {
             const double required_gap = base_gap + closing *
                 (remaining_sec +
                  std::max(0.0, rear_gap_perception_control_delay_sec_));
-            if (!(gap > required_gap)) return false;
+            if (!(gap > required_gap)) {
+              proj_fail_ = ProjGateFail{true, false, false, ego.t, gap,
+                                        required_gap, vehicle.unique_id,
+                                        mode.name, ego.v, tv_forward_speed,
+                                        ego.yaw, tv.yaw};
+              return false;
+            }
             const double required_ttc = (low_speed_rear_safety_enabled_ &&
                                          ego.v <= std::max(0.0, low_speed_rear_ego_speed_mps_))
                 ? std::max(target_rear_min_ttc_sec_, low_speed_rear_min_ttc_sec_)
                 : target_rear_min_ttc_sec_;
             if (closing > 0.1 && gap / closing < std::max(0.0, required_ttc)) {
+              proj_fail_ = ProjGateFail{true, false, true, ego.t, gap,
+                                        closing * std::max(0.0, required_ttc),
+                                        vehicle.unique_id, mode.name,
+                                        ego.v, tv_forward_speed,
+                                        ego.yaw, tv.yaw};
               return false;
             }
           }
@@ -3767,9 +4092,14 @@ class SmpcDecisionNode {
     // instantaneous gate alone is unsafe for a fast target-rear vehicle:
     // it can be acceptable at t=0 but close the gap while the ego reference
     // is entering the lane.
+    // 호출 직전에 반드시 지운다.  change_eval.valid 가 false 면 단축 평가로
+    // 호출이 생략되는데, 그러면 후보 평가(evaluateCandidate)가 다른 spec 으로
+    // 남긴 기록을 CHANGE_NOW 의 것으로 잘못 읽게 된다.
+    proj_fail_ = ProjGateFail{};
     const bool change_projected_gap_ttc_safe = change_eval.valid &&
         projectedTargetGapTtcSafe(t, change_traj, change_now_spec,
                                   effective_target_rear, passing_front);
+    const ProjGateFail change_proj_fail = proj_fail_;
     const bool change_acc_stable = accStableForChangeCommit();
     const bool change_feasible =
         target_lane_is_left && change_eval.valid && deterministic_gap_safe &&
@@ -3933,6 +4263,22 @@ class SmpcDecisionNode {
           << " tr=" << (target_rear_ttc_safe ? 1 : 0)
           << " rear_hw_ok=" << (target_rear_headway_safe ? 1 : 0)
           << " projected_gap_ttc_ok=" << (change_projected_gap_ttc_safe ? 1 : 0)
+          << " pgtc_fail="
+          << (!change_proj_fail.valid
+                  ? "none"
+                  : (change_proj_fail.front
+                         ? (change_proj_fail.ttc ? "front_ttc" : "front_gap")
+                         : (change_proj_fail.ttc ? "rear_ttc" : "rear_gap")))
+          << " pgtc_t=" << change_proj_fail.t_sec
+          << " pgtc_gap=" << change_proj_fail.gap
+          << " pgtc_req=" << change_proj_fail.required
+          << " pgtc_id=" << change_proj_fail.unique_id
+          << " pgtc_mode="
+          << (change_proj_fail.mode.empty() ? "-" : change_proj_fail.mode.c_str())
+          << " pgtc_egov=" << change_proj_fail.ego_v
+          << " pgtc_tvv=" << change_proj_fail.tv_v
+          << " pgtc_egoyaw=" << change_proj_fail.ego_yaw
+          << " pgtc_tvyaw=" << change_proj_fail.tv_yaw
           << " acc_commit_ok=" << (change_acc_stable ? 1 : 0)
           << " ego_accel=" << ego_longitudinal_accel_mps2_
           << " scene_obs=" << (target_lane_scene_observed ? 1 : 0)
@@ -3947,6 +4293,7 @@ class SmpcDecisionNode {
           << " rear_priority=" << (target_rear_priority ? 1 : 0)
           << " side_priority=" << (current_front_priority ? 1 : 0)
           << " vehicles=" << vehicles.size()
+          << " held=" << held_injected_count_
           << " nearby=" << t.nearby_vehicles.size()
           << " v_ego=" << ego_speed_mps_
           << " rear_closing=" << target_rear_closing
@@ -4071,6 +4418,50 @@ class SmpcDecisionNode {
 
   std::map<int, smpc_lane_change::LanePath> lanes_;
   std::unordered_map<int, VehicleHistory> vehicle_history_;
+  // 목표 차선 판단 구간에서 "사라진" 차량.  트래커 출력이 끊겨도 차가 실제로
+  // 사라진 것은 아니다 (lc_gt 백 15개: 실차 트랙 끊김 383건 중 289건이 0.3 s
+  // 이하, 최대 0.77 s, 1 s 초과 0건).  마지막 관측을 등속으로 밀어 잠깐 유지한다.
+  struct HeldVehicle {
+    smpc_lane_change::TargetVehicle vehicle;
+    ros::Time last_seen_stamp;
+    int current_lane_id{-1};
+    int target_lane_id{-1};
+  };
+  std::unordered_map<int, HeldVehicle> held_target_vehicles_;
+  int held_injected_count_{0};
+  // projectedTargetGapTtcSafe 의 실패 지점 계측 (2026-09-17).  게이트는 불린
+  // 하나만 내보내서 앞/뒤 어느 항이 걸렸는지 분리할 수 없었다.  판단에는
+  // 영향이 없는 출력 전용 기록이다.
+  struct ProjGateFail {
+    bool valid{false};
+    bool front{false};
+    bool ttc{false};
+    double t_sec{0.0};
+    double gap{0.0};
+    double required{0.0};
+    int unique_id{-1};
+    // 실패를 유발한 TV 모드 (nominal / front_brake / rear_accel ...).
+    // 일반 앞차에는 front_brake 가 결정론적으로 적용되므로, 어느 모드가
+    // 거부권을 행사했는지 구분해야 원인을 가릴 수 있다.
+    std::string mode;
+    // 실패 스텝에서의 예측 자차 속도와 TV 전진속도.  "자차가 빨라서 붙었다" 와
+    // "앞차가 제동해서 붙었다" 를 산술로 가르려면 둘 다 필요하다.
+    double ego_v{0.0};
+    double tv_v{0.0};
+    // 어느 쪽 yaw 가 퇴화했는지 가리기 위해 둘 다 기록한다.
+    // tv_forward_speed = tv.v * cos(tv.yaw - ego.yaw) 이므로 두 값에 모두 의존.
+    double ego_yaw{0.0};
+    double tv_yaw{0.0};
+  };
+  mutable ProjGateFail proj_fail_;
+  bool vanished_target_hold_enabled_{false};
+  double vanished_target_hold_sec_{0.50};
+  int vanished_target_hold_min_hits_{20};
+  double vanished_target_hold_zone_rear_m_{60.0};
+  double vanished_target_hold_zone_front_m_{30.0};
+  double vanished_target_hold_margin_m_{1.5};
+  double vanished_target_hold_alongside_sec_{0.0};
+  double vanished_target_hold_alongside_ds_m_{4.0};
   TargetLaneSceneHistory target_lane_scene_history_;
   std::string waypoint_directory_;
   bool lanes_loaded_{false};
@@ -4111,6 +4502,15 @@ class SmpcDecisionNode {
   double prepare_merge_rear_safe_gap_m_{7.0};
   double target_front_min_ttc_sec_{3.0};
   double target_front_min_headway_sec_{1.2};
+  bool target_front_headway_use_closing_speed_{false};
+  bool pass_gap_headway_use_closing_speed_{false};
+  bool change_rollout_post_completion_use_pre_cap_floor_{true};
+  bool change_rollout_blend_speed_cap_enabled_{false};
+  bool change_rollout_blend_speed_interp_enabled_{false};
+  bool change_rollout_blend_stage_enabled_{false};
+  double change_rollout_soft_acc_start_abs_d_m_{2.7};
+  double change_rollout_launch_speed_threshold_mps_{1.0};
+  double change_rollout_blend_cap_decel_mps2_{4.0};
   double target_rear_min_ttc_sec_{3.0};
   double target_rear_min_headway_sec_{1.2};
   double change_commit_scene_observation_sec_{1.5};
@@ -4133,6 +4533,7 @@ class SmpcDecisionNode {
   double new_rear_track_closing_upper_mps_{15.0};
   double tv_lane_projection_extension_before_m_{100.0};
   bool observed_cutin_safety_enabled_{true};
+  bool observed_cutin_assume_no_lane_change_{false};
   double observed_cutin_min_lateral_speed_mps_{0.5};
   double observed_cutin_max_entry_time_sec_{4.5};
   double observed_cutin_max_rear_distance_m_{60.0};

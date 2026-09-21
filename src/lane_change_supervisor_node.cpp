@@ -82,6 +82,11 @@ class LaneChangeSupervisor {
                active_rear_guard_perception_control_delay_sec_, 0.50);
     pnh_.param("active_rear_guard_stationary_remaining_sec",
                active_rear_guard_stationary_remaining_sec_, 8.0);
+    pnh_.param("active_rear_guard_stationary_launch_grace_sec",
+               active_rear_guard_stationary_launch_grace_sec_, 0.0);
+    pnh_.param("active_rear_guard_launch_speed_cap_by_target_lane_mps",
+               active_rear_guard_launch_speed_cap_by_target_lane_mps_,
+               std::vector<double>{7.0, 9.0, 7.0, 7.0});
     pnh_.param("active_rear_guard_max_remaining_sec",
                active_rear_guard_max_remaining_sec_, 10.0);
     pnh_.param("active_rear_guard_min_lateral_rate_mps",
@@ -639,6 +644,56 @@ class LaneChangeSupervisor {
     return escape_projected_gap > completion_required_gap;
   }
 
+  double launchSpeedCapMps() const {
+    const auto& caps = active_rear_guard_launch_speed_cap_by_target_lane_mps_;
+    if (target_lane_ >= 0 && target_lane_ < static_cast<int>(caps.size()) &&
+        caps[target_lane_] > 0.0) {
+      return caps[target_lane_];
+    }
+    return 7.0;
+  }
+
+  // A stationary ego right after the start is the normal launch delay, not a
+  // stuck vehicle: 32 stationary starts in lc_gt 2026-09-10..15 reached
+  // 0.2 m/s after 0.30~0.65 s.  Only within this window is the stationary
+  // rear check allowed to assume the ego will launch.
+  bool stationaryLaunchGraceActive() const {
+    const double grace =
+        std::max(0.0, active_rear_guard_stationary_launch_grace_sec_);
+    return grace > 0.0 && !change_start_.isZero() &&
+        (ros::Time::now() - change_start_).toSec() < grace;
+  }
+
+  // Escape rollout for a launch from (near) standstill: accelerate at the
+  // escape limit up to the endpoint-connector cap, then hold that speed.
+  // Unlike rearThreatCanBeEscaped() the speed is capped, because the
+  // connector limits the ego for the whole lateral manoeuvre.
+  bool rearThreatCanBeEscapedByLaunch(
+      const smpc_lane_change::TargetVehicle& rear, double remaining_sec) const {
+    if (!rearIntrudesDuringRemaining(rear, remaining_sec)) return true;
+    const double gap = rearBumperGap(rear);
+    const double ego_speed = egoSpeedMps();
+    const double closing = conservativeRearClosingSpeed(rear);
+    const double rear_speed = std::max(
+        std::max(0.0, rear.v_long), ego_speed + closing);
+    const double accel = std::max(0.0, active_rear_guard_escape_accel_mps2_);
+    const double cap = std::max(ego_speed, launchSpeedCapMps());
+    const double t = std::max(0.0, remaining_sec);
+    double ego_distance = ego_speed * t;
+    if (accel > 1e-6) {
+      const double t_cap = (cap - ego_speed) / accel;
+      ego_distance = t <= t_cap
+          ? ego_speed * t + 0.5 * accel * t * t
+          : ego_speed * t_cap + 0.5 * accel * t_cap * t_cap +
+                cap * (t - t_cap);
+    }
+    const double projected_gap = gap - (rear_speed * t - ego_distance);
+    const double required_gap =
+        std::max(0.0, active_rear_guard_min_gap_m_) + closing *
+            std::max(0.0, active_rear_guard_perception_control_delay_sec_);
+    return projected_gap > required_gap;
+  }
+
   bool activeRearGuardRequiresAbort(
       const smpc_lane_change::TargetVehicleSet& targets,
       bool* emergency_abort) {
@@ -662,7 +717,11 @@ class LaneChangeSupervisor {
     const double remaining_sec = activeRearGuardRemainingSec();
     bool rear_threat = false;
     bool rear_requires_abort = false;
+    bool launch_requires_abort = false;
     bool emergency = false;
+    const bool stationary =
+        egoSpeedMps() < std::max(0.0, motion_start_speed_mps_);
+    const bool launch_grace = stationary && stationaryLaunchGraceActive();
     const auto inspect_rear = [&](const smpc_lane_change::TargetVehicle& rear) {
       if (!isTargetLaneRearOrOverlap(rear)) return;
       if (!rearIntrudesDuringRemaining(rear, remaining_sec)) return;
@@ -674,6 +733,9 @@ class LaneChangeSupervisor {
           ? gap / closing : std::numeric_limits<double>::infinity();
       const bool escapable = rearThreatCanBeEscaped(rear, remaining_sec);
       rear_requires_abort = rear_requires_abort || !escapable;
+      const bool launch_escapable =
+          rearThreatCanBeEscapedByLaunch(rear, remaining_sec);
+      launch_requires_abort = launch_requires_abort || !launch_escapable;
       emergency = emergency ||
           gap <= std::max(0.0, active_rear_guard_emergency_gap_m_) ||
           (std::isfinite(ttc) &&
@@ -687,7 +749,9 @@ class LaneChangeSupervisor {
              << " required=" << required_gap
              << " ttc=" << ttc
              << " remaining=" << remaining_sec
-             << " escapable=" << (escapable ? 1 : 0);
+             << " escapable=" << (escapable ? 1 : 0)
+             << " launch_escapable=" << (launch_escapable ? 1 : 0)
+             << " launch_grace=" << (launch_grace ? 1 : 0);
       last_rear_guard_detail_ = detail.str();
     };
     inspect_rear(targets.target_rear);
@@ -699,7 +763,15 @@ class LaneChangeSupervisor {
     // With no longitudinal motion the measured lateral-progress time grows;
     // do not continue entering a fast rear vehicle's path on the assumption
     // that a nominal four-second blend will somehow finish on schedule.
-    if (egoSpeedMps() < std::max(0.0, motion_start_speed_mps_)) {
+    // Exception: during the launch grace right after the start, a capped
+    // launch rollout decides (lc_gt 2026-09-15-19-33-03 10.38 s: rear 72 m
+    // behind at 11 m/s, escapable, aborted 0.42 s after start while the ego
+    // was still launching; GT min gap had it launched: 41.6 m).
+    if (stationary) {
+      if (launch_grace && !emergency && !launch_requires_abort &&
+          targetFrontAllowsRearEscape(targets)) {
+        return false;
+      }
       if (emergency_abort != nullptr) *emergency_abort = emergency;
       return true;
     }
@@ -1162,6 +1234,9 @@ class LaneChangeSupervisor {
   double active_rear_guard_min_remaining_sec_{0.30};
   double active_rear_guard_perception_control_delay_sec_{0.50};
   double active_rear_guard_stationary_remaining_sec_{8.0};
+  double active_rear_guard_stationary_launch_grace_sec_{0.0};
+  std::vector<double> active_rear_guard_launch_speed_cap_by_target_lane_mps_{
+      7.0, 9.0, 7.0, 7.0};
   double active_rear_guard_max_remaining_sec_{10.0};
   double active_rear_guard_min_lateral_rate_mps_{0.05};
   double active_rear_guard_lateral_rate_alpha_{0.30};

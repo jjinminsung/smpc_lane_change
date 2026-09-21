@@ -33,6 +33,17 @@ sticky_role_selection_enabled: true
 sticky_role_size_hysteresis_m: 0.15
 tracked_vehicle_filter_enabled: true
 tracked_vehicle_min_confidence: 0.60
+# 확신도 유지 (2026-09-16).  위 문턱을 한 번 넘겨 차량으로 확정된 트랙은, 새 점이
+# 계속 들어오는 동안(hits 증가) 확신도가 잠깐 떨어져도 목록에 남긴다.  자차 옆을
+# 지나는 차는 옆모습만 보여 확신도가 내려간다: lc_gt 2026-09-15-19-33-03 37.4~39.6 s
+# 에 옆 차(id31)가 0.10~0.33 으로 떨어져 2.2 s 동안 빠졌고, SMPC 가 빈 차선으로 보고
+# 승인해 GT 최소여유 -0.70 m 가 됐다.  백 15개: 이렇게 빠진 옆차선 성숙 트랙
+# 269 프레임 중 239 (89%) 가 GT 실차, 30 이 유령.  hits 가 stale_sec 동안 안 늘면
+# (관성으로만 끌려가는 트랙) 해제하고, timeout 넘게 안 보이면 번호 재사용으로 보고 초기화.
+tracked_vehicle_confidence_hold_enabled: true
+tracked_vehicle_confidence_hold_min_hits: 20
+tracked_vehicle_confidence_hold_stale_sec: 0.50
+tracked_vehicle_confidence_hold_timeout_sec: 0.35
 # 0.42~0.60: no multi-vehicle prediction, but retain it as a conservative
 # current/target-lane obstacle.  <0.42: reject geometry that looks structural.
 tracked_unknown_obstacle_min_confidence: 0.42

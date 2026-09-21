@@ -137,6 +137,36 @@ endpoint_connector_status_timeout_sec: 0.5
 lane_change_lane_end_cap_enabled: true
 lane_change_lane_end_margin_m: 3.0
 lane_change_lane_end_min_cap_mps: 3.0
+# 목표 차선 중심까지 이 거리 안으로 들어오면 위 상한을 해제 (2026-09-17).
+# 상한은 blend 중 원래 차선 끝에 일찍 닿는 것을 막기 위한 것인데, 차체가 이미 목표
+# 차선에 들어온 뒤에는 막을 대상이 없다.  lc_gt 2026-09-17 백 3개에서 목표차선 중심까지
+# 0.52~0.85 m 인데도 남은 원래 차선 길이(2~5 m) 때문에 상한이 하한 3.0 m/s 로 떨어져
+# 8~10 m/s 주행 중 브레이크 0.35~0.53 이 걸렸다 (3차선 인덱스 4130~4160 구간).
+# 검증: (1) 녹화값으로 상한식을 재현하니 실제 목표와 소수점까지 일치, (2) ACC 단독
+# A/B 리플레이에서 이 상한만 끄면 같은 입력에서 목표가 20~23 m/s 로 유지됨.
+# 0 이면 해제하지 않음(이전 동작).
+lane_change_lane_end_cap_release_abs_d_m: 1.5
+# 차선 끝 대기/정지/비상정지는 감독자가 차선변경을 실제로 시작(lane_change_status
+# active)했을 때만 푼다 (2026-09-15).  예전처럼 CHANGE_LEFT 요청만으로 풀면 ACC
+# 사유가 none 으로 바뀌고, 자차는 아직 대기 감속 중이라 SMPC 가 "ACC 불안정"으로
+# 요청을 거둔다 -> 대기 복귀 -> 재요청 반복.  감독자는 3 연속 요청이 필요해 끝내
+# 시작하지 못하고 정지 후에야 합류 (lc_gt 19-33-03: 7회, 0->1 약 1.5 s, 2->3 약 3 s).
+# 요청~시작 사이(요청 3회, 약 0.15~0.3 s)는 대기 감속이 계속된다.  false = 예전 동작.
+lane_end_hold_until_lane_change_active: true
+# 같은 이유로, 요청이 오면 ACC 가 SMPC 의 WAIT_FOR_GAP(틈 기다림) 요청을 지워
+# lane_end_wait_no_safe_gap 대기도 풀리던 경로를 막는다.  요청 직전의 WAIT_FOR_GAP
+# (같은 차선 쌍)을 차선변경 시작 전까지, 최대 이 시간 동안 유지.  위 값이 false 면 무시.
+# ACC+SMPC+감독자 체인 리플레이: 요청 철회 반복 17회 -> A3만 2회 -> 이 유지까지 0회.
+# 2026-09-16 에 한 번 0.0 으로 껐었다.  이 유지를 켜면 반복이 사라지는데, 그 반복이
+# 우연히 걸러주던 인식 누락 순간의 승인이 통과해 61구간에서 새 위험 시작 2건이
+# 생겼기 때문이다 (GT 최소여유 -0.70 m: 옆 차가 target_selector 신뢰도 필터에
+# 2.2 s 빠짐 / -0.88 m: 42 m 뒤차 트래커 출력 0.35 s 누락).
+# 그 인식 누락 대책(selector tracked_vehicle_confidence_hold_*, SMPC
+# vanished_target_hold_*)을 넣고 selector 까지 포함한 체인 리플레이로 재검증해
+# 두 건이 모두 사라진 것을 확인하고 1.0 으로 되돌렸다: 61구간 시작 35건 중 GT
+# 최소여유 0.5 m 미만 3건으로, 이 유지를 끈 기준(39건 중 3건)과 동일한 3건이다.
+# 위 두 대책을 끄면 이 값도 0.0 으로 함께 되돌릴 것.
+lane_end_hold_wait_for_gap_latch_sec: 1.0
 
 # Target-lane gap and lane-end fallback braking.
 min_target_front_gap_m: 11.0

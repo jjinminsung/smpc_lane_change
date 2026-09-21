@@ -100,6 +100,12 @@ class AccSpeedPlanner {
                endpoint_connector_status_timeout_sec_, 0.5);
     pnh_.param("lane_change_lane_end_cap_enabled",
                lane_change_lane_end_cap_enabled_, false);
+    pnh_.param("lane_change_lane_end_cap_release_abs_d_m",
+               lane_change_lane_end_cap_release_abs_d_m_, 0.0);
+    pnh_.param("lane_end_hold_until_lane_change_active",
+               lane_end_hold_until_lane_change_active_, false);
+    pnh_.param("lane_end_hold_wait_for_gap_latch_sec",
+               lane_end_hold_wait_for_gap_latch_sec_, 1.0);
     pnh_.param("lane_change_lane_end_margin_m", lane_change_lane_end_margin_m_, 3.0);
     pnh_.param("lane_change_lane_end_min_cap_mps",
                lane_change_lane_end_min_cap_mps_, 3.0);
@@ -316,6 +322,12 @@ class AccSpeedPlanner {
     behavior_request_ = *msg;
     behavior_request_stamp_ = now;
     have_behavior_request_ = true;
+    if (msg->action ==
+        smpc_lane_change::BehaviorLongitudinalRequest::WAIT_FOR_GAP) {
+      wait_for_gap_seen_stamp_ = now;
+      wait_for_gap_current_lane_id_ = msg->current_lane_id;
+      wait_for_gap_target_lane_id_ = msg->target_lane_id;
+    }
   }
 
   bool recentLaneChangeRequest() const {
@@ -335,6 +347,20 @@ class AccSpeedPlanner {
     // Endpoint/merge-stop protection remains active until the supervisor has
     // a fresh CHANGE_LEFT command or reports an active maneuver.
     return lane_change_active_ || recentLaneChangeRequest();
+  }
+
+  // Endpoint wait/stop protection is released only once the supervisor has
+  // actually started the manoeuvre.  Releasing it on a bare CHANGE_LEFT
+  // flipped the ACC reason to "none" while the ego was still braking on the
+  // wait profile; SMPC read that as unstable ACC and withdrew the request, so
+  // the supervisor never saw three consecutive requests (lc_gt
+  // 2026-09-15-19-33-03: 7 request/withdraw cycles, 0->1 and 2->3 merges
+  // delayed until standstill).  Once active, lane_change_lane_end_cap takes
+  // over the endpoint deadline.
+  bool laneEndProtectionReleased() const {
+    return lane_end_hold_until_lane_change_active_
+        ? lane_change_active_
+        : laneChangeIntentActive();
   }
 
   bool behaviorPreparationActive() const {
@@ -399,9 +425,34 @@ class AccSpeedPlanner {
     // but neither CHANGE_NOW nor a safe future t_LC exists yet.  It is not a
     // lead-vehicle ACC command, but it must re-arm the CSV-endpoint fallback
     // once the lane-change deadline becomes urgent.
-    return behaviorPreparationActive() &&
-           behavior_request_.action ==
-               smpc_lane_change::BehaviorLongitudinalRequest::WAIT_FOR_GAP;
+    if (behaviorPreparationActive() &&
+        behavior_request_.action ==
+            smpc_lane_change::BehaviorLongitudinalRequest::WAIT_FOR_GAP) {
+      return true;
+    }
+    return waitForGapHeldForPendingChange();
+  }
+
+  // A fresh CHANGE_LEFT clears the behavior request on arrival
+  // (decisionCallback), which dropped the WAIT_FOR_GAP endpoint hold the
+  // moment SMPC asked to change: lane_end_wait_no_safe_gap -> "none", the
+  // same request/withdraw loop as the intent release (ACC+SMPC+supervisor
+  // chain replay: 4 of 11 loops took this path).  Keep the last lane-matched
+  // WAIT_FOR_GAP until the supervisor actually starts the manoeuvre.
+  bool waitForGapHeldForPendingChange() const {
+    // <= 0 disables the hold outright; with sim time a request and the next
+    // planner tick can share a stamp, so "age <= 0" alone is not "off".
+    if (!lane_end_hold_until_lane_change_active_ ||
+        lane_end_hold_wait_for_gap_latch_sec_ <= 0.0 || lane_change_active_ ||
+        !recentLaneChangeRequest() || wait_for_gap_seen_stamp_.isZero()) {
+      return false;
+    }
+    if (wait_for_gap_current_lane_id_ != targets_.current_lane_id ||
+        wait_for_gap_target_lane_id_ != targets_.target_lane_id) {
+      return false;
+    }
+    return (ros::Time::now() - wait_for_gap_seen_stamp_).toSec() <=
+        std::max(0.0, lane_end_hold_wait_for_gap_latch_sec_);
   }
 
   const char* behaviorActionName() const {
@@ -957,7 +1008,7 @@ class AccSpeedPlanner {
   // when SMPC cannot approve the merge.  This preserves enough local-path
   // points for MPC while target gaps and trajectory risk continue updating.
   bool mergeWaitStopRequired() const {
-    if (!lane_end_merge_wait_stop_enabled_ || laneChangeIntentActive()) return false;
+    if (!lane_end_merge_wait_stop_enabled_ || laneEndProtectionReleased()) return false;
     if (!targets_.lane_change_required || !targets_.lane_change_urgent) return false;
     // Ordinary KEEP_CRUISE is not a rejection.  A fresh WAIT_FOR_GAP is
     // different: no safe merge exists and the current CSV must not be run
@@ -1139,7 +1190,7 @@ class AccSpeedPlanner {
       // space is blocked, or SMPC explicitly reports WAIT_FOR_GAP, follow the
       // existing endpoint profile to the holding line.  WAIT_FOR_GAP keeps
       // normal ACC running upstream; this only starts in the urgent zone.
-      if (!laneChangeIntentActive() &&
+      if (!laneEndProtectionReleased() &&
           !lane_sync_mismatch &&
           targets_.lane_change_urgent &&
           mergeWaitStopRequired()) {
@@ -1158,7 +1209,7 @@ class AccSpeedPlanner {
 
       // Treat configured CSV endpoints as stop targets, independent of the
       // lane-change deadline logic.
-      if (!laneChangeIntentActive() && shouldStopAtLaneEnd() &&
+      if (!laneEndProtectionReleased() && shouldStopAtLaneEnd() &&
           !lane_sync_mismatch &&
           (targets_.distance_to_lane_end <= lane_end_stop_prepare_distance_m_ ||
            targets_.time_to_lane_end <= lane_end_stop_prepare_time_sec_)) {
@@ -1170,7 +1221,7 @@ class AccSpeedPlanner {
         }
       }
 
-      if (!laneChangeIntentActive() &&
+      if (!laneEndProtectionReleased() &&
           !lane_sync_mismatch &&
           targets_.emergency_stop_required &&
           mergeWaitStopRequired()) {
@@ -1270,7 +1321,20 @@ class AccSpeedPlanner {
     // the reference (5.3 m/s at 29 m, accelerating: alpha ~0.8 -> ~0.7 m).
     // Cap speed so the remaining source length lasts the remaining change
     // time.  The stopped-launch connector keeps its own cap.
+    // 차체가 이미 목표 차선에 들어온 뒤에는 이 상한을 푼다.  상한의 목적은 blend 가
+    // 끝나기 전에 원래 차선 끝에 닿아 경로가 튀는 것을 막는 것인데, 횡방향 진행이
+    // 사실상 끝난 뒤에는 막을 대상이 없다.  lc_gt 2026-09-17 백 3개: 목표차선 중심까지
+    // 0.52~0.85 m 인 상태에서 남은 원래 차선 길이(2~5 m) 때문에 상한이 하한 3.0 m/s
+    // 까지 떨어져, 8~10 m/s 로 달리던 자차가 브레이크 0.35~0.53 을 밟았다.  합류 후반
+    // 1.5~2 s 동안 목표가 8~12 m/s 로 묶였다 (ACC 단독 A/B: 같은 입력에서 이 상한만
+    // 끄면 목표가 20~23 m/s 로 유지되고 감속 지시가 사라진다).  0 이면 해제하지 않음.
+    const bool lane_end_cap_released =
+        lane_change_lane_end_cap_release_abs_d_m_ > 0.0 &&
+        std::isfinite(targets_.ego_d_target) &&
+        std::abs(targets_.ego_d_target) <=
+            lane_change_lane_end_cap_release_abs_d_m_;
     if (lane_change_lane_end_cap_enabled_ && lane_change_active_ &&
+        !lane_end_cap_released &&
         !endpoint_connector_active && fresh_targets &&
         std::isfinite(targets_.distance_to_lane_end)) {
       const double remaining_sec = std::max(
@@ -1413,6 +1477,12 @@ class AccSpeedPlanner {
   double endpoint_connector_max_accel_mps2_{1.5};
   double endpoint_connector_status_timeout_sec_{0.5};
   bool lane_change_lane_end_cap_enabled_{false};
+  double lane_change_lane_end_cap_release_abs_d_m_{0.0};
+  bool lane_end_hold_until_lane_change_active_{false};
+  double lane_end_hold_wait_for_gap_latch_sec_{1.0};
+  ros::Time wait_for_gap_seen_stamp_{0.0};
+  int wait_for_gap_current_lane_id_{-1};
+  int wait_for_gap_target_lane_id_{-1};
   double lane_change_lane_end_margin_m_{3.0};
   double lane_change_lane_end_min_cap_mps_{3.0};
   ros::Time endpoint_connector_active_stamp_;
