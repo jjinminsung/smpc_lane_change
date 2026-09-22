@@ -345,6 +345,11 @@ class SmpcDecisionNode {
     pnh_.param("max_rear_accel_probability", max_rear_accel_probability_, 0.65);
     pnh_.param("front_brake_accel_mps2", front_brake_accel_mps2_, -2.0);
     pnh_.param("rear_accel_mps2", rear_accel_mps2_, 1.5);
+    pnh_.param("rear_accel_max_speed_enabled",
+               rear_accel_max_speed_enabled_, false);
+    pnh_.param("rear_accel_max_speed_mps", rear_accel_max_speed_mps_, -1.0);
+    pnh_.param("rear_accel_max_speed_margin_mps",
+               rear_accel_max_speed_margin_mps_, 0.0);
     pnh_.param("rear_accel_probability_by_accel_enabled",
                rear_accel_probability_by_accel_enabled_, false);
     pnh_.getParam("rear_accel_probability_accel_breaks_mps2",
@@ -489,6 +494,8 @@ class SmpcDecisionNode {
     double probability{1.0};
     double accel_mps2{0.0};
     double lateral_rate_mps{0.0};
+    // 이 모드에서 TV 가 낼 수 있는 최대 속도.  무한대면 기존 동작(상한 없음).
+    double max_speed_mps{std::numeric_limits<double>::infinity()};
   };
 
   struct VehicleHistory {
@@ -1642,6 +1649,30 @@ class SmpcDecisionNode {
     return it->second.filtered_accel;
   }
 
+  // 속도 상한이 있는 등가속 (2026-09-22).  상한 도달 후에는 등속으로 간다.
+  // rear_accel 모드가 지평선 끝까지 무제한 가속해 11 m/s 뒤차가 6.4 s 뒤
+  // 23.8 m/s 가 되던 문제를 막는다.  상한이 무한대면 기존 식과 동일하다.
+  static double cappedAccelSpeed(double v0, double accel, double tau,
+                                 double v_max) {
+    v0 = std::max(0.0, v0);
+    tau = std::max(0.0, tau);
+    return std::clamp(v0 + accel * tau, 0.0, std::max(v0, v_max));
+  }
+
+  static double cappedAccelDistance(double v0, double accel, double tau,
+                                    double v_max) {
+    v0 = std::max(0.0, v0);
+    tau = std::max(0.0, tau);
+    if (!std::isfinite(v_max) || v_max <= 0.0 || accel <= 1e-6) {
+      return constantAccelDistance(v0, accel, tau);
+    }
+    if (v0 >= v_max) return std::max(0.0, v0 * tau);
+    const double t_cap = (v_max - v0) / accel;
+    if (tau <= t_cap) return constantAccelDistance(v0, accel, tau);
+    const double d_cap = v0 * t_cap + 0.5 * accel * t_cap * t_cap;
+    return std::max(0.0, d_cap + v_max * (tau - t_cap));
+  }
+
   static double pressure01(double value, double low, double high) {
     if (high <= low) return value >= high ? 1.0 : 0.0;
     return std::clamp((value - low) / (high - low), 0.0, 1.0);
@@ -2362,6 +2393,17 @@ class SmpcDecisionNode {
     return true;
   }
 
+  // rear_accel 모드의 속도 상한 (2026-09-22).  확률표가 적합된 사건은 "5 s 뒤
+  // 등속 예측보다 12.5 m 앞섬"인데, 모드 자체는 상한 없이 가속해 지평선 끝에서
+  // 도로 흐름을 크게 넘는 속도가 됐다.  도로 흐름(미션 속도)과 현재 속도 중 큰
+  // 값에 여유를 더해 묶는다.  이미 그보다 빠른 TV 는 자기 속도가 하한이 된다.
+  double rearAccelMaxSpeedMps(const smpc_lane_change::TargetVehicle& v) const {
+    double base = rear_accel_max_speed_mps_ > 0.0 ? rear_accel_max_speed_mps_
+                                                  : currentTargetSpeedMps();
+    base = std::max(base, std::max(0.0, v.v_long));
+    return base + std::max(0.0, rear_accel_max_speed_margin_mps_);
+  }
+
   std::vector<TvMode> modesForVehicle(const smpc_lane_change::TargetVehicle& v) const {
     const bool rear = v.role.find("rear") != std::string::npos;
     const double event_probability = adaptiveEventProbability(v);
@@ -2369,7 +2411,12 @@ class SmpcDecisionNode {
 
     std::vector<TvMode> modes;
     modes.push_back({"nominal", 1.0 - event_probability, nominal_target_accel_mps2_, 0.0});
-    modes.push_back({rear ? "rear_accel" : "front_brake", event_probability, event_accel, 0.0});
+    TvMode event_mode{rear ? "rear_accel" : "front_brake", event_probability,
+                      event_accel, 0.0};
+    if (rear && rear_accel_max_speed_enabled_) {
+      event_mode.max_speed_mps = rearAccelMaxSpeedMps(v);
+    }
+    modes.push_back(event_mode);
 
     const double lane_yaw = laneYawAtVehicle(v);
     const double yaw_error = smpc_lane_change::wrapToPi(v.yaw - lane_yaw);
@@ -2713,8 +2760,10 @@ class SmpcDecisionNode {
     const auto* lane = laneFor(v.lane_id);
     if (!lane) return p;
 
-    const double predicted_v_long = std::max(0.0, v.v_long + mode.accel_mps2 * tau);
-    const double ds = constantAccelDistance(v.v_long, mode.accel_mps2, tau) +
+    const double predicted_v_long =
+        cappedAccelSpeed(v.v_long, mode.accel_mps2, tau, mode.max_speed_mps);
+    const double ds = cappedAccelDistance(v.v_long, mode.accel_mps2, tau,
+                                          mode.max_speed_mps) +
         std::max(0.0, extra_ds);
     double d = v.d;
     if (std::abs(mode.lateral_rate_mps) > 1e-3) {
@@ -2901,8 +2950,8 @@ class SmpcDecisionNode {
         for (std::size_t k = 0; k < steps; ++k) {
           const auto& ego = ego_traj[k];
           if (react_to_this_vehicle) {
-            const double tv_v = std::max(
-                0.0, vehicle.v_long + mode.accel_mps2 * ego.t);
+            const double tv_v = cappedAccelSpeed(
+                vehicle.v_long, mode.accel_mps2, ego.t, mode.max_speed_mps);
             if (!std::isfinite(reaction_trigger_t) && tv_v < ego.v) {
               reaction_trigger_t = ego.t;
             }
@@ -4645,6 +4694,9 @@ class SmpcDecisionNode {
   double max_rear_accel_probability_{0.65};
   double front_brake_accel_mps2_{-2.0};
   double rear_accel_mps2_{1.5};
+  bool rear_accel_max_speed_enabled_{false};
+  double rear_accel_max_speed_mps_{-1.0};
+  double rear_accel_max_speed_margin_mps_{0.0};
   double nominal_target_accel_mps2_{0.0};
   double ego_assumed_accel_mps2_{0.0};
   bool ego_prediction_use_mission_speed_rollout_{true};

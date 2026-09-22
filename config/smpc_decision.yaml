@@ -333,6 +333,17 @@ min_rear_accel_probability: 0.05
 max_rear_accel_probability: 0.65
 front_brake_accel_mps2: -2.5
 rear_accel_mps2: 2.0
+# rear_accel 모드 속도 상한 (2026-09-22).  아래 확률표가 적합된 사건은 "5 s 뒤
+# 등속보다 12.5 m 앞섬"인데, 모드는 상한 없이 2.0 m/s^2 로 가속해 지평선 끝에서
+# 도로 흐름을 크게 넘는다.  실측(lc_gt 2026-09-21-15-43-18, 차선0->1): 차선 1 이
+# 앞으로 완전히 비어 있고 뒤차 uid1 이 -15.7 m / 11.0 m/s 인데, 이 모드가 6.4 s
+# 뒤 uid1 을 23.8 m/s 로 만들어 clear change=-1.77 m 를 냈고 위험도 0.136 >
+# risk_epsilon 0.04 로 차단, 자차가 차선 0 끝에서 정지한 뒤 그 차들 뒤로 13.02 s
+# 에야 합류했다.  상한을 걸면 3.33 s 에 열린다(게이트 상한값 기준).
+# mps <= 0 이면 미션 속도를 쓴다.  TV 가 이미 그보다 빠르면 자기 속도가 하한.
+rear_accel_max_speed_enabled: false
+rear_accel_max_speed_mps: -1.0
+rear_accel_max_speed_margin_mps: 0.0
 # 뒤차 rear_accel 모드 확률을 관측 가속도 표로 (2026-09-15).  기존 식은
 # 0.25 + TTC/접근속도/가속도/근접 가산이라 관측값이 확률을 올리기만 했고,
 # 호환 백 9개 target_rear 1543 표본에서 중앙값이 max 0.65 로 포화.
