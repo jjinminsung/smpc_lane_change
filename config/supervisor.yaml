@@ -53,7 +53,12 @@ active_rear_guard_min_remaining_sec: 0.30
 # Use measured target-lane lateral progress, not elapsed blend time. If ego is
 # stopped or target-d is not decreasing, expose the rear gate to 8 s.
 active_rear_guard_perception_control_delay_sec: 0.50
-active_rear_guard_stationary_remaining_sec: 8.0
+# 2026-09-28: 8.0 -> 4.5.  정지 출발 차선변경 실측(호환 백 전체, 51 건):
+# 중앙 3.64 s, p90 4.00 s, 최대 4.09 s.  공칭 블렌드는 4.2 s.  8.0 은 실측
+# 최댓값의 2 배였고, required = 9 + closing x (remaining + 0.5) 를 통해
+# 정지 상태 요구 간격을 180 m 까지 키워 정지가 빠져나올 수 없는 덫이 됐다.
+# (정지 출발이 정상속도 출발보다 오히려 빠르다: 중앙 3.64 vs 4.26 s)
+active_rear_guard_stationary_remaining_sec: 4.5
 # 정지 출발 직후 유예 (2026-09-15).  시작 후 이 시간 안에는 "서 있으면 즉시 중단"
 # 대신, 정지 상태에서 escape_accel 로 출발해 connector 상한까지 가속하는 롤아웃으로
 # 뒤차를 판단한다 (상한 도달 후 그 속도 유지, 남은 시간은 stationary_remaining).

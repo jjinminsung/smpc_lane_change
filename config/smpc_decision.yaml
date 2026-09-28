@@ -332,7 +332,14 @@ max_front_brake_probability: 0.65
 min_rear_accel_probability: 0.05
 max_rear_accel_probability: 0.65
 front_brake_accel_mps2: -2.5
-rear_accel_mps2: 2.0
+# 2026-09-27: 2.0 -> 1.0.  8 초 지평선에서 이 값 x 8 이 곧 뒤차의 가정 dv 다.
+# GT 실측(호환 백, target_rear 5422 표본): dv p99 = +7.99(최근) / +11.17(빠른),
+# +16.0 이상은 0 건.  기존 2.0 은 관측된 적 없는 dv(+16)를 가정했고, 그 궤적이
+# 여유(clear change) 최솟값에 확률 무관하게 들어가 차선변경을 막고 있었다
+# (min_signed_clearance 는 mode.probability 를 곱하지 않는다).  1.0 은 이득을
+# 전부 확보하는 가장 보수적인 값이다 - 1.375 에서는 6 건 중 2 건만 열렸고,
+# 0.5 이하로 내려도 개선이 없었다(+2.79 -> +2.80 s).
+rear_accel_mps2: 1.0
 # rear_accel 모드 속도 상한 (2026-09-22).  아래 확률표가 적합된 사건은 "5 s 뒤
 # 등속보다 12.5 m 앞섬"인데, 모드는 상한 없이 2.0 m/s^2 로 가속해 지평선 끝에서
 # 도로 흐름을 크게 넘는다.  실측(lc_gt 2026-09-21-15-43-18, 차선0->1): 차선 1 이
