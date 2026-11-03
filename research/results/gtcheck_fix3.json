@@ -1,0 +1,188 @@
+{
+ "live": {
+  "fix3": {
+   "n_out": 1446,
+   "duration_s": 89.34940934181213,
+   "rate_hz": 16.17246281362707,
+   "out_dt_lt_5ms_frac": 0.0,
+   "same_npc_content_as_prev_output_frac": 0.009688581314878892,
+   "identical_consecutive_msg_frac": 0.0,
+   "distinct_states_lost": 0,
+   "out_dt_max_s": 0.11369872093200684,
+   "out_dt_p90_s": 0.07235479354858398,
+   "stalls_gt_0p1s": 0,
+   "accel_ratio_allveh": {
+    "n": 2780,
+    "mean": 0.9459785774405438,
+    "median": 0.950523424437124,
+    "p10": 0.8476902914970077,
+    "p90": 1.037137764893445,
+    "min": 0.0,
+    "max": 2.1926173439920498,
+    "std": 0.10447276779984811
+   },
+   "accel_ratio_target_rear": {
+    "n": 102,
+    "mean": 0.9705901092349034,
+    "median": 0.9736504944262364,
+    "p10": 0.8795388340801575,
+    "p90": 1.0414958326081083,
+    "min": 0.6565123577720275,
+    "max": 1.7653852522183018,
+    "std": 0.10564124949878242
+   }
+  },
+  "fix2": {
+   "n_out": 1432,
+   "duration_s": 89.34940934181213,
+   "rate_hz": 16.015774592595392,
+   "out_dt_lt_5ms_frac": 0.0,
+   "same_npc_content_as_prev_output_frac": 0.0,
+   "identical_consecutive_msg_frac": 0.0,
+   "distinct_states_lost": 0,
+   "out_dt_max_s": 0.11369872093200684,
+   "out_dt_p90_s": 0.07238435745239258,
+   "stalls_gt_0p1s": 0,
+   "accel_ratio_allveh": {
+    "n": 2753,
+    "mean": 0.953079347008421,
+    "median": 0.9536405709557555,
+    "p10": 0.8566970866304023,
+    "p90": 1.0384619646123656,
+    "min": 0.0,
+    "max": 2.1926289383902664,
+    "std": 0.09614101990900586
+   },
+   "accel_ratio_target_rear": {
+    "n": 101,
+    "mean": 0.9797774862277876,
+    "median": 0.9773467896406933,
+    "p10": 0.8990471516370887,
+    "p90": 1.0422792112236383,
+    "min": 0.7494085935481892,
+    "max": 1.7653646026128145,
+    "std": 0.09854025388007231
+   }
+  },
+  "recorded": {
+   "n_out": 2831,
+   "duration_s": 89.2655577659607,
+   "rate_hz": 31.703157083494453,
+   "out_dt_lt_5ms_frac": 0.4901060070671378,
+   "same_npc_content_as_prev_output_frac": 0.4950530035335689,
+   "identical_consecutive_msg_frac": 0.012014134275618375,
+   "distinct_states_lost": 0,
+   "out_dt_max_s": 0.1123507022857666,
+   "out_dt_p90_s": 0.06752779483795165,
+   "stalls_gt_0p1s": 0,
+   "accel_ratio_allveh": {
+    "n": 5450,
+    "mean": 0.63264517683349,
+    "median": 0.5753292012069686,
+    "p10": 0.3631570323201473,
+    "p90": 1.0141321685786917,
+    "min": 0.0,
+    "max": 1.7884956397294058,
+    "std": 0.24843736051073645
+   },
+   "accel_ratio_target_rear": {
+    "n": 202,
+    "mean": 0.8837451775395928,
+    "median": 0.9439854121233462,
+    "p10": 0.5750423036064205,
+    "p90": 1.0487184504004996,
+    "min": 0.34173865889794147,
+    "max": 1.7884956397294058,
+    "std": 0.20836794767138922
+   }
+  }
+ },
+ "2026-09-28-11-30-19": {
+  "fix": {
+   "n_out": 1348,
+   "duration_s": 49.58500003814697,
+   "rate_hz": 27.165473408565482,
+   "out_dt_lt_5ms_frac": 0.024498886414253896,
+   "same_npc_content_as_prev_output_frac": 0.09799554565701558,
+   "identical_consecutive_msg_frac": 0.014847809948032665,
+   "distinct_states_lost": 849,
+   "out_dt_max_s": 0.1399998664855957,
+   "out_dt_p90_s": 0.06699991226196289,
+   "stalls_gt_0p1s": 8,
+   "longest_stall": {
+    "t_rel": 38.45799994468689,
+    "span_s": 1.0729999542236328,
+    "outputs_inside": 25,
+    "max_gap_inside_s": 0.08500003814697266
+   },
+   "max_gap_inside_any_stall_s": 0.08500003814697266,
+   "identical_consecutive_msg_frac_outside_stalls": 0.005649717514124294,
+   "identical_consecutive_msg_frac_inside_stalls": 0.12037037037037036
+  },
+  "fix2": {
+   "n_out": 1279,
+   "duration_s": 49.58500003814697,
+   "rate_hz": 25.773923545765914,
+   "out_dt_lt_5ms_frac": 0.0,
+   "same_npc_content_as_prev_output_frac": 0.0,
+   "identical_consecutive_msg_frac": 0.0,
+   "distinct_states_lost": 786,
+   "out_dt_max_s": 1.1159999370574951,
+   "out_dt_p90_s": 0.06399989128112793,
+   "stalls_gt_0p1s": 8,
+   "longest_stall": {
+    "t_rel": 38.45799994468689,
+    "span_s": 1.0729999542236328,
+    "outputs_inside": 1,
+    "max_gap_inside_s": 1.0729999542236328
+   },
+   "max_gap_inside_any_stall_s": 1.0729999542236328,
+   "identical_consecutive_msg_frac_outside_stalls": 0.0,
+   "identical_consecutive_msg_frac_inside_stalls": 0.0
+  },
+  "fix3": {
+   "n_out": 1422,
+   "duration_s": 49.58500003814697,
+   "rate_hz": 28.65786021794473,
+   "out_dt_lt_5ms_frac": 0.0,
+   "same_npc_content_as_prev_output_frac": 0.0752990851513019,
+   "identical_consecutive_msg_frac": 0.003518648838845883,
+   "distinct_states_lost": 750,
+   "out_dt_max_s": 0.1399998664855957,
+   "out_dt_p90_s": 0.06200003623962402,
+   "stalls_gt_0p1s": 8,
+   "longest_stall": {
+    "t_rel": 38.45799994468689,
+    "span_s": 1.0729999542236328,
+    "outputs_inside": 27,
+    "max_gap_inside_s": 0.0710000991821289
+   },
+   "max_gap_inside_any_stall_s": 0.10099983215332031,
+   "identical_consecutive_msg_frac_outside_stalls": 0.0,
+   "identical_consecutive_msg_frac_inside_stalls": 0.043859649122807015
+  }
+ },
+ "2026-09-04-15-00-35": {
+  "fix3": {
+   "n_out": 3282,
+   "duration_s": 85.42700004577637,
+   "rate_hz": 38.40706097886926,
+   "out_dt_lt_5ms_frac": 0.0,
+   "same_npc_content_as_prev_output_frac": 0.24931423346540688,
+   "identical_consecutive_msg_frac": 0.007619628162145687,
+   "distinct_states_lost": 295,
+   "out_dt_max_s": 0.0970001220703125,
+   "out_dt_p90_s": 0.04500007629394531,
+   "stalls_gt_0p1s": 2,
+   "longest_stall": {
+    "t_rel": 30.233999967575073,
+    "span_s": 12.801000118255615,
+    "outputs_inside": 612,
+    "max_gap_inside_s": 0.06800007820129395
+   },
+   "max_gap_inside_any_stall_s": 0.06800007820129395,
+   "identical_consecutive_msg_frac_outside_stalls": 0.0,
+   "identical_consecutive_msg_frac_inside_stalls": 0.03048780487804878
+  }
+ }
+}

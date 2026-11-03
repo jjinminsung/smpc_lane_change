@@ -1034,8 +1034,12 @@ class TargetSelectorNode {
         sig.push_back(npc.position.y);
         sig.push_back(npc.velocity.x);
       }
-      if (!sig.empty() && sig == last_object_signature_) return;
+      // 5 ms 안에 다시 온 같은 상태만 버린다(UDP 사본은 1.0–1.5 ms 뒤). MORAI 가 멈춰 같은 상태를
+      // 새 시각으로 계속 보낼 때는 그대로 내보내야 /smpc/targets 가 끊기지 않는다(재검증 2).
+      const double since_last = (msg->header.stamp - last_object_stamp_).toSec();
+      if (!sig.empty() && sig == last_object_signature_ && since_last >= 0.0 && since_last < 0.005) return;
       last_object_signature_ = std::move(sig);
+      last_object_stamp_ = msg->header.stamp;
     }
     std::vector<CandidateObject> objects;
     objects.reserve(msg->npc_list.size());
@@ -1468,6 +1472,7 @@ class TargetSelectorNode {
   bool object_extrapolate_ego_{false};
   bool object_drop_duplicate_frames_{false};
   std::vector<double> last_object_signature_;
+  ros::Time last_object_stamp_;
   ros::Time odom_stamp_;
   std::map<int, LanePath> lanes_;
   std::map<int, std::string> lane_csv_paths_;

@@ -33,10 +33,11 @@ from smpc_sim.rl.value import ValueNet, save_value  # noqa: E402
 
 OUT = SIM_DIR.parent / "results" / "value"
 BASE = "tree_gt_nogate"
+SUFFIX = "_V"          # "_Vw" = '기다리기' 루트까지 V 로 비교
 
 
 def planner_name(path, lam):
-    return BASE if path is None else f"{BASE}_V:{path}:{lam}"
+    return BASE if path is None else f"{BASE}{SUFFIX}:{path}:{lam}"
 
 
 def collect(pool, name, seeds):
@@ -94,7 +95,12 @@ def main():
     ap.add_argument("--test_episodes", type=int, default=200)
     ap.add_argument("--lambdas", default="10,30,60")
     ap.add_argument("--workers", type=int, default=20)
+    ap.add_argument("--wait_root", action="store_true", help="V 로 '기다리기' 루트도 비교 (_Vw)")
+    ap.add_argument("--out", default="value")
     a = ap.parse_args()
+    global OUT, SUFFIX
+    OUT = SIM_DIR.parent / "results" / a.out
+    SUFFIX = "_Vw" if a.wait_root else "_V"
     OUT.mkdir(parents=True, exist_ok=True)
     rc = RewardConfig()
     lambdas = [float(x) for x in a.lambdas.split(",")]
@@ -135,7 +141,7 @@ def main():
     log["final"] = {"path": str(path), "lambda": lam}
     print(json.dumps(log["test"], indent=1))
     (OUT / "train_log.json").write_text(json.dumps(log, indent=1))
-    (SIM_DIR.parent / "results" / f"sim_{BASE}_V_n{a.test_episodes}.json").write_text(
+    (SIM_DIR.parent / "results" / f"sim_{BASE}{SUFFIX}_{a.out}_n{a.test_episodes}.json").write_text(
         json.dumps({"summary": log["test"], "planner": planner_name(path, lam), "episodes": test}))
 
 

@@ -3,6 +3,7 @@
 틱 순서(0.05 s, baseline_spec.md 6장): NPC → 인지 → SMPC(planner) → supervisor → ACC → 자차.
 """
 from dataclasses import dataclass, field
+import copy
 import math
 
 import numpy as np
@@ -36,6 +37,9 @@ class EpisodeConfig:
     record: bool = False
     collect_samples: bool = False     # RL: 0.5 s 마다 (시각, 특징) 을 남긴다
     sample_period: float = 0.5
+    param_overrides: dict = None      # smpc_decision 파라미터 덮어쓰기 (민감도 분석)
+    perception: str = "gt"            # 'gt' | 'lidar_like' (속도 잡음 + 뒤차 미검출·깜빡임)
+    npc_override: dict = None         # MORAI 시나리오 재현: {"spawn_kph": 50, "desired_kph": 80} (모든 차선)
 
 
 @dataclass
@@ -74,11 +78,20 @@ class World:
         self.cfg = cfg or EpisodeConfig()
         self.rng = np.random.default_rng(self.cfg.seed)
         self.P = P or load_params("smpc_decision")
+        for k, v in (self.cfg.param_overrides or {}).items():
+            setattr(self.P, k, v)
         self.P_sel = load_params("target_selector")
         self.P_acc = load_params("acc_planner")
         self.P_sup = load_params("lane_change_supervisor") if (self._has("lane_change_supervisor")) else load_params("supervisor")
         self.track = Track()
         self.model = NpcModel.from_measurements()
+        ov = self.cfg.npc_override or {}
+        if "spawn_kph" in ov:
+            self.model.spawn_speed = ov["spawn_kph"] / 3.6
+        if "desired_kph" in ov:
+            vd = ov["desired_kph"] / 3.6
+            self.model.desired_quantiles = ((0.1, vd), (0.5, vd), (0.9, vd))
+        self.spawn_all_fast = "spawn_kph" in ov      # 사용자 지정 스폰 속도면 모든 차가 그 속도로 나타난다
         self.npcs = []
         self.next_uid = 100
         self.next_spawn = {lane: 0.0 for lane in SPAWN}
@@ -108,7 +121,7 @@ class World:
                 self.next_spawn[lane] = self.t + 0.5
                 continue
             m = self.model
-            v0 = m.spawn_speed if self.rng.random() < p_fast else 0.0
+            v0 = m.spawn_speed if (self.spawn_all_fast or self.rng.random() < p_fast) else 0.0
             n = Npc(uid=self.next_uid, lane=lane, s=s_sp, v=v0, born=self.t,
                     v_desired=m.sample_desired(self.rng),
                     accel_cap=float(np.clip(self.rng.normal(m.spawn_accel_mean, m.spawn_accel_std),
@@ -206,6 +219,26 @@ class World:
                     n.y, n.v_lat, n.merge_to = y_t, 0.0, None
         self.npcs = [n for n in self.npcs if n.s < self.track.road_end[n.lane] + (5.0 if n.lane < 3 else 0.0)]
 
+    # ------------------------------------------------------------ 인지 잡음
+    def lidar_like_view(self, e):
+        """라이다 트래커 수준의 인지(1 단계 측정): 속도 잡음(AR(1), σ 1.0 m/s), 60 m 밖 뒤차 미검출,
+        뒤차 검출 깜빡임(프레임당 50 %), 앞차는 90 m 까지 검출(프레임당 90 %)."""
+        out = []
+        for n in self.npcs:
+            ds = n.s - e.s
+            if ds < -60.0 or ds > 90.0:
+                continue
+            p_det = 0.5 if ds < 0 else 0.9
+            if self.rng.random() > p_det:
+                continue
+            noise = getattr(n, "_vnoise", 0.0)
+            noise = 0.8 * noise + 0.6 * self.rng.normal(0.0, 1.0)      # 정상 상태 σ ≈ 1.0 m/s
+            n._vnoise = noise
+            c = copy.copy(n)
+            c.v = max(0.0, n.v + noise)
+            out.append(c)
+        return out
+
     # ------------------------------------------------------------ run
     def reset(self):
         cfg = self.cfg
@@ -235,7 +268,8 @@ class World:
             now = self.t
             self.spawn()
             self.step_npcs(cfg.dt)
-            t = build_targets(now, e, self.npcs, self.track, self.P_sel, forced_pair=self.sup.forced_pair)
+            visible = self.npcs if cfg.perception == "gt" else self.lidar_like_view(e)
+            t = build_targets(now, e, visible, self.track, self.P_sel, forced_pair=self.sup.forced_pair)
             dec = self.planner.decide(now, t, e.v, cfg.mission_speed, self.acc.f, self.acc.status)
             if dec.change_left:
                 last_change_left = now

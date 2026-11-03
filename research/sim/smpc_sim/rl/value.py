@@ -29,7 +29,7 @@ def save_value(path, net, value_weight, meta=None):
 
 def load_value_fn(path, value_weight=None):
     """트리 플래너용: 특징 배열 [M, DIM] → λ·V [M] (numpy). CPU 에서 돈다(작은 망이라 충분)."""
-    ck = torch.load(Path(path), map_location="cpu")
+    ck = torch.load(Path(path), map_location="cpu", weights_only=True)
     net = ValueNet()
     net.load_state_dict(ck["state_dict"])
     net.eval()

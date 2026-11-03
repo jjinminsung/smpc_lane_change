@@ -91,7 +91,7 @@ def analyse(path):
         elif top == "/smpc/tree_debug":
             tree_dbg.append((ts, m.data))
         else:
-            objs.append((ts, [npc_center(o) for o in m.npc_list]))
+            objs.append((ts, [(o.unique_id, npc_center(o)) for o in m.npc_list]))
     b.close()
     if not odom:
         return {"bag": str(path), "error": "no odom"}
@@ -135,6 +135,7 @@ def analyse(path):
     # GT 최소 간격 (자차 박스 vs NPC 박스), 30 m 이내만
     ot = odom[:, 0]
     min_gap, min_gap_t, n_coll_frames = math.inf, None, 0
+    near_ts = {}   # uid -> [(t, GT 박스 간격)] (자차 30 m 이내)
     for ts, npcs in objs:
         if ts < t0 or (t_merge is not None and ts - t0 > t_merge + 5.0):
             continue
@@ -145,18 +146,31 @@ def analyse(path):
         ey += ev * math.sin(eyaw) * dt
         c = 0.5 * (EGO_FRONT - EGO_REAR)
         E = box(ex + c * math.cos(eyaw), ey + c * math.sin(eyaw), eyaw, 0.5 * (EGO_FRONT + EGO_REAR), EGO_HALF_W)
-        for x, y, yaw, hl, hw in npcs:
+        for uid_, (x, y, yaw, hl, hw) in npcs:
             if math.hypot(x - ex, y - ey) > 30.0:
                 continue
             g = signed_distance(E, box(x, y, yaw, hl, hw))
+            near_ts.setdefault(uid_, []).append((ts, g))
             if g < min_gap:
                 min_gap, min_gap_t = g, ts - t0
             if g < 0:
                 n_coll_frames += 1
     # MORAI 접촉 사건: 같은 NPC 와 1 s 안에 이어지면 한 사건. 자차가 차선 변경 중이었는지로 분류.
     contacts = []
+
+    def ego_gap_at(uid, ts):
+        """그 시각 자차와 uid 의 GT 박스 간격(가장 가까운 프레임, 0.2 s 이내). 30 m 밖이면 inf."""
+        best = None
+        for t_, g_ in near_ts.get(uid, []):
+            if abs(t_ - ts) <= 0.2 and (best is None or abs(t_ - ts) < best[0]):
+                best = (abs(t_ - ts), g_)
+        return best[1] if best else math.inf
+
     for ts, others in coll:
         for uid in others:
+            # /CollisionData 에는 NPC 끼리의 접촉(예: 스폰 지점)도 들어온다. 자차와 0.3 m 이내일 때만 자차 접촉.
+            if ego_gap_at(uid, ts) > 0.3:
+                continue
             if contacts and contacts[-1]["uid"] == uid and ts - contacts[-1]["t_last"] < 1.0:
                 contacts[-1]["t_last"] = ts
                 continue

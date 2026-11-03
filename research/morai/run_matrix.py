@@ -51,6 +51,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--phase", required=True, choices=sorted(PHASES))
     ap.add_argument("--max_runs", type=int, default=999)
+    ap.add_argument("--prefix", default="v2_", help="태그 접두사. v2_ = GT 인지 수정(중복 프레임·기준점) 뒤 주행")
     a = ap.parse_args()
     scenarios, methods, reps = PHASES[a.phase]
     SHOT.mkdir(exist_ok=True)
@@ -61,7 +62,7 @@ def main():
         for sc in scenarios:
             order = methods if rep % 2 == 0 else list(reversed(methods))
             for m in order:
-                tag = f"{a.phase}_{sc.replace('research_', '')}_{m}_r{rep}"
+                tag = f"{a.prefix}{a.phase}_{sc.replace('research_', '')}_{m}_r{rep}"
                 if tag in done:
                     continue
                 if n >= a.max_runs:

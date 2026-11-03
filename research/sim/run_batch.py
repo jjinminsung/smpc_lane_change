@@ -83,7 +83,7 @@ def main():
     ap.add_argument("--seed0", type=int, default=1000)
     ap.add_argument("--workers", type=int, default=20)
     ap.add_argument("--out", default="")
-    ap.add_argument("--cfg", default="{}", help="EpisodeConfig override JSON")
+    ap.add_argument("--cfg", default="{}", help="EpisodeConfig override JSON, 예: '{\"perception\": \"lidar_like\"}'")
     a = ap.parse_args()
     over = json.loads(a.cfg)
     t0 = time.time()

@@ -63,6 +63,8 @@ class NpcModel:
     def sample_desired(self, rng):
         q = np.array([p for p, _ in self.desired_quantiles])
         v = np.array([x for _, x in self.desired_quantiles])
+        if np.allclose(v, v[0]):
+            return float(v[0])                 # 시나리오 고정 목표 속도
         u = rng.uniform(0.02, 0.98)
         return float(np.interp(u, np.concatenate([[0.0], q, [1.0]]),
                                np.concatenate([[v[0] - 2.0], v, [v[-1] + 1.5]])))

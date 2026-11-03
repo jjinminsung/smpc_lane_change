@@ -4083,7 +4083,9 @@ class SmpcDecisionNode {
       for (const double o : onsets) {
         TreeBranch b;
         std::ostringstream name;
-        name << "rear@" << static_cast<int>(std::round(o));
+        // 이미 드러난 가속은 미래 정보가 아니다: 'rear_now' 가지는 복귀를 대응으로 쓰지 않는다.
+        if (already) name << "rear_now";
+        else name << "rear@" << static_cast<int>(std::round(o));
         b.name = name.str();
         b.probability = p_rear / static_cast<double>(onsets.size());
         b.t_b = already ? 0.0 : o + tree_rear_detect_delay_sec_;
@@ -4227,6 +4229,14 @@ class SmpcDecisionNode {
   }
 
   // 가지 하나(차량별 mode 고정)에서 스텝별 충돌 확률 1 - Π_v (1 - P_v,k). evaluateTrajectory 와 같은 식.
+  static std::uint64_t treeCacheKey(int uid, const TvMode& mode, std::size_t k) {
+    // (차량 id, mode 종류, onset 0.1 s 단위, 스텝) → 정수 키. 가속도는 mode 종류마다 고정이다.
+    const std::uint64_t kind = mode.name == "nominal" ? 0u : (mode.name == "rear_accel" ? 1u : 2u);
+    const std::uint64_t onset = static_cast<std::uint64_t>(std::lround(std::max(0.0, mode.onset_sec) * 10.0)) & 0xFFu;
+    return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(uid)) << 24) | (kind << 16) | (onset << 8) |
+        (static_cast<std::uint64_t>(k) & 0xFFu);
+  }
+
   std::vector<double> treeStepRisk(const std::vector<PredPose>& ego,
                                    const std::vector<smpc_lane_change::TargetVehicle>& vehicles,
                                    const TreeBranch& branch, std::vector<double>* min_clear) const {
@@ -4254,7 +4264,20 @@ class SmpcDecisionNode {
           lag += std::max(0.0, e.v - react_v) * prediction_dt_sec_;
         }
         bool exceeded = false;
-        const auto tv = predictTargetPose(vehicle, mode, e.t, &exceeded, lag);
+        PredPose tv;
+        if (!react) {
+          // F7 지연이 없는 차량의 예측은 루트·대응과 무관하다: (차량, mode, 스텝) 단위로 한 번만 계산.
+          auto& slot = tree_pred_cache_[treeCacheKey(vehicle.unique_id, mode, k)];
+          if (!slot.first) {
+            bool ex = false;
+            slot.second = predictTargetPose(vehicle, mode, e.t, &ex, 0.0);
+            slot.first = ex ? 2 : 1;
+          }
+          exceeded = slot.first == 2;
+          tv = slot.second;
+        } else {
+          tv = predictTargetPose(vehicle, mode, e.t, &exceeded, lag);
+        }
         if (exceeded) break;
         if (!tv.valid) continue;
         const auto c = collisionProbability(e, tv, vehicle, mode);
@@ -4303,6 +4326,7 @@ class SmpcDecisionNode {
     for (std::size_t b = 0; b < B; ++b) {
       const auto& n = branches[b].name;
       if (n == "nominal") options[b] = {kTreeContinue};
+      else if (n == "rear_now") options[b] = {kTreeContinue, kTreeContAccel};
       else if (n.rfind("rear", 0) == 0) options[b] = {kTreeContinue, kTreeContAccel, kTreeReturn, kTreeReturnDecel};
       else options[b] = {kTreeContinue, kTreeBrake, kTreeReturn};
     }
@@ -4414,6 +4438,7 @@ class SmpcDecisionNode {
         (which == 0 ? go : back).push_back(p);
       }
     }
+    tree_pred_cache_.clear();
     const auto branches = treeBranches(t, rear);
     const double eps = tree_abort_risk_factor_ * allowed_risk;
     const TreeResult r_go = treeEvaluate(go, true, t, vehicles, branches, 0.0, eps);
@@ -4452,6 +4477,7 @@ class SmpcDecisionNode {
       if (detail) *detail = "tree common_gate_fail";
       return;
     }
+    tree_pred_cache_.clear();
     const auto branches = treeBranches(t, rear);
     const ros::WallTime wall0 = ros::WallTime::now();
     std::ostringstream os;
@@ -4467,8 +4493,22 @@ class SmpcDecisionNode {
       if (c.action != BehaviorAction::kChangeNow && candidateFitsHorizon(c)) specs.push_back(c);
     }
     std::vector<int> best_combo;
-    for (std::size_t i = 0; i < specs.size(); ++i) {
+    // 분기 한정: 대응 비용·위험 비용은 0 이상이라 루트 총비용 ≥ 루트 비용. 루트 비용 순으로 평가하고
+    // 루트 비용이 지금까지의 최소 기대 비용 이상이면 그 뒤 루트는 볼 필요가 없다(결과는 같다).
+    std::vector<std::size_t> order(specs.size());
+    std::iota(order.begin(), order.end(), 0);
+    auto root_cost_of = [&](const ActionSpec& sp) {
+      return lane_change_base_cost_ + target_gap_cost +
+          behavior_delay_cost_weight_ * std::max(0.0, sp.lane_change_start_sec) +
+          behavior_accel_cost_weight_ * sp.prep_accel_mps2 * sp.prep_accel_mps2;
+    };
+    std::stable_sort(order.begin(), order.end(), [&](std::size_t a, std::size_t b) {
+      return root_cost_of(specs[a]) < root_cost_of(specs[b]);
+    });
+    int evaluated = 0;
+    for (const std::size_t i : order) {
       const auto& spec = specs[i];
+      if (root_cost_of(spec) >= best_cost) break;
       std::vector<PredPose> traj;
       bool gate_ok = true;
       if (i == 0) {
@@ -4482,9 +4522,8 @@ class SmpcDecisionNode {
         if (tree_keep_gates_ && !projectedTargetGapTtcSafe(t, traj, spec, rear, passing_front)) continue;
       }
       if (!gate_ok || traj.empty()) continue;
-      const double root_cost = lane_change_base_cost_ + target_gap_cost +
-          behavior_delay_cost_weight_ * std::max(0.0, spec.lane_change_start_sec) +
-          behavior_accel_cost_weight_ * spec.prep_accel_mps2 * spec.prep_accel_mps2;
+      const double root_cost = root_cost_of(spec);
+      ++evaluated;
       const TreeResult r = treeEvaluate(traj, true, t, vehicles, branches, root_cost, allowed_risk);
       if (r.feasible && r.cost < best_cost) {
         best_cost = r.cost;
@@ -4493,7 +4532,7 @@ class SmpcDecisionNode {
       }
     }
     const double ms = (ros::WallTime::now() - wall0).toSec() * 1000.0;
-    os << " roots=" << specs.size() << " ms=" << ms;
+    os << " roots=" << specs.size() << " evaluated=" << evaluated << " ms=" << ms;
     if (best_index < 0) {
       os << " none_feasible";
       if (detail) *detail = os.str();
@@ -5018,6 +5057,8 @@ class SmpcDecisionNode {
   std::vector<double> tree_response_cost_{0.0, 1.0, 30.0, 35.0, 5.0};
   double tree_risk_weight_{80.0};
   double tree_abort_risk_factor_{2.0};
+  // 한 판단 주기 안에서만 유효한 TV 예측 캐시(treeSelect / treeMonitorReturn 시작에서 비운다).
+  mutable std::unordered_map<std::uint64_t, std::pair<int, PredPose>> tree_pred_cache_;
   ros::Timer timer_;
 
   smpc_lane_change::TargetVehicleSet targets_;

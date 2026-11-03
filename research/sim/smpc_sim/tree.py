@@ -46,6 +46,7 @@ class TreeConfig:
     keep_gates: bool = True             # False 면 연구 방향 2: G3/G5 제거, hard safety 만
     abort_risk_factor: float = 2.0      # 실행 중 복귀 판단 문턱 = 2ε
     use_value: bool = False
+    wait_root: bool = False             # V 가 있을 때 '기다리기' 루트를 함께 비교(차선 끝 비용 대신 V)
 
 
 # research/results/day1_m4.json: GT 49 Hz 필터로 다시 잰 '5 s 뒤 12.5 m 이상 앞섬' 사건 비율.
@@ -67,7 +68,7 @@ class TreePlanner(BaselineSmpc):
         if not self.cfg.keep_gates:
             self.name += "_nogate"
         if value_fn is not None:
-            self.name += "_V"
+            self.name += "_Vw" if self.cfg.wait_root else "_V"
 
     # ------------------------------------------------------- 가지 구성
     def branches(self, t, v_e, R):
@@ -87,7 +88,10 @@ class TreePlanner(BaselineSmpc):
             for o in onsets:
                 mode = TvMode("rear_accel", 1.0, P.rear_accel_mps2, onset_sec=o)
                 tb = 0.0 if already else o + c.rear_detect_delay
-                out.append((f"rear@{o:.0f}", p_rear / len(onsets), tb, {rear.unique_id: mode}))
+                # 이미 드러난 가속('rear_now')은 미래 정보가 아니다. 복귀로 피하는 계획을 허용하면
+                # "바꾸되 곧바로 복귀"가 공짜로 안전해져 승인→복귀가 반복된다(MORAI S2, 2026-11-04).
+                name = "rear_now" if already else f"rear@{o:.0f}"
+                out.append((name, p_rear / len(onsets), tb, {rear.unique_id: mode}))
         if fronts and p_front > 1e-6:
             modes = {v.unique_id: TvMode("front_brake", 1.0, P.front_brake_accel_mps2) for v in fronts}
             out.append(("front_brake", p_front, self.cfg.front_detect_delay, modes))
@@ -178,6 +182,8 @@ class TreePlanner(BaselineSmpc):
         def options(name):
             if name == "nominal":
                 return [CONTINUE]
+            if name == "rear_now":
+                return [CONTINUE, CONT_ACCEL]       # 이미 관측된 상황: 계속해도 안전해야 승인
             if name.startswith("rear"):
                 return [CONTINUE, CONT_ACCEL, RETURN, RETURN_DECEL]
             return [CONTINUE, BRAKE, RETURN]
@@ -327,7 +333,16 @@ class TreePlanner(BaselineSmpc):
                 feas, cost, combo, peak, br = self.evaluate_tree(traj, specs, t, v_e, R, vehicles, root_cost,
                                                                  candidate_mask=gate_ok)
             ok = feas & gate_ok & common
-            if ok.any():
+            wait_wins = False
+            if self.cfg.wait_root and self.value_fn is not None and ok.any() and keep_valid:
+                # '기다리기' 루트: 차선 끝 휴리스틱 비용 대신 -λV(잎) 로 지금 바꿀지/기다릴지를 V 가 정한다.
+                wait_cost = gap_penalty(cur_gap, current_safe, P) + P.blocked_cost_weight * current_blocked
+                kf, kc, _, _, _ = self.evaluate_tree(keep_traj, [ActionSpec(KEEP)], t, v_e, R, vehicles,
+                                                     np.array([wait_cost]))
+                wait_wins = bool(kf[0]) and kc[0] < np.min(np.where(ok, cost, np.inf))
+                if wait_wins:
+                    selected, reason = "wait(V)", "value_prefers_wait"
+            if ok.any() and not wait_wins:
                 i = int(np.argmin(np.where(ok, cost, np.inf)))
                 spec = specs[i]
                 selected = spec.label + " " + ",".join(RESPONSE_NAMES[r] for r in combo[i][1:])
@@ -344,7 +359,7 @@ class TreePlanner(BaselineSmpc):
                         cap = min(pre_cap, v_e + spec.prep_accel * t_sw)
                     request = BehaviorRequest(action=spec.action, active=True, speed_cap=cap, accel=spec.prep_accel,
                                               lane_pair=(t.current_lane_id, t.target_lane_id), stamp=now)
-            else:
+            elif not wait_wins:
                 reason = ("traj" if not traj.valid.any() else "scene/acc" if not common else
                           "gate" if not gate_ok.any() else "tree_risk")
         if desire and not change and not request.active:
@@ -426,9 +441,9 @@ def make_tree_planner(name):
     parts = name.split(":")
     base = parts[0]
     cfg = TreeConfig(probability_table="gt" if "gt" in base else "yaml", keep_gates="nogate" not in base,
-                     use_value=base.endswith("_V"))
+                     use_value=base.endswith("_V") or base.endswith("_Vw"), wait_root=base.endswith("_Vw"))
     value_fn = None
-    if base.endswith("_V") and len(parts) > 1:
+    if (base.endswith("_V") or base.endswith("_Vw")) and len(parts) > 1:
         from .rl.value import load_value_fn
         lam = float(parts[2]) if len(parts) > 2 else None
         value_fn = load_value_fn(parts[1], lam)
