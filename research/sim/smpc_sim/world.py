@@ -40,6 +40,9 @@ class EpisodeConfig:
     param_overrides: dict = None      # smpc_decision 파라미터 덮어쓰기 (민감도 분석)
     perception: str = "gt"            # 'gt' | 'lidar_like' (속도 잡음 + 뒤차 미검출·깜빡임)
     npc_override: dict = None         # MORAI 시나리오 재현: {"spawn_kph": 50, "desired_kph": 80} (모든 차선)
+    # NPC 가 자차에 반응하는 조건(리뷰 #9 민감도): 자차가 NPC 차선을 이만큼 침범하면 앞차로 보고, 이 감속까지 쓴다
+    npc_ego_intrusion_m: float = 0.3
+    npc_ego_max_brake: float = 6.0
 
 
 @dataclass
@@ -204,17 +207,22 @@ class World:
                 if g < lead_gap:
                     lead_gap, lead_v = g, o.v
             e = self.ego
-            if e is not None and any(self.occupies(e.y, e.width, L) for L in lanes) and e.s + e.front > n.s:
+            lead_is_ego = False
+            m_in = self.cfg.npc_ego_intrusion_m
+            if e is not None and e.s + e.front > n.s and any(
+                    abs(e.y - self.track.center_y(L)) < 0.5 * self.track.lane_width + 0.5 * e.width - m_in for L in lanes):
                 g = (e.s - e.rear) - (n.s + 0.5 * n.length)
                 if g < lead_gap and g > -0.5 * n.length:
-                    lead_gap, lead_v = g, e.v
+                    lead_gap, lead_v, lead_is_ego = g, e.v, True
             # 합류 못 했으면 차선 끝이 정지 장애물
             if target is None and math.isfinite(end):
                 g_end = (end - 2.0) - (n.s + 0.5 * n.length)
                 if g_end < lead_gap:
-                    lead_gap, lead_v = g_end, 0.0
+                    lead_gap, lead_v, lead_is_ego = g_end, 0.0, False
             a_free = n.profile_accel(self.t, dt, m, n.rng)
             n.a = idm_accel(n.v, lead_gap, lead_v, a_free, m)
+            if lead_is_ego:
+                n.a = max(n.a, -self.cfg.npc_ego_max_brake)
             v_new = max(0.0, n.v + n.a * dt)
             n.s += 0.5 * (n.v + v_new) * dt
             n.v = v_new
