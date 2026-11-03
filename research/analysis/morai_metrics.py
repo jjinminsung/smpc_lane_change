@@ -178,12 +178,16 @@ def analyse(path):
             active = bool(st and st[-1][1])
             tg = [x for x in targets if x[0] <= ts]
             lane = tg[-1][1] if tg else None
+            i_o = int(np.clip(np.searchsorted(odom[:, 0], ts), 0, len(odom) - 1))
             contacts.append({"uid": int(uid), "t": round(float(ts - t0), 2), "t_last": float(ts), "ego_lc_active": bool(active),
-                             "ego_lane": lane, "after_merge": bool(t_merge is not None and ts - t0 >= t_merge)})
+                             "ego_lane": lane, "after_merge": bool(t_merge is not None and ts - t0 >= t_merge),
+                             "ego_v": round(float(odom[i_o, 4]), 2)})
     for c in contacts:
         c["t_last"] = round(float(c["t_last"] - t0), 2)
+        # 자차가 서 있는 동안(차선 끝 대기)의 접촉은 NPC 가 자차를 피하다 낸 것이다. 따로 센다.
         c["kind"] = "during_ego_lane_change" if c["ego_lc_active"] else (
-            "npc_cut_in_after_merge" if c["after_merge"] else "ego_lane_keeping")
+            "npc_cut_in_after_merge" if c["after_merge"] else
+            "npc_contact_ego_stationary" if c["ego_v"] < 0.5 else "ego_lane_keeping")
     return {
         "bag": Path(path).name,
         "morai_contacts": contacts,

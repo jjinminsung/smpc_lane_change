@@ -29,7 +29,7 @@ def planner_factory(name):
             b.keep_gates, b.name = False, "baseline_nogate"
             return b
         return factory_ng
-    if name == "baseline_gt":
+    if name in ("baseline_gt", "baseline_gt_nogate"):
         from smpc_sim.baseline import BaselineSmpc
         from smpc_sim.tree import GT_REAR_TABLE
 
@@ -37,7 +37,8 @@ def planner_factory(name):
             P.rear_accel_probability_by_accel = list(GT_REAR_TABLE)
             P.min_rear_accel_probability = 0.0
             b = BaselineSmpc(P, track)
-            b.name = "baseline_gt"
+            b.keep_gates = name == "baseline_gt"
+            b.name = name
             return b
         return factory
     if name.startswith("tree"):
@@ -73,6 +74,10 @@ def summarize(rows):
         "accepts_per_ep": float(np.mean([r["accepts"] for r in rows])),
         "min_gap_p05_m": float(np.percentile([r["min_gap"] for r in rows], 5)),
         "min_ttc_p05_s": float(np.percentile([min(r["min_ttc"], 99.0) for r in rows], 5)),
+        "min_sep_p05_m": float(np.percentile([min(r.get("min_sep", 99.0), 99.0) for r in rows], 5)),
+        "eps_sep_below_0.5m": int(sum(r.get("min_sep", 99.0) < 0.5 for r in rows)),
+        "eps_side_by_side_below_0.5m": int(sum(r.get("near_lat_ticks", 0) > 0 for r in rows)),
+        "offroad_%": pct(sum((not r["success"]) and (not r["collision"]) and r["t_end"] < 119.0 for r in rows)),
     }
 
 

@@ -52,13 +52,20 @@ def main():
     ap.add_argument("--phase", required=True, choices=sorted(PHASES))
     ap.add_argument("--max_runs", type=int, default=999)
     ap.add_argument("--prefix", default="v2_", help="태그 접두사. v2_ = GT 인지 수정(중복 프레임·기준점) 뒤 주행")
+    ap.add_argument("--methods", default="", help="쉼표 목록으로 단계의 방법을 바꾼다(예: tree_nogate)")
+    ap.add_argument("--reps", type=int, default=0, help="반복 수를 바꾼다")
+    ap.add_argument("--start_rep", type=int, default=0)
     a = ap.parse_args()
     scenarios, methods, reps = PHASES[a.phase]
+    if a.methods:
+        methods = a.methods.split(",")
+    if a.reps:
+        reps = a.reps
     SHOT.mkdir(exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
     done = done_tags()
     n = 0
-    for rep in range(reps):
+    for rep in range(a.start_rep, reps):
         for sc in scenarios:
             order = methods if rep % 2 == 0 else list(reversed(methods))
             for m in order:

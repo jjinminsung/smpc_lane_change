@@ -101,8 +101,7 @@ class AccPlanner:
                 soft_binding = not allow_hard
             hard_any |= (hard or rapid) and allow_hard
 
-        # 4.3 SMPC 요청 (차선 변경 중에는 무시)
-        external = reason not in ("none", "merge_keep_rolling")
+        # 4.3 SMPC 요청 (차선 변경 중에는 무시). WAIT 래치만 여기서, 속도 상한은 합류 바닥 뒤(acc:1268)
         cap_applied, applied_cap, yield_slew = False, math.inf, None
         recent_change = now - self.last_change_left <= 0.5
         pair_ok = request.lane_pair == (t.current_lane_id, t.target_lane_id)
@@ -110,14 +109,6 @@ class AccPlanner:
                        and request.action in ("yield", "hold", "accel", "wait"))
         if prep_active and request.action == "wait":
             self.wait_latch_until = now + P.lane_end_hold_wait_for_gap_latch_sec
-        if prep_active and request.action != "wait":
-            cap = min(max(request.speed_cap, 0.0), cruise)
-            applied_cap = cap
-            if cap < raw:
-                raw, cap_applied = cap, True
-                lead_bind, soft_binding = None, False
-                if not hard_any and not external and request.action == "yield" and request.accel < 0:
-                    yield_slew = abs(request.accel)
         wait_active = now <= self.wait_latch_until and not lc_active
 
         # 4.4 차선 끝
@@ -148,6 +139,17 @@ class AccPlanner:
             floor = min(P.merge_keep_rolling_min_speed_mps, cruise)
             if raw < floor:
                 raw, reason = floor, "merge_keep_rolling"
+        # SMPC 속도 상한: C++ 처럼 합류 바닥 '뒤'에 둔다. YIELD/HOLD 가 바닥보다 낮출 수 있어야 한다.
+        # external 은 상한 적용 전의 중재 결과(앞차·차선 끝)다(acc:1258).
+        external = reason not in ("none", "merge_keep_rolling")
+        if prep_active and request.action != "wait":
+            cap = min(max(request.speed_cap, 0.0), cruise)
+            applied_cap = cap
+            if cap < raw:
+                raw, cap_applied = cap, True
+                lead_bind, soft_binding = None, False
+                if not hard_any and not external and request.action == "yield" and request.accel < 0:
+                    yield_slew = abs(request.accel)
         if lc_active and P.lane_change_lane_end_cap_enabled and d_t > P.lane_change_lane_end_cap_release_abs_d_m:
             lim = (dist - P.lane_change_lane_end_margin_m) / max(0.5, 4.2 - lc_elapsed)
             lim = min(max(lim, min(P.lane_change_lane_end_min_cap_mps, cruise)), cruise)

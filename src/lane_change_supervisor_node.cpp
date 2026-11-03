@@ -67,6 +67,10 @@ class LaneChangeSupervisor {
     pnh_.param("active_rear_guard_enabled", active_rear_guard_enabled_, false);
     // 트리 플래너(research): smpc_decision 의 /smpc/tree_abort 를 따른다. 켜면 rear_abort 는 끈다.
     pnh_.param("tree_abort_enabled", tree_abort_enabled_, false);
+    // 트리 복귀는 연속 N 번(20 Hz) 이어야 실행한다. 트리 메시지가 끊기면(SMPC 정지·지연) 원래 rear_abort 로 돌아간다.
+    pnh_.param("tree_abort_confirm_count", tree_abort_confirm_count_, 2);
+    pnh_.param("tree_abort_heartbeat_timeout_sec", tree_abort_heartbeat_timeout_sec_, 0.3);
+    rear_guard_configured_ = active_rear_guard_enabled_;
     if (tree_abort_enabled_) active_rear_guard_enabled_ = false;
     pnh_.param("active_rear_guard_min_gap_m", active_rear_guard_min_gap_m_, 9.0);
     pnh_.param("active_rear_guard_min_ttc_sec", active_rear_guard_min_ttc_sec_, 3.0);
@@ -707,7 +711,9 @@ class LaneChangeSupervisor {
       bool* emergency_abort) {
     if (emergency_abort != nullptr) *emergency_abort = false;
     last_rear_guard_detail_.clear();
-    if (!active_rear_guard_enabled_ || !active_ || !have_odom_) return false;
+    const bool tree_stale = tree_abort_enabled_ && rear_guard_configured_ &&
+        (!have_tree_msg_ || (ros::Time::now() - last_tree_msg_).toSec() > tree_abort_heartbeat_timeout_sec_);
+    if (!(active_rear_guard_enabled_ || tree_stale) || !active_ || !have_odom_) return false;
     if (targets.current_lane_id != source_lane_ ||
         targets.target_lane_id != target_lane_) {
       return false;
@@ -891,7 +897,11 @@ class LaneChangeSupervisor {
   }
 
   void treeAbortCallback(const std_msgs::Bool::ConstPtr& msg) {
+    last_tree_msg_ = ros::Time::now();
+    have_tree_msg_ = true;
+    tree_abort_count_ = (msg->data && active_) ? tree_abort_count_ + 1 : 0;
     if (!msg->data || !active_ || !have_targets_) return;
+    if (tree_abort_count_ < std::max(1, tree_abort_confirm_count_)) return;
     if (latest_targets_.current_lane_id != source_lane_ ||
         latest_targets_.target_lane_id != target_lane_) {
       return;
@@ -904,7 +914,8 @@ class LaneChangeSupervisor {
     const double elapsed = completion_clock_started_
         ? std::max(0.0, (ros::Time::now() - completion_start_).toSec())
         : 0.0;
-    publishDebug("tree_return_confirmed");
+    publishDebug("tree_return_confirmed count=" + std::to_string(tree_abort_count_));
+    tree_abort_count_ = 0;
     abortLaneChange("tree_return_before_target_center", elapsed, cls);
   }
 
@@ -1210,6 +1221,12 @@ class LaneChangeSupervisor {
   ros::Subscriber decision_sub_, targets_sub_, state_sub_, odom_sub_, final_waypoint_sub_;
   ros::Subscriber tree_abort_sub_;
   bool tree_abort_enabled_{false};
+  int tree_abort_confirm_count_{2};
+  double tree_abort_heartbeat_timeout_sec_{0.3};
+  bool rear_guard_configured_{false};
+  bool have_tree_msg_{false};
+  ros::Time last_tree_msg_;
+  int tree_abort_count_{0};
   ros::Publisher path_pub_, status_pub_, debug_pub_;
   ros::Timer timer_;
 

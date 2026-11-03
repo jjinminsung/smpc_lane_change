@@ -391,6 +391,10 @@ class SmpcDecisionNode {
     if (tree_response_cost_.size() != 5) tree_response_cost_ = {0.0, 1.0, 30.0, 35.0, 5.0};
     pnh_.param("tree_risk_weight", tree_risk_weight_, 80.0);
     pnh_.param("tree_abort_risk_factor", tree_abort_risk_factor_, 2.0);
+    // 실행 계층이 실제로 하는 대응만(계속·복귀·제동). 계속+가속, 복귀+감속은 아무도 명령하지 않는다.
+    pnh_.param("tree_executable_responses_only", tree_executable_responses_only_, true);
+    // 복귀 횡이동 = 측정 진행률 곡선(시뮬레이터 plant 와 같은 표). false 면 예전 선형 모델.
+    pnh_.param("tree_plant_return", tree_plant_return_, true);
 
     pnh_.param("lateral_mode_enabled", lateral_mode_enabled_, true);
     pnh_.param("lateral_mode_probability", lateral_mode_probability_, 0.03);
@@ -4122,6 +4126,26 @@ class SmpcDecisionNode {
     }
   }
 
+  // 복귀 진행률 p(τ/scale), 0.1 s 표(파이썬 tree.RETURN_PROGRESS 와 같다). scale = max(0.35, √(거리/차선 폭)).
+  double treeReturnProgress(double tau, double dist) const {
+    static const double kProg[57] = {
+        0.0000, 0.0005, 0.0019, 0.0041, 0.0068, 0.0100, 0.0151, 0.0233, 0.0339, 0.0464, 0.0600, 0.0770, 0.0992,
+        0.1255, 0.1551, 0.1867, 0.2194, 0.2521, 0.2838, 0.3135, 0.3400, 0.3641, 0.3871, 0.4093, 0.4309, 0.4521,
+        0.4732, 0.4943, 0.5156, 0.5375, 0.5600, 0.5833, 0.6073, 0.6317, 0.6563, 0.6811, 0.7058, 0.7302, 0.7541,
+        0.7775, 0.8000, 0.8219, 0.8432, 0.8634, 0.8825, 0.9026, 0.9228, 0.9419, 0.9586, 0.9717, 0.9800, 0.9853,
+        0.9901, 0.9941, 0.9973, 0.9993, 1.0000};
+    if (!tree_plant_return_) {
+      const double dur = std::max(0.8, tree_return_time_full_sec_ * std::abs(dist) / lane_width_m_);
+      return std::clamp(tau / dur, 0.0, 1.0);
+    }
+    const double scale = std::max(0.35, std::sqrt(std::min(1.0, std::abs(dist) / lane_width_m_)));
+    const double x = std::max(0.0, tau / scale) / 0.1;
+    const std::size_t i = static_cast<std::size_t>(std::floor(x));
+    if (i >= 56) return 1.0;
+    const double a = x - static_cast<double>(i);
+    return kProg[i] + (kProg[i + 1] - kProg[i]) * a;
+  }
+
   std::vector<PredPose> treeResponse(const std::vector<PredPose>& root, bool change_left, double t_b,
                                      int response, const smpc_lane_change::TargetVehicleSet& t,
                                      bool* allowed, const std::vector<double>* root_s = nullptr,
@@ -4190,8 +4214,7 @@ class SmpcDecisionNode {
           break;
         case kTreeReturn:
         case kTreeReturnDecel: {
-          const double dur = std::max(0.8, tree_return_time_full_sec_ * std::abs(d_b - d_src) / lane_width_m_);
-          const double frac = std::clamp(tau / dur, 0.0, 1.0);
+          const double frac = treeReturnProgress(tau, d_b - d_src);
           d2[k] = d_b + (d_src - d_b) * frac;
           if (response == kTreeReturnDecel) {
             v2[k] = std::max(0.5 * v_b, v_b + tree_return_decel_mps2_ * tau);
@@ -4239,8 +4262,10 @@ class SmpcDecisionNode {
 
   std::vector<double> treeStepRisk(const std::vector<PredPose>& ego,
                                    const std::vector<smpc_lane_change::TargetVehicle>& vehicles,
-                                   const TreeBranch& branch, std::vector<double>* min_clear) const {
+                                   const TreeBranch& branch, std::vector<double>* min_clear,
+                                   bool* invalid = nullptr) const {
     const std::size_t K = ego.size();
+    if (invalid) *invalid = false;
     std::vector<double> no_coll(K, 1.0);
     if (min_clear) min_clear->assign(K, std::numeric_limits<double>::infinity());
     for (const auto& vehicle : vehicles) {
@@ -4279,7 +4304,11 @@ class SmpcDecisionNode {
           tv = predictTargetPose(vehicle, mode, e.t, &exceeded, lag);
         }
         if (exceeded) break;
-        if (!tv.valid) continue;
+        if (!tv.valid) {
+          // 차선 끝 전에 TV 예측이 실패: evaluateTrajectory 처럼 fail-closed (그 대응은 쓰지 않는다)
+          if (invalid) *invalid = true;
+          continue;
+        }
         const auto c = collisionProbability(e, tv, vehicle, mode);
         no_coll[k] *= 1.0 - clampProbability(c.probability);
         if (min_clear) (*min_clear)[k] = std::min((*min_clear)[k], c.signed_clearance);
@@ -4312,11 +4341,15 @@ class SmpcDecisionNode {
         ok[b][r] = allowed;
         if (!allowed) continue;
         std::vector<double> clear;
+        bool invalid = false;
         risk[b][r] = treeStepRisk(traj, vehicles, branches[b],
-                                  (branches[b].name == "nominal" && r == kTreeContinue) ? &clear : nullptr);
+                                  (branches[b].name == "nominal" && r == kTreeContinue) ? &clear : nullptr,
+                                  &invalid);
+        if (invalid) ok[b][r] = false;
         if (branches[b].name == "nominal" && r == kTreeContinue) {
           for (const double c : clear) {
-            if (std::isfinite(c) && c < behavior_min_signed_clearance_m_) nominal_clear = false;
+            // NaN·-inf 는 통과시키지 않는다(clearanceSafe 처럼 fail-closed). +inf 는 상호작용 없음.
+            if (std::isnan(c) || c < behavior_min_signed_clearance_m_) nominal_clear = false;
           }
         }
       }
@@ -4325,10 +4358,14 @@ class SmpcDecisionNode {
     std::vector<std::vector<int>> options(B);
     for (std::size_t b = 0; b < B; ++b) {
       const auto& n = branches[b].name;
+      const bool ex = tree_executable_responses_only_;
       if (n == "nominal") options[b] = {kTreeContinue};
-      else if (n == "rear_now") options[b] = {kTreeContinue, kTreeContAccel};
-      else if (n.rfind("rear", 0) == 0) options[b] = {kTreeContinue, kTreeContAccel, kTreeReturn, kTreeReturnDecel};
-      else options[b] = {kTreeContinue, kTreeBrake, kTreeReturn};
+      else if (n == "rear_now") options[b] = ex ? std::vector<int>{kTreeContinue}
+                                                : std::vector<int>{kTreeContinue, kTreeContAccel};
+      else if (n.rfind("rear", 0) == 0) {
+        options[b] = ex ? std::vector<int>{kTreeContinue, kTreeReturn}
+                        : std::vector<int>{kTreeContinue, kTreeContAccel, kTreeReturn, kTreeReturnDecel};
+      } else options[b] = {kTreeContinue, kTreeBrake, kTreeReturn};
     }
     std::vector<std::size_t> idx(B, 0);
     double best_any_peak = std::numeric_limits<double>::infinity();
@@ -4392,8 +4429,6 @@ class SmpcDecisionNode {
                             reference_preview_.mode == waypoint_system::PathSwitchPreview::BLEND)
         ? reference_preview_.blend_duration_sec : waypoint_blend_duration_sec_;
     const double T_rem = std::max(0.5, T_blend * d_t / lane_width_m_);
-    const double T_back = std::max(0.8, tree_return_time_full_sec_ *
-                                            std::abs(t.ego_d_target + lane_width_m_) / lane_width_m_);
     const double pre_cap = egoPredictionTargetSpeedMps();
     const double mission = currentTargetSpeedMps();
     double v_post = mission;
@@ -4437,7 +4472,8 @@ class SmpcDecisionNode {
         const double u = std::clamp((s_go - s_start) / L_rem, 0.0, 1.0);
         d_go = t.ego_d_target * (1.0 - u * u * u * (10.0 - 15.0 * u + 6.0 * u * u));
       }
-      const double d_bk = t.ego_d_target + (-lane_width_m_ - t.ego_d_target) * std::clamp(tau / T_back, 0.0, 1.0);
+      const double d_bk = t.ego_d_target + (-lane_width_m_ - t.ego_d_target) *
+          treeReturnProgress(tau, t.ego_d_target + lane_width_m_);
       for (int which = 0; which < 2; ++which) {
         const double s_q = which == 0 ? s_go : s_bk;
         const double d_q = which == 0 ? d_go : d_bk;
@@ -4530,6 +4566,15 @@ class SmpcDecisionNode {
       if (i == 0) {
         traj = change_traj;
         gate_ok = !change_traj.empty() && (!tree_keep_gates_ || change_now_gates_ok);
+        if (gate_ok && tree_monitor_enabled_) {
+          // 같은 상태에서 실행 중 재계획이 곧바로 복귀를 고를 바꾸기는 승인하지 않는다(리뷰 #6).
+          // treeMonitorReturn 이 예측 캐시를 비우므로 이 루트 평가 전에 부른다.
+          if (treeMonitorReturn(t, vehicles, rear, allowed_risk, nullptr)) {
+            os << " change_now_monitor_return";
+            gate_ok = false;
+          }
+          tree_pred_cache_.clear();
+        }
       } else {
         const double base_cap = egoPredictionTargetSpeedMps();
         if (!preparationLongitudinalModelCompatible(t, spec, base_cap)) continue;
@@ -4883,7 +4928,8 @@ class SmpcDecisionNode {
       tm.data = tree_detail;
       tree_debug_pub_.publish(tm);
     }
-    const bool future_feasible = change_feasible || have_future_candidate;
+    const bool future_feasible =
+        (tree_planner_enabled_ ? request_change : change_feasible) || have_future_candidate;
 
     std::ostringstream debug;
     debug.setf(std::ios::fixed);
@@ -5009,7 +5055,9 @@ class SmpcDecisionNode {
       return;
     }
 
-    if (desire_change && !change_feasible) {
+    // 트리 모드에서는 트리가 거절했으면(request_change=false, 미래 후보 없음) 기존 판정과 무관하게 WAIT 를
+    // 보내 ACC 차선 끝 정지를 켠다(리뷰 #5). 기존 모드는 dd1cf54 그대로.
+    if (desire_change && (tree_planner_enabled_ ? !request_change : !change_feasible)) {
       // Changing is desired, but neither CHANGE_NOW nor a future candidate
       // has passed its safety gates.  This differs from ordinary KEEP_CRUISE:
       // preserve the longitudinal policy and keep observing, without claiming
@@ -5024,7 +5072,9 @@ class SmpcDecisionNode {
       wait_candidate.target_speed_mps = egoPredictionTargetSpeedMps();
 
       std::string wait_reason = "smpc_v3_wait_for_gap_change_unsafe";
-      if (yield_candidate_confirmation_pending) {
+      if (tree_planner_enabled_ && change_feasible) {
+        wait_reason = "smpc_v3_wait_for_gap_tree_reject";
+      } else if (yield_candidate_confirmation_pending) {
         wait_reason = "smpc_v3_wait_for_gap_yield_candidate_unconfirmed";
       } else if (!target_lane_is_left) wait_reason = "smpc_v3_wait_for_gap_invalid_target_lane";
       else if (!change_eval.valid) wait_reason = "smpc_v3_wait_for_gap_no_change_trajectory";
@@ -5073,6 +5123,8 @@ class SmpcDecisionNode {
   std::vector<double> tree_response_cost_{0.0, 1.0, 30.0, 35.0, 5.0};
   double tree_risk_weight_{80.0};
   double tree_abort_risk_factor_{2.0};
+  bool tree_executable_responses_only_{true};
+  bool tree_plant_return_{true};
   // 한 판단 주기 안에서만 유효한 TV 예측 캐시(treeSelect / treeMonitorReturn 시작에서 비운다).
   mutable std::unordered_map<std::uint64_t, std::pair<int, PredPose>> tree_pred_cache_;
   ros::Timer timer_;

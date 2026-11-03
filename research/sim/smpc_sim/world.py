@@ -62,6 +62,8 @@ class EpisodeResult:
     trace: list = field(default_factory=list)
     samples: list = field(default_factory=list)       # [(t, features)]
     stop_events: list = field(default_factory=list)   # 차선 끝 정지 시각
+    min_sep: float = math.inf        # 2-D 박스 분리 최소값 max(종 간격, 횡 간격) (음수 = 겹침)
+    near_lat_ticks: int = 0          # 나란히(종 겹침) 횡 간격 < 0.5 m 인 틱 수
 
 
 def obb_overlap(e, n, track):
@@ -77,6 +79,11 @@ class World:
     def __init__(self, planner_factory, cfg=None, P=None):
         self.cfg = cfg or EpisodeConfig()
         self.rng = np.random.default_rng(self.cfg.seed)
+        # 공통 난수(CRN): 차선별 스폰, NPC 별(차선, 순번), 인지 잡음이 각자 난수열을 쓴다. 한 난수열을 같이 쓰면
+        # 두 플래너가 처음 갈라진 뒤 교통 전체가 달라져 짝 비교가 약해진다(리뷰 #14).
+        self.rng_spawn = {lane: np.random.default_rng([self.cfg.seed, 1, lane]) for lane in SPAWN}
+        self.spawn_count = {lane: 0 for lane in SPAWN}
+        self.rng_percep = np.random.default_rng([self.cfg.seed, 3])
         self.P = P or load_params("smpc_decision")
         for k, v in (self.cfg.param_overrides or {}).items():
             setattr(self.P, k, v)
@@ -97,7 +104,8 @@ class World:
         self.next_spawn = {lane: 0.0 for lane in SPAWN}
         self.t = 0.0
         self.planner = planner_factory(self.P, self.track)
-        if hasattr(self.planner, "monitor"):
+        self.use_monitor = getattr(self.planner, "use_monitor", False)
+        if self.use_monitor:
             self.P_sup.active_rear_guard_enabled = False
         self.ego = None
 
@@ -121,17 +129,20 @@ class World:
                 self.next_spawn[lane] = self.t + 0.5
                 continue
             m = self.model
-            v0 = m.spawn_speed if (self.spawn_all_fast or self.rng.random() < p_fast) else 0.0
+            r = np.random.default_rng([self.cfg.seed, 2, lane, self.spawn_count[lane]])
+            self.spawn_count[lane] += 1
+            v0 = m.spawn_speed if (self.spawn_all_fast or r.random() < p_fast) else 0.0
             n = Npc(uid=self.next_uid, lane=lane, s=s_sp, v=v0, born=self.t,
-                    v_desired=m.sample_desired(self.rng),
-                    accel_cap=float(np.clip(self.rng.normal(m.spawn_accel_mean, m.spawn_accel_std),
+                    v_desired=m.sample_desired(r),
+                    accel_cap=float(np.clip(r.normal(m.spawn_accel_mean, m.spawn_accel_std),
                                             m.spawn_accel_min, m.spawn_accel_max)),
                     length=m.length, width=m.width)
+            n.rng = r
             n.v_target = n.v_desired
             n.y, n.v_lat, n.spawn_lane, n.merge_to = self.track.center_y(lane), 0.0, lane, None
             self.npcs.append(n)
             self.next_uid += 1
-            gap = self.rng.uniform(*period)
+            gap = self.rng_spawn[lane].uniform(*period)
             self.next_spawn[lane] = self.t + gap / self.cfg.spawn_scale
 
     def occupies(self, y, width, lane):
@@ -202,7 +213,7 @@ class World:
                 g_end = (end - 2.0) - (n.s + 0.5 * n.length)
                 if g_end < lead_gap:
                     lead_gap, lead_v = g_end, 0.0
-            a_free = n.profile_accel(self.t, dt, m, self.rng)
+            a_free = n.profile_accel(self.t, dt, m, n.rng)
             n.a = idm_accel(n.v, lead_gap, lead_v, a_free, m)
             v_new = max(0.0, n.v + n.a * dt)
             n.s += 0.5 * (n.v + v_new) * dt
@@ -229,10 +240,10 @@ class World:
             if ds < -60.0 or ds > 90.0:
                 continue
             p_det = 0.5 if ds < 0 else 0.9
-            if self.rng.random() > p_det:
+            if self.rng_percep.random() > p_det:
                 continue
             noise = getattr(n, "_vnoise", 0.0)
-            noise = 0.8 * noise + 0.6 * self.rng.normal(0.0, 1.0)      # 정상 상태 σ ≈ 1.0 m/s
+            noise = 0.8 * noise + 0.6 * self.rng_percep.normal(0.0, 1.0)      # 정상 상태 σ ≈ 1.0 m/s
             n._vnoise = noise
             c = copy.copy(n)
             c.v = max(0.0, n.v + noise)
@@ -264,6 +275,7 @@ class World:
                             stop_time=0.0, aborts=0, accepts=0, min_gap=math.inf, min_ttc=math.inf)
         stopped = False
         last_change_left = -1e9
+        tree_return_count = 0
         while self.t - self.t0 < cfg.time_limit_sec:
             now = self.t
             self.spawn()
@@ -277,10 +289,17 @@ class World:
             n_ev = len(self.sup.events)
             self.sup.on_decision(now, dec.change_left, t, e)
             self.sup.on_targets(now, t, e)
-            if self.sup.active and hasattr(self.planner, "monitor"):
-                # 트리 플래너: 차선 변경 중 재계획이 rear_abort 를 대체한다
+            if self.sup.active and self.use_monitor:
+                # 트리 플래너: 차선 변경 중 재계획이 rear_abort 를 대체한다. supervisor 처럼 연속 2 틱이면 복귀.
                 if self.planner.monitor(now, t, e.v, cfg.mission_speed) == "return":
-                    self.sup._abort(now, "tree_return", self.sup.source)
+                    tree_return_count += 1
+                    if tree_return_count >= 2:
+                        self.sup._abort(now, "tree_return", self.sup.source)
+                        tree_return_count = 0
+                else:
+                    tree_return_count = 0
+            else:
+                tree_return_count = 0
             self.sup.tick(now, e)
             for ev in self.sup.events[n_ev:]:
                 res.events.append((ev.kind, round(ev.t - self.t0, 2), ev.source, ev.target, ev.detail,
@@ -303,6 +322,11 @@ class World:
             for n in self.npcs:
                 if obb_overlap(e, n, self.track):
                     res.collision = True
+                g_long = max((n.s - 0.5 * n.length) - (e.s + e.front), (e.s - e.rear) - (n.s + 0.5 * n.length))
+                g_lat = abs(e.y - n.y) - 0.5 * (e.width + n.width)
+                res.min_sep = min(res.min_sep, max(g_long, g_lat))
+                if g_long < 0.0 and 0.0 <= g_lat < 0.5:
+                    res.near_lat_ticks += 1
                 if self.occupies(n.y, n.width, e.lane) or abs(n.y - e.y) < 0.5 * (e.width + n.width):
                     if n.s > e.s:
                         g = (n.s - 0.5 * n.length) - (e.s + e.front)
