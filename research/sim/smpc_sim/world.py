@@ -115,7 +115,7 @@ class World:
                                             m.spawn_accel_min, m.spawn_accel_max)),
                     length=m.length, width=m.width)
             n.v_target = n.v_desired
-            n.y, n.v_lat, n.spawn_lane = self.track.center_y(lane), 0.0, lane
+            n.y, n.v_lat, n.spawn_lane, n.merge_to = self.track.center_y(lane), 0.0, lane, None
             self.npcs.append(n)
             self.next_uid += 1
             gap = self.rng.uniform(*period)
@@ -125,28 +125,86 @@ class World:
         """폭 width 인 차량이 lane 을 0.3 m 이상 침범하는지."""
         return abs(y - self.track.center_y(lane)) < 0.5 * self.track.lane_width + 0.5 * width - 0.3
 
+    # ---- NPC 차선 끝 강제 합류 (MORAI 실측: 차선 2 끝 s 411–417 에서 v≈10 m/s, 횡속도 2.4 m/s 로 왼쪽 합류.
+    #      틈이 없으면 끝 앞에서 서서 기다린다. 틈 기준은 MORAI NPC 설정 SafetyDist 5 m, TTC 1.0 s) ----
+    MERGE_ZONE_M, MERGE_LAT_RATE, MERGE_SAFE_GAP, MERGE_TTC = 80.0, 2.4, 5.0, 1.0
+
+    def _lane_occupants(self, lane, exclude):
+        """lane 을 0.3 m 이상 침범한 차량 [(s_front, s_rear, v)] (NPC + 자차)."""
+        out = []
+        for o in self.npcs:
+            if o is not exclude and self.occupies(o.y, o.width, lane):
+                out.append((o.s + 0.5 * o.length, o.s - 0.5 * o.length, o.v))
+        e = self.ego
+        if e is not None and self.occupies(e.y, e.width, lane):
+            out.append((e.s + e.front, e.s - e.rear, e.v))
+        return out
+
+    def _merge_gap_ok(self, n, lane):
+        front, rear = n.s + 0.5 * n.length, n.s - 0.5 * n.length
+        for of, orr, ov in self._lane_occupants(lane, n):
+            if orr >= front:                     # 앞차: 거리 + 제동으로 따라붙을 수 있는지(TTC 1 s, 감속 4 m/s²)
+                g, c = orr - front, n.v - ov
+                need = max(self.MERGE_SAFE_GAP, 0.5 * n.v)
+                if c > 0.1:
+                    need = max(need, self.MERGE_SAFE_GAP + c * c / (2.0 * 4.0), c * self.MERGE_TTC)
+                if g < need:
+                    return False
+            elif of <= rear:                     # 뒤차
+                g, c = rear - of, ov - n.v
+                if g < self.MERGE_SAFE_GAP or (c > 0.1 and g / c < self.MERGE_TTC):
+                    return False
+            else:
+                return False                     # 나란히 겹침
+        return True
+
     def step_npcs(self, dt):
         m = self.model
         order = sorted(self.npcs, key=lambda n: -n.s)
         for n in order:
+            end = self.track.road_end[n.lane] if n.lane < self.track.final_lane else math.inf
+            target = getattr(n, "merge_to", None)
+            # 합류 시작 판단
+            if target is None and math.isfinite(end) and end - n.s < self.MERGE_ZONE_M and \
+                    self._merge_gap_ok(n, n.lane + 1):
+                n.merge_to = target = n.lane + 1
+            # 앞차: 지금 차선 + (합류 중이면) 목표 차선을 침범한 차량
             lead_gap, lead_v = math.inf, 0.0
+            lanes = [n.lane] + ([target] if target is not None else [])
             for o in self.npcs:
-                if o is n or o.lane != n.lane or o.s <= n.s:
+                if o is n or o.s <= n.s:
+                    continue
+                if not any(self.occupies(o.y, o.width, L) for L in lanes):
                     continue
                 g = (o.s - 0.5 * o.length) - (n.s + 0.5 * n.length)
                 if g < lead_gap:
                     lead_gap, lead_v = g, o.v
             e = self.ego
-            if e is not None and self.occupies(e.y, e.width, n.lane) and e.s + e.front > n.s:
+            if e is not None and any(self.occupies(e.y, e.width, L) for L in lanes) and e.s + e.front > n.s:
                 g = (e.s - e.rear) - (n.s + 0.5 * n.length)
                 if g < lead_gap and g > -0.5 * n.length:
                     lead_gap, lead_v = g, e.v
+            # 합류 못 했으면 차선 끝이 정지 장애물
+            if target is None and math.isfinite(end):
+                g_end = (end - 2.0) - (n.s + 0.5 * n.length)
+                if g_end < lead_gap:
+                    lead_gap, lead_v = g_end, 0.0
             a_free = n.profile_accel(self.t, dt, m, self.rng)
             n.a = idm_accel(n.v, lead_gap, lead_v, a_free, m)
             v_new = max(0.0, n.v + n.a * dt)
             n.s += 0.5 * (n.v + v_new) * dt
             n.v = v_new
-        self.npcs = [n for n in self.npcs if n.s < self.track.road_end[n.lane]]
+            # 횡 이동
+            if target is not None:
+                y_t = self.track.center_y(target)
+                step = min(self.MERGE_LAT_RATE * dt, abs(y_t - n.y)) if n.v > 0.3 else 0.0
+                n.v_lat = math.copysign(step / dt, y_t - n.y) if step > 0 else 0.0
+                n.y += math.copysign(step, y_t - n.y)
+                if abs(n.y - y_t) < 0.5 * self.track.lane_width:
+                    n.lane = target
+                if abs(n.y - y_t) < 1e-3:
+                    n.y, n.v_lat, n.merge_to = y_t, 0.0, None
+        self.npcs = [n for n in self.npcs if n.s < self.track.road_end[n.lane] + (5.0 if n.lane < 3 else 0.0)]
 
     # ------------------------------------------------------------ run
     def reset(self):

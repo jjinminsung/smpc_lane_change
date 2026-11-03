@@ -22,9 +22,10 @@ class Track:
     lane_width: float = 3.5
     csv_end: dict = field(default_factory=lambda: dict(CSV_END_S))
     csv_start: dict = field(default_factory=lambda: dict(CSV_START_S))
-    # NPC 도로 범위(시뮬레이터 전용). 차선 1·2 는 CSV 끝 뒤로도 이어진다.
+    # NPC 도로 범위. 차선 0·1·2 는 CSV 끝에서 실제로 끝난다(2026-11-04 MORAI 주행: 차선 1·2 NPC 가
+    # 끝에서 왼쪽으로 강제 합류). 차선 3 만 이어진다.
     road_start: dict = field(default_factory=lambda: {0: -400.0, 1: -300.0, 2: -300.0, 3: -300.0})
-    road_end: dict = field(default_factory=lambda: {0: 106.2, 1: 1110.4, 2: 1110.4, 3: 1110.4})
+    road_end: dict = field(default_factory=lambda: {0: 106.2, 1: 403.9, 2: 417.9, 3: 1110.4})
     final_lane: int = FINAL_LANE
 
     def lanes_for_prediction(self, extension_before_m=100.0):

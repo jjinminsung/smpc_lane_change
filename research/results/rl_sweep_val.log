@@ -1,0 +1,16 @@
+== tree_gt_nogate
+{'n': 100, 'success_%': 90.0, 'collision_%': 0.0, 'merge_time_median_s': 31.77, 'merge_time_p90_s': 67.14, 'lane_end_stops_per_ep': 0.8, 'stop_time_mean_s': 14.8, 'aborts_per_ep': 0.82, 'accepts_per_ep': 3.65, 'min_gap_p05_m': 3.8, 'min_ttc_p05_s': 1.87, 'wall_s': 145.9}
+== tree_gt_nogate_V:results/value/V_iter1.pt:2
+{'n': 100, 'success_%': 90.0, 'collision_%': 0.0, 'merge_time_median_s': 31.6, 'merge_time_p90_s': 65.11, 'lane_end_stops_per_ep': 0.78, 'stop_time_mean_s': 14.62, 'aborts_per_ep': 0.84, 'accepts_per_ep': 3.67, 'min_gap_p05_m': 3.8, 'min_ttc_p05_s': 1.87, 'wall_s': 418.4}
+== tree_gt_nogate_V:results/value/V_iter1.pt:5
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.8/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/usr/lib/python3.8/json/__init__.py", line 357, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.8/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.8/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)

@@ -21,6 +21,11 @@
     <arg name="dry_run" value="$(arg dry_run)"/>
   </include>
 
+  <!-- GT 인지: MORAI Object Info UDP(7605→7505) → /Object_topic. 이 노드가 이미 UTM 오프셋과
+       heading 보정(-1.347 deg)을 적용하므로 target_selector 의 같은 보정은 아래에서 0 으로 둔다.
+       후륜축 → 박스 중심 보정(object_topic_ref_to_center_m)은 그대로 쓴다. -->
+  <include file="$(find morai_udp_bridge)/launch/morai_object_info.launch"/>
+
   <include file="$(find smpc_lane_change)/launch/smpc_integration.launch">
     <arg name="use_rviz" value="false"/>
     <arg name="use_lidar_tracker" value="false"/>
@@ -29,4 +34,7 @@
     <arg name="tree_keep_gates" value="$(arg tree_keep_gates)"/>
     <arg name="rear_accel_table" value="$(arg rear_accel_table)"/>
   </include>
+  <param name="/smpc_target_selector/object_topic_offset_x" value="0.0"/>
+  <param name="/smpc_target_selector/object_topic_offset_y" value="0.0"/>
+  <param name="/smpc_target_selector/object_topic_heading_offset_deg" value="0.0"/>
 </launch>

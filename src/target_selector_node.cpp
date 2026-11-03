@@ -40,6 +40,16 @@ class TargetSelectorNode {
     // 시나리오 mapInfo 의 east/north offset 을 더해야 차선에 배정된다(research 1단계 M4).
     pnh_.param("object_topic_offset_x", object_offset_x_, 0.0);
     pnh_.param("object_topic_offset_y", object_offset_y_, 0.0);
+    // /Object_topic npc.position 은 차량 후륜축이다(research gtcheck: LiDAR 면 위치 + 횡미끄럼 시험).
+    // 판단 코드는 박스 중심을 가정하므로 heading 방향으로 옮긴다. 긴 차량(버스)은 0.5 L - 뒤 오버행.
+    pnh_.param("object_topic_ref_to_center_m", object_ref_to_center_m_, 0.0);
+    pnh_.param("object_topic_long_vehicle_length_m", object_long_vehicle_length_m_, 7.5);
+    pnh_.param("object_topic_long_vehicle_rear_overhang_m", object_long_vehicle_rear_overhang_m_, 1.1);
+    // MORAI heading 은 UTM 격자보다 +1.365 deg (K-City 자오선 수렴각). 보정값을 더한다.
+    pnh_.param("object_topic_heading_offset_deg", object_heading_offset_deg_, 0.0);
+    // /odom 을 /Object_topic 프레임 시각까지 외삽한다(평균 15 ms 늦은 자차로 옆 차의 앞/뒤가 뒤집히는 문제).
+    pnh_.param("object_topic_extrapolate_ego", object_extrapolate_ego_, false);
+    pnh_.param("object_topic_drop_duplicate_frames", object_drop_duplicate_frames_, false);
     pnh_.param<std::string>("tracked_objects_topic", tracked_objects_topic_, "/tracked_objects");
     pnh_.param<std::string>("odom_topic", odom_topic_, "/odom");
     pnh_.param<std::string>("state_topic", state_topic_, "/gps_state");
@@ -317,6 +327,7 @@ class TargetSelectorNode {
     ego_y_ = msg->pose.pose.position.y;
     ego_yaw_ = yawFromQuaternion(msg->pose.pose.orientation);
     ego_speed_mps_ = std::hypot(msg->twist.twist.linear.x, msg->twist.twist.linear.y);
+    odom_stamp_ = msg->header.stamp;
     ego_ready_ = true;
   }
 
@@ -1012,15 +1023,33 @@ class TargetSelectorNode {
   }
 
   void objectCallback(const morai_msgs::ObjectStatusList::ConstPtr& msg) {
+    // UDP Object Info 는 같은 상태를 1.3 ms 뒤 한 번 더 보낸다(실측 49.7 %). 그대로 내보내면 SMPC 의
+    // 차량별 가속도 필터가 '변화 0' 표본을 받아 가속을 0.56 배로 읽는다. 직전과 똑같은 프레임은 버린다.
+    if (object_drop_duplicate_frames_) {
+      std::vector<double> sig;
+      sig.reserve(msg->npc_list.size() * 4);
+      for (const auto& npc : msg->npc_list) {
+        sig.push_back(npc.unique_id);
+        sig.push_back(npc.position.x);
+        sig.push_back(npc.position.y);
+        sig.push_back(npc.velocity.x);
+      }
+      if (!sig.empty() && sig == last_object_signature_) return;
+      last_object_signature_ = std::move(sig);
+    }
     std::vector<CandidateObject> objects;
     objects.reserve(msg->npc_list.size());
 
     for (const auto& npc : msg->npc_list) {
       CandidateObject obj;
       obj.id = npc.unique_id;
-      obj.x = npc.position.x + object_offset_x_;
-      obj.y = npc.position.y + object_offset_y_;
-      obj.yaw = npc.heading * M_PI / 180.0;
+      obj.yaw = (npc.heading + object_heading_offset_deg_) * M_PI / 180.0;
+      const double npc_length = std::max(npc.size.x, npc.size.y);
+      const double ref_shift = npc_length >= object_long_vehicle_length_m_
+          ? std::max(0.0, 0.5 * npc_length - object_long_vehicle_rear_overhang_m_)
+          : object_ref_to_center_m_;
+      obj.x = npc.position.x + object_offset_x_ + ref_shift * std::cos(obj.yaw);
+      obj.y = npc.position.y + object_offset_y_ + ref_shift * std::sin(obj.yaw);
       // MORAI ObjectStatus.msg documents velocity in km/h. x/y are vehicle-local longitudinal/lateral components.
       obj.velocity_in_map = false;
       obj.v_long = npc.velocity.x / 3.6;
@@ -1035,6 +1064,18 @@ class TargetSelectorNode {
       if (passesObjectFilter(obj)) objects.push_back(obj);
     }
 
+    if (object_extrapolate_ego_ && ego_ready_ && !odom_stamp_.isZero() && !msg->header.stamp.isZero()) {
+      // 이 프레임 시각의 자차 위치로 계산하고 되돌린다(odom 콜백 값은 그대로 둔다).
+      // 음수도 허용: /odom 이 프레임보다 새로우면 되돌린다(재검증: 24–35 % 프레임).
+      const double dt = std::clamp((msg->header.stamp - odom_stamp_).toSec(), -0.1, 0.1);
+      const double x0 = ego_x_, y0 = ego_y_;
+      ego_x_ += ego_speed_mps_ * std::cos(ego_yaw_) * dt;
+      ego_y_ += ego_speed_mps_ * std::sin(ego_yaw_) * dt;
+      publishTargetsFromCandidates(msg->header, objects);
+      ego_x_ = x0;
+      ego_y_ = y0;
+      return;
+    }
     publishTargetsFromCandidates(msg->header, objects);
   }
 
@@ -1420,6 +1461,14 @@ class TargetSelectorNode {
   std::string waypoint_directory_, target_source_, object_topic_, tracked_objects_topic_, odom_topic_, state_topic_;
   double object_offset_x_{0.0};
   double object_offset_y_{0.0};
+  double object_ref_to_center_m_{0.0};
+  double object_long_vehicle_length_m_{7.5};
+  double object_long_vehicle_rear_overhang_m_{1.1};
+  double object_heading_offset_deg_{0.0};
+  bool object_extrapolate_ego_{false};
+  bool object_drop_duplicate_frames_{false};
+  std::vector<double> last_object_signature_;
+  ros::Time odom_stamp_;
   std::map<int, LanePath> lanes_;
   std::map<int, std::string> lane_csv_paths_;
   std::unordered_map<int, YawHistory> yaw_history_;

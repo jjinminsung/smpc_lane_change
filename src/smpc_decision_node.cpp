@@ -4106,9 +4106,24 @@ class SmpcDecisionNode {
 
   // 루트 궤적 → 대응 r 의 궤적. 목표 차선 Frenet (s, d) 에서 바꾼 뒤 지도 좌표로 되돌린다.
   // allowed 가 false 면 그 대응은 쓸 수 없다(복귀는 목표 차선 경계 1.75 m 전까지만).
+  // 루트 궤적의 목표 차선 Frenet (s, d). projectExtended 는 폴리라인 전체를 훑으므로 루트마다 한 번만 한다.
+  void treeRootFrenet(const std::vector<PredPose>& root, const smpc_lane_change::TargetVehicleSet& t,
+                      std::vector<double>* s, std::vector<double>* d) const {
+    s->assign(root.size(), 0.0);
+    d->assign(root.size(), 0.0);
+    const auto* target_lane = laneFor(t.target_lane_id);
+    if (!target_lane) return;
+    for (std::size_t k = 0; k < root.size(); ++k) {
+      const auto pr = target_lane->projectExtended(root[k].x, root[k].y, 400.0, 400.0);
+      (*s)[k] = pr.s;
+      (*d)[k] = pr.d;
+    }
+  }
+
   std::vector<PredPose> treeResponse(const std::vector<PredPose>& root, bool change_left, double t_b,
                                      int response, const smpc_lane_change::TargetVehicleSet& t,
-                                     bool* allowed) const {
+                                     bool* allowed, const std::vector<double>* root_s = nullptr,
+                                     const std::vector<double>* root_d = nullptr) const {
     *allowed = true;
     if (response == kTreeContinue) return root;
     const std::size_t K = root.size();
@@ -4127,10 +4142,13 @@ class SmpcDecisionNode {
     }
     const double ext = 400.0;
     std::vector<double> s(K), d(K), v(K), tk(K);
+    if (root_s && root_d && root_s->size() == K && root_d->size() == K) {
+      s = *root_s;
+      d = *root_d;
+    } else {
+      treeRootFrenet(root, t, &s, &d);
+    }
     for (std::size_t k = 0; k < K; ++k) {
-      const auto pr = target_lane->projectExtended(root[k].x, root[k].y, ext, ext);
-      s[k] = pr.s;
-      d[k] = pr.d;
       v[k] = root[k].v;
       tk[k] = root[k].t;
     }
@@ -4262,10 +4280,12 @@ class SmpcDecisionNode {
     std::vector<std::array<std::vector<double>, 5>> risk(B);
     std::vector<std::array<bool, 5>> ok(B);
     bool nominal_clear = true;
+    std::vector<double> root_s, root_d;
+    treeRootFrenet(root, t, &root_s, &root_d);
     for (std::size_t b = 0; b < B; ++b) {
       for (int r = 0; r < 5; ++r) {
         bool allowed = false;
-        const auto traj = treeResponse(root, change_left, branches[b].t_b, r, t, &allowed);
+        const auto traj = treeResponse(root, change_left, branches[b].t_b, r, t, &allowed, &root_s, &root_d);
         ok[b][r] = allowed;
         if (!allowed) continue;
         std::vector<double> clear;
@@ -4433,6 +4453,7 @@ class SmpcDecisionNode {
       return;
     }
     const auto branches = treeBranches(t, rear);
+    const ros::WallTime wall0 = ros::WallTime::now();
     std::ostringstream os;
     os.setf(std::ios::fixed);
     os.precision(3);
@@ -4471,6 +4492,8 @@ class SmpcDecisionNode {
         best_combo = r.combo;
       }
     }
+    const double ms = (ros::WallTime::now() - wall0).toSec() * 1000.0;
+    os << " roots=" << specs.size() << " ms=" << ms;
     if (best_index < 0) {
       os << " none_feasible";
       if (detail) *detail = os.str();

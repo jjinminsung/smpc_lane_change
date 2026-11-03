@@ -8,6 +8,13 @@ object_topic: "/Object_topic"
 # /Object_topic 은 MORAI 시나리오 로컬 좌표. K-City 시나리오 mapInfo east/north offset (UTM 으로 변환).
 object_topic_offset_x: 302595.0
 object_topic_offset_y: 4124145.0
+# npc.position 은 후륜축 → 박스 중심으로(승용 1.25 m, 7.5 m 이상은 0.5 L - 1.1 m). research/results/gtcheck_report.md B
+object_topic_ref_to_center_m: 1.25
+object_topic_long_vehicle_length_m: 7.5
+object_topic_long_vehicle_rear_overhang_m: 1.1
+object_topic_heading_offset_deg: -1.365
+object_topic_extrapolate_ego: true
+object_topic_drop_duplicate_frames: true   # UDP 경로의 1.3 ms 중복 사본 제거
 odom_topic: "/odom"
 state_topic: "/gps_state"
 lane_half_width: 2.2

@@ -35,3 +35,130 @@
  },
  "wall_s": 530.9
 }
+{
+ "iter": 2,
+ "train_policy": {
+  "n": 300,
+  "success_%": 91.66666666666667,
+  "collision_%": 0.0,
+  "merge_time_median_s": 33.19999999999812,
+  "merge_time_p90_s": 57.749999999996724,
+  "lane_end_stops_per_ep": 0.7166666666666667,
+  "stop_time_mean_s": 9.968833333333201,
+  "aborts_per_ep": 0.7633333333333333,
+  "accepts_per_ep": 3.5633333333333335,
+  "min_gap_p05_m": 3.9604869855816274,
+  "min_ttc_p05_s": 1.9071722499083916
+ },
+ "fit": {
+  "val_mse": 0.1210528016090393,
+  "const_mse": 0.27921468019485474,
+  "n_train": 44901,
+  "n_val": 5338
+ },
+ "lambda": 10.0,
+ "val": {
+  "n": 100,
+  "success_%": 87.0,
+  "collision_%": 0.0,
+  "merge_time_median_s": 34.44999999999805,
+  "merge_time_p90_s": 67.44999999999618,
+  "lane_end_stops_per_ep": 0.78,
+  "stop_time_mean_s": 14.255499999999751,
+  "aborts_per_ep": 0.83,
+  "accepts_per_ep": 3.55,
+  "min_gap_p05_m": 3.819513503820198,
+  "min_ttc_p05_s": 1.9095642508916777
+ },
+ "wall_s": 744.0
+}
+{
+ "iter": 3,
+ "train_policy": {
+  "n": 300,
+  "success_%": 92.66666666666667,
+  "collision_%": 0.0,
+  "merge_time_median_s": 32.72499999999815,
+  "merge_time_p90_s": 58.83999999999667,
+  "lane_end_stops_per_ep": 0.6733333333333333,
+  "stop_time_mean_s": 9.937166666666515,
+  "aborts_per_ep": 0.7566666666666667,
+  "accepts_per_ep": 3.6133333333333333,
+  "min_gap_p05_m": 3.4991196433555403,
+  "min_ttc_p05_s": 1.8355417139804975
+ },
+ "fit": {
+  "val_mse": 0.1681046187877655,
+  "const_mse": 0.3952135443687439,
+  "n_train": 66763,
+  "n_val": 8092
+ },
+ "lambda": 10.0,
+ "val": {
+  "n": 100,
+  "success_%": 84.0,
+  "collision_%": 0.0,
+  "merge_time_median_s": 31.899999999998194,
+  "merge_time_p90_s": 66.41999999999625,
+  "lane_end_stops_per_ep": 0.72,
+  "stop_time_mean_s": 13.437499999999751,
+  "aborts_per_ep": 0.82,
+  "accepts_per_ep": 3.43,
+  "min_gap_p05_m": 3.8196788729417763,
+  "min_ttc_p05_s": 1.9163448889193593
+ },
+ "wall_s": 946.9
+}
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+/home/kuuve/github/smpc_lane_change/research/sim/smpc_sim/rl/value.py:32: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ck = torch.load(Path(path), map_location="cpu")
+{
+ "n": 200,
+ "success_%": 81.0,
+ "collision_%": 0.0,
+ "merge_time_median_s": 31.699999999998205,
+ "merge_time_p90_s": 59.83999999999661,
+ "lane_end_stops_per_ep": 0.62,
+ "stop_time_mean_s": 11.9534999999998,
+ "aborts_per_ep": 0.705,
+ "accepts_per_ep": 3.225,
+ "min_gap_p05_m": 3.640372007035708,
+ "min_ttc_p05_s": 1.8823428842232162
+}

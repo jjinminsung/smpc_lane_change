@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""MORAI 실험 행렬 실행기. (시나리오 × 방법 × 반복) 을 차례로 돌리고 지표를 jsonl 로 쌓는다.
+
+    python3 run_matrix.py --phase A        # S2 안전 확인: 트리(게이트 유지/정리)
+    python3 run_matrix.py --phase B        # 문서 계획: S1–S4 × {기존, 트리+게이트 정리} × 3
+    python3 run_matrix.py --phase C        # 속도 격자 12 개 × {기존, 트리+게이트 정리} × 2
+
+이미 끝난 (tag) 는 건너뛴다(중단 후 다시 실행해도 된다). 방법 순서는 반복마다 번갈아
+(기존→트리, 트리→기존) 시간대 차이(교통 상황)를 줄인다.
+"""
+import argparse
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+OUT = Path.home() / "bags" / "research"
+LOG = REPO / "research" / "results" / "morai_runs.jsonl"
+SHOT = Path("/tmp") / "morai_shots"
+
+METHODS = {
+    "baseline": ("baseline", "true"),
+    "tree": ("tree", "true"),
+    "tree_nogate": ("tree", "false"),
+}
+S = ["research_S1_normal", "research_S2_rear_accel", "research_S3_rear_decel", "research_S4_front_decel"]
+G = [f"research_G_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]
+PHASES = {
+    "A": ([S[1]], ["tree", "tree_nogate"], 3),
+    "B": (S, ["baseline", "tree_nogate"], 3),
+    "C": (G, ["baseline", "tree_nogate"], 2),
+    "D": (S, ["tree"], 2),
+}
+
+
+def done_tags():
+    if not LOG.exists():
+        return set()
+    return {json.loads(l)["tag"] for l in LOG.read_text().splitlines() if l.strip()}
+
+
+def run(cmd, timeout):
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    return p.returncode, p.stdout[-2000:], p.stderr[-2000:]
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--phase", required=True, choices=sorted(PHASES))
+    ap.add_argument("--max_runs", type=int, default=999)
+    a = ap.parse_args()
+    scenarios, methods, reps = PHASES[a.phase]
+    SHOT.mkdir(exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    done = done_tags()
+    n = 0
+    for rep in range(reps):
+        for sc in scenarios:
+            order = methods if rep % 2 == 0 else list(reversed(methods))
+            for m in order:
+                tag = f"{a.phase}_{sc.replace('research_', '')}_{m}_r{rep}"
+                if tag in done:
+                    continue
+                if n >= a.max_runs:
+                    return
+                n += 1
+                t0 = time.time()
+                rc, so, se = run(["python3", str(HERE / "load_scenario.py"), sc], 180)
+                if rc != 0:
+                    rc, so, se = run(["python3", str(HERE / "load_scenario.py"), sc], 180)
+                if rc != 0:
+                    rec = {"tag": tag, "phase": a.phase, "scenario": sc, "method": m, "rep": rep,
+                           "error": "load_scenario failed", "out": so + se}
+                    LOG.open("a").write(json.dumps(rec) + "\n")
+                    print(json.dumps(rec), flush=True)
+                    continue
+                method, keep = METHODS[m]
+                rc, so, se = run(["bash", str(HERE / "run_episode.sh"), tag, method, keep], 420)
+                mon = None
+                try:
+                    mon = json.loads((OUT / f"{tag}.monitor.json").read_text().strip().splitlines()[-1])
+                except Exception:
+                    pass
+                met = None
+                bag = OUT / f"{tag}.bag"
+                if bag.exists():
+                    r2, so2, se2 = run(["python3", str(REPO / "research" / "analysis" / "morai_metrics.py"), str(bag)], 600)
+                    try:
+                        met = json.loads(so2.strip().splitlines()[-1])
+                    except Exception:
+                        met = {"error": se2[-500:]}
+                rec = {"tag": tag, "phase": a.phase, "scenario": sc, "method": m, "rep": rep,
+                       "monitor": mon, "metrics": met, "wall_s": round(time.time() - t0, 1)}
+                LOG.open("a").write(json.dumps(rec) + "\n")
+                print(json.dumps(rec), flush=True)
+
+
+if __name__ == "__main__":
+    main()
