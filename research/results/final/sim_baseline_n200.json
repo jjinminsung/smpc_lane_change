@@ -1,0 +1,13912 @@
+{
+"summary": {
+"n": 200,
+"success_%": 42.0,
+"collision_%": 0.5,
+"merge_time_median_s": 49.07499999999722,
+"merge_time_p90_s": 99.39499999999902,
+"lane_end_stops_per_ep": 1.62,
+"stop_time_mean_s": 52.99799999999866,
+"aborts_per_ep": 0.265,
+"accepts_per_ep": 2.335,
+"min_gap_p05_m": 2.8868032865224165,
+"min_ttc_p05_s": 1.678009583661146,
+"min_sep_p05_m": 1.6022277847248285,
+"eps_sep_below_0.5m": 1,
+"eps_side_by_side_below_0.5m": 1,
+"offroad_%": 1.5,
+"wall_s": 367.7
+},
+"planner": "baseline",
+"cfg": {},
+"episodes": [
+{
+"seed": 2000,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 45.799999999997404,
+"t_merge": 45.799999999997404,
+"lane_end_stops": 1,
+"stop_time": 19.550000000000143,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 26.642102737508026,
+"min_ttc": 4.936743495032161,
+"lane_change_times": [
+31.9,
+38.3,
+45.75
+],
+"events": [
+[
+"accept",
+28.15,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+31.9,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+34.15,
+1,
+2,
+"",
+16.84,
+273.4
+],
+[
+"complete",
+38.3,
+1,
+2,
+"",
+17.77,
+192.5
+],
+[
+"accept",
+41.6,
+2,
+3,
+"",
+8.65,
+164.4
+],
+[
+"complete",
+45.75,
+2,
+3,
+"",
+4.01,
+141.4
+]
+],
+"samples": [],
+"stop_events": [
+8.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2001,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 59.149999999996645,
+"t_merge": 59.149999999996645,
+"lane_end_stops": 1,
+"stop_time": 28.50000000000027,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 19.705009183315866,
+"min_ttc": 2.6373984462433846,
+"lane_change_times": [
+41.3,
+52.9,
+59.1
+],
+"events": [
+[
+"accept",
+37.55,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+41.3,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+48.75,
+1,
+2,
+"",
+10.31,
+225.9
+],
+[
+"complete",
+52.9,
+1,
+2,
+"",
+9.86,
+182.4
+],
+[
+"accept",
+54.95,
+2,
+3,
+"",
+15.41,
+171.0
+],
+[
+"complete",
+59.1,
+2,
+3,
+"",
+14.58,
+101.0
+]
+],
+"samples": [],
+"stop_events": [
+9.35
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2002,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 48.79999999999723,
+"t_merge": 48.79999999999723,
+"lane_end_stops": 2,
+"stop_time": 23.300000000000196,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 13.017134117704472,
+"min_ttc": 4.224084987980862,
+"lane_change_times": [
+36.35,
+42.9,
+48.75
+],
+"events": [
+[
+"accept",
+8.4,
+0,
+1,
+"",
+0.34,
+25.0
+],
+[
+"abort",
+9.05,
+0,
+1,
+"rear_intrusion id=124 g=80.2 c=8.2 T=10.00 esc=1 id=124 g=80.2 c=8.2 T=10.00 esc=1",
+1.16,
+24.7
+],
+[
+"accept",
+32.6,
+0,
+1,
+"",
+0.0,
+23.2
+],
+[
+"complete",
+36.35,
+0,
+1,
+"",
+9.26,
+5.4
+],
+[
+"accept",
+38.75,
+1,
+2,
+"",
+6.58,
+283.7
+],
+[
+"complete",
+42.9,
+1,
+2,
+"",
+6.56,
+260.8
+],
+[
+"accept",
+44.6,
+2,
+3,
+"",
+11.36,
+259.7
+],
+[
+"complete",
+48.75,
+2,
+3,
+"",
+6.64,
+223.1
+]
+],
+"samples": [],
+"stop_events": [
+8.35,
+10.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2003,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 69.4499999999982,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.203438804271286,
+"min_ttc": 2.6602352487756855,
+"lane_change_times": [
+11.75,
+20.95
+],
+"events": [
+[
+"accept",
+7.6,
+0,
+1,
+"",
+4.04,
+30.2
+],
+[
+"complete",
+11.75,
+0,
+1,
+"",
+10.09,
+1.9
+],
+[
+"accept",
+16.8,
+1,
+2,
+"",
+21.69,
+212.1
+],
+[
+"complete",
+20.95,
+1,
+2,
+"",
+13.39,
+139.0
+]
+],
+"samples": [],
+"stop_events": [
+40.5,
+91.35
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2004,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 84.24999999999736,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.9936878273072693,
+"min_ttc": 2.018669744460229,
+"lane_change_times": [
+13.2
+],
+"events": [
+[
+"accept",
+9.05,
+0,
+1,
+"",
+0.3,
+25.0
+],
+[
+"complete",
+13.2,
+0,
+1,
+"",
+11.48,
+2.6
+]
+],
+"samples": [],
+"stop_events": [
+9.0,
+36.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2005,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 59.79999999999874,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.054333973064502,
+"min_ttc": 2.1271702086249116,
+"lane_change_times": [
+32.2,
+43.6
+],
+"events": [
+[
+"accept",
+28.45,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+32.2,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+39.45,
+1,
+2,
+"",
+13.59,
+220.1
+],
+[
+"complete",
+43.6,
+1,
+2,
+"",
+13.21,
+163.5
+]
+],
+"samples": [],
+"stop_events": [
+8.8,
+98.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2006,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 0,
+"t_end": 8.049999999999542,
+"t_merge": NaN,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 0,
+"min_gap": Infinity,
+"min_ttc": Infinity,
+"lane_change_times": [],
+"events": [],
+"samples": [],
+"stop_events": [],
+"min_sep": 11.006867061272153,
+"near_lat_ticks": 0
+},
+{
+"seed": 2007,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 67.04999999999833,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 6.573589876238401,
+"min_ttc": 3.171058273424054,
+"lane_change_times": [
+29.65
+],
+"events": [
+[
+"accept",
+25.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+29.65,
+0,
+1,
+"",
+4.81,
+9.4
+]
+],
+"samples": [],
+"stop_events": [
+8.75,
+74.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2008,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 4,
+"stop_time": 48.949999999999356,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.065551743543551,
+"min_ttc": 2.1737596355524076,
+"lane_change_times": [
+20.25
+],
+"events": [
+[
+"accept",
+16.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+20.25,
+0,
+1,
+"",
+4.61,
+9.6
+],
+[
+"accept",
+114.95,
+1,
+2,
+"",
+0.0,
+24.9
+],
+[
+"abort",
+116.15,
+1,
+2,
+"rear_intrusion id=140 g=16.0 c=15.0 T=5.64 esc=0 id=140 g=16.0 c=15.0 T=5.64 esc=0",
+3.3,
+23.1
+]
+],
+"samples": [],
+"stop_events": [
+8.45,
+82.1,
+101.85,
+117.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2009,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 69.69999999999818,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 9.537524829352549,
+"min_ttc": 2.4062782742238435,
+"lane_change_times": [
+42.4
+],
+"events": [
+[
+"accept",
+38.65,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+42.4,
+0,
+1,
+"",
+9.29,
+6.0
+],
+[
+"accept",
+64.9,
+1,
+2,
+"",
+6.37,
+62.3
+],
+[
+"abort",
+65.55,
+1,
+2,
+"rear_intrusion id=133 g=56.7 c=5.2 T=10.00 esc=1 id=133 g=56.7 c=5.2 T=10.00 esc=1",
+5.96,
+58.3
+]
+],
+"samples": [],
+"stop_events": [
+9.35,
+79.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2010,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 22.899999999998705,
+"t_merge": 22.899999999998705,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 11.728554487132214,
+"min_ttc": 6.441401986040532,
+"lane_change_times": [
+11.15,
+17.0,
+22.85
+],
+"events": [
+[
+"accept",
+7.0,
+0,
+1,
+"",
+6.24,
+32.8
+],
+[
+"complete",
+11.15,
+0,
+1,
+"",
+10.38,
+1.9
+],
+[
+"accept",
+12.85,
+1,
+2,
+"",
+8.28,
+284.1
+],
+[
+"complete",
+17.0,
+1,
+2,
+"",
+9.1,
+238.2
+],
+[
+"accept",
+18.7,
+2,
+3,
+"",
+6.26,
+239.6
+],
+[
+"complete",
+22.85,
+2,
+3,
+"",
+3.8,
+220.9
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.6313252439714914,
+"near_lat_ticks": 0
+},
+{
+"seed": 2011,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 36.39999999999794,
+"t_merge": 36.39999999999794,
+"lane_end_stops": 1,
+"stop_time": 10.350000000000012,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 10.854943609874994,
+"min_ttc": 3.853584375795165,
+"lane_change_times": [
+22.7,
+28.55,
+36.35
+],
+"events": [
+[
+"accept",
+18.95,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+22.7,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+24.4,
+1,
+2,
+"",
+14.65,
+282.2
+],
+[
+"complete",
+28.55,
+1,
+2,
+"",
+6.42,
+234.7
+],
+[
+"accept",
+32.2,
+2,
+3,
+"",
+16.21,
+209.3
+],
+[
+"complete",
+36.35,
+2,
+3,
+"",
+16.8,
+128.7
+]
+],
+"samples": [],
+"stop_events": [
+8.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2012,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 77.59999999999773,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.855487755630861,
+"min_ttc": 1.9890075321363123,
+"lane_change_times": [
+19.95,
+26.6
+],
+"events": [
+[
+"accept",
+16.2,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+19.95,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+22.45,
+1,
+2,
+"",
+16.52,
+269.2
+],
+[
+"complete",
+26.6,
+1,
+2,
+"",
+16.5,
+199.8
+]
+],
+"samples": [],
+"stop_events": [
+9.65,
+43.75,
+78.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2013,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 0,
+"t_end": 10.749999999999389,
+"t_merge": NaN,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 0,
+"min_gap": Infinity,
+"min_ttc": Infinity,
+"lane_change_times": [],
+"events": [],
+"samples": [],
+"stop_events": [],
+"min_sep": 5.104,
+"near_lat_ticks": 0
+},
+{
+"seed": 2014,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 52.59999999999702,
+"t_merge": 52.59999999999702,
+"lane_end_stops": 1,
+"stop_time": 19.600000000000144,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 8.723986780855597,
+"min_ttc": 2.607331047763158,
+"lane_change_times": [
+30.4,
+46.7,
+52.55
+],
+"events": [
+[
+"accept",
+26.65,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+30.4,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+42.55,
+1,
+2,
+"",
+2.57,
+180.6
+],
+[
+"complete",
+46.7,
+1,
+2,
+"",
+0.44,
+177.1
+],
+[
+"accept",
+48.4,
+2,
+3,
+"",
+5.08,
+186.7
+],
+[
+"complete",
+52.55,
+2,
+3,
+"",
+16.52,
+140.1
+]
+],
+"samples": [],
+"stop_events": [
+8.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2015,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 71.59999999999808,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.045784810423356,
+"min_ttc": 2.0520582978502646,
+"lane_change_times": [
+8.3
+],
+"events": [
+[
+"accept",
+4.15,
+0,
+1,
+"",
+12.99,
+59.4
+],
+[
+"complete",
+8.3,
+0,
+1,
+"",
+16.58,
+2.2
+],
+[
+"accept",
+111.65,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+114.05,
+1,
+2,
+"rear_emergency id=141 g=11.1 c=15.0 T=1.80 esc=0",
+5.24,
+17.5
+]
+],
+"samples": [],
+"stop_events": [
+49.05,
+115.9
+],
+"min_sep": 1.5727035705993626,
+"near_lat_ticks": 0
+},
+{
+"seed": 2016,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 52.14999999999704,
+"t_merge": 52.14999999999704,
+"lane_end_stops": 1,
+"stop_time": 11.950000000000035,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 9.149632855907896,
+"min_ttc": 5.046847784882069,
+"lane_change_times": [
+23.95,
+46.25,
+52.1
+],
+"events": [
+[
+"accept",
+20.2,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+23.95,
+0,
+1,
+"",
+9.85,
+6.0
+],
+[
+"accept",
+42.1,
+1,
+2,
+"",
+6.35,
+195.9
+],
+[
+"complete",
+46.25,
+1,
+2,
+"",
+2.65,
+175.1
+],
+[
+"accept",
+47.95,
+2,
+3,
+"",
+7.0,
+181.5
+],
+[
+"complete",
+52.1,
+2,
+3,
+"",
+13.15,
+131.2
+]
+],
+"samples": [],
+"stop_events": [
+8.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2017,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 78.89999999999766,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.987251668448323,
+"min_ttc": 1.8865289724657082,
+"lane_change_times": [
+16.45,
+70.2
+],
+"events": [
+[
+"accept",
+12.7,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+16.45,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+66.45,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+70.2,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.45,
+39.45,
+73.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2018,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 25.699999999998546,
+"t_merge": 25.699999999998546,
+"lane_end_stops": 1,
+"stop_time": 0.6,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 31.554779607981175,
+"min_ttc": 3.8280152212071674,
+"lane_change_times": [
+13.65,
+19.8,
+25.65
+],
+"events": [
+[
+"accept",
+9.35,
+0,
+1,
+"",
+0.22,
+25.0
+],
+[
+"complete",
+13.65,
+0,
+1,
+"",
+11.84,
+1.2
+],
+[
+"accept",
+15.65,
+1,
+2,
+"",
+9.17,
+279.0
+],
+[
+"complete",
+19.8,
+1,
+2,
+"",
+21.5,
+215.6
+],
+[
+"accept",
+21.5,
+2,
+3,
+"",
+24.66,
+189.6
+],
+[
+"complete",
+25.65,
+2,
+3,
+"",
+20.09,
+91.7
+]
+],
+"samples": [],
+"stop_events": [
+9.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2019,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 26.199999999998518,
+"t_merge": 26.199999999998518,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 20.009685156783817,
+"min_ttc": 5.618323612059133,
+"lane_change_times": [
+10.85,
+18.85,
+26.15
+],
+"events": [
+[
+"accept",
+6.7,
+0,
+1,
+"",
+7.52,
+36.3
+],
+[
+"complete",
+10.85,
+0,
+1,
+"",
+11.09,
+1.9
+],
+[
+"accept",
+14.7,
+1,
+2,
+"",
+15.47,
+241.1
+],
+[
+"complete",
+18.85,
+1,
+2,
+"",
+15.21,
+180.7
+],
+[
+"accept",
+22.0,
+2,
+3,
+"",
+16.27,
+139.4
+],
+[
+"complete",
+26.15,
+2,
+3,
+"",
+9.04,
+88.1
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2020,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 84.59999999999734,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 14.74509871445622,
+"min_ttc": 2.7526957023638214,
+"lane_change_times": [
+8.65
+],
+"events": [
+[
+"accept",
+4.5,
+0,
+1,
+"",
+11.82,
+53.3
+],
+[
+"complete",
+8.65,
+0,
+1,
+"",
+15.06,
+2.1
+]
+],
+"samples": [],
+"stop_events": [
+35.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2021,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 86.74999999999721,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.064925206094188,
+"min_ttc": 2.038317561655265,
+"lane_change_times": [
+9.1
+],
+"events": [
+[
+"accept",
+4.95,
+0,
+1,
+"",
+9.38,
+42.6
+],
+[
+"complete",
+9.1,
+0,
+1,
+"",
+12.49,
+2.0
+]
+],
+"samples": [],
+"stop_events": [
+33.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2022,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 85.69999999999727,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 26.37532453978713,
+"min_ttc": 3.1801865905459223,
+"lane_change_times": [
+62.05
+],
+"events": [
+[
+"accept",
+58.3,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+62.05,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.65,
+83.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2023,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 82.24999999999747,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.168308590012657,
+"min_ttc": 2.2883425928601393,
+"lane_change_times": [
+9.05
+],
+"events": [
+[
+"accept",
+4.9,
+0,
+1,
+"",
+12.51,
+56.4
+],
+[
+"complete",
+9.05,
+0,
+1,
+"",
+15.19,
+2.2
+],
+[
+"accept",
+112.9,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+115.2,
+1,
+2,
+"rear_emergency id=125 g=10.9 c=15.0 T=1.95 esc=0",
+6.56,
+17.7
+]
+],
+"samples": [],
+"stop_events": [
+33.5,
+117.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2024,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 80.0499999999976,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.39051271408141,
+"min_ttc": 2.145878426789964,
+"lane_change_times": [
+17.6
+],
+"events": [
+[
+"accept",
+13.85,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+17.6,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.0,
+45.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2025,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 62.79999999999857,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.97801236869833,
+"min_ttc": 1.9165627285052502,
+"lane_change_times": [
+24.55
+],
+"events": [
+[
+"accept",
+20.8,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+24.55,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.5,
+70.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2026,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 92.2999999999969,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 2.9614358060085806,
+"min_ttc": 2.0047575760839056,
+"lane_change_times": [
+5.8
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+18.52,
+102.3
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.96,
+6.4
+],
+[
+"accept",
+95.9,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+98.25,
+1,
+2,
+"rear_emergency id=127 g=11.1 c=15.0 T=1.88 esc=0",
+6.67,
+17.4
+]
+],
+"samples": [],
+"stop_events": [
+23.4,
+100.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2027,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 89.89999999999704,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.363361089741602,
+"min_ttc": 1.9474894326061492,
+"lane_change_times": [
+5.8
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+17.38,
+108.4
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.93,
+15.0
+],
+[
+"accept",
+106.55,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+109.1,
+1,
+2,
+"rear_emergency id=126 g=11.8 c=15.0 T=1.58 esc=0",
+7.07,
+16.0
+]
+],
+"samples": [],
+"stop_events": [
+25.6,
+111.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2028,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 58.84999999999666,
+"t_merge": 58.84999999999666,
+"lane_end_stops": 1,
+"stop_time": 33.55000000000023,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 34.511184020823805,
+"min_ttc": 4.338385272577855,
+"lane_change_times": [
+46.15,
+52.0,
+58.8
+],
+"events": [
+[
+"accept",
+42.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+46.15,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+47.85,
+1,
+2,
+"",
+8.22,
+288.5
+],
+[
+"complete",
+52.0,
+1,
+2,
+"",
+18.54,
+230.2
+],
+[
+"accept",
+54.65,
+2,
+3,
+"",
+16.35,
+195.6
+],
+[
+"complete",
+58.8,
+2,
+3,
+"",
+9.28,
+142.8
+]
+],
+"samples": [],
+"stop_events": [
+9.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2029,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 86.19999999999725,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.593394431461263,
+"min_ttc": 1.9975863184405827,
+"lane_change_times": [
+41.1
+],
+"events": [
+[
+"accept",
+37.35,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+41.1,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.95,
+62.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2030,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 82.44999999999746,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.251984103293921,
+"min_ttc": 2.0218042285190783,
+"lane_change_times": [
+30.8
+],
+"events": [
+[
+"accept",
+27.05,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+30.8,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+119.7,
+1,
+2,
+"",
+0.0,
+25.0
+]
+],
+"samples": [],
+"stop_events": [
+9.05,
+55.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2031,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 38.09999999999784,
+"t_merge": 38.09999999999784,
+"lane_end_stops": 1,
+"stop_time": 11.850000000000033,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 27.867618215427456,
+"min_ttc": 6.5331673871500575,
+"lane_change_times": [
+24.6,
+30.45,
+38.05
+],
+"events": [
+[
+"accept",
+20.85,
+0,
+1,
+"",
+0.09,
+25.0
+],
+[
+"complete",
+24.6,
+0,
+1,
+"",
+9.81,
+5.7
+],
+[
+"accept",
+26.3,
+1,
+2,
+"",
+8.15,
+288.6
+],
+[
+"complete",
+30.45,
+1,
+2,
+"",
+11.71,
+238.0
+],
+[
+"accept",
+33.9,
+2,
+3,
+"",
+7.09,
+220.8
+],
+[
+"complete",
+38.05,
+2,
+3,
+"",
+7.82,
+190.2
+]
+],
+"samples": [],
+"stop_events": [
+9.2
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2032,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 0,
+"t_end": 10.449999999999406,
+"t_merge": NaN,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 0,
+"min_gap": Infinity,
+"min_ttc": Infinity,
+"lane_change_times": [],
+"events": [],
+"samples": [],
+"stop_events": [],
+"min_sep": 5.104,
+"near_lat_ticks": 0
+},
+{
+"seed": 2033,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 21.799999999998768,
+"t_merge": 21.799999999998768,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 19.73709712939042,
+"min_ttc": 5.513274871040227,
+"lane_change_times": [
+10.05,
+15.9,
+21.75
+],
+"events": [
+[
+"accept",
+5.9,
+0,
+1,
+"",
+9.35,
+42.5
+],
+[
+"complete",
+10.05,
+0,
+1,
+"",
+11.84,
+2.0
+],
+[
+"accept",
+11.75,
+1,
+2,
+"",
+9.62,
+281.4
+],
+[
+"complete",
+15.9,
+1,
+2,
+"",
+3.37,
+254.5
+],
+[
+"accept",
+17.6,
+2,
+3,
+"",
+7.51,
+259.9
+],
+[
+"complete",
+21.75,
+2,
+3,
+"",
+19.95,
+202.9
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2034,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 87.24999999999719,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.6389017000766444,
+"min_ttc": 1.9478973694715622,
+"lane_change_times": [
+10.0
+],
+"events": [
+[
+"accept",
+5.85,
+0,
+1,
+"",
+9.44,
+42.8
+],
+[
+"complete",
+10.0,
+0,
+1,
+"",
+12.54,
+2.0
+]
+],
+"samples": [],
+"stop_events": [
+32.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2035,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 39.64999999999775,
+"t_merge": 39.64999999999775,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 5.6101186442701305,
+"min_ttc": 3.051364065544992,
+"lane_change_times": [
+11.25,
+31.55,
+39.6
+],
+"events": [
+[
+"accept",
+7.1,
+0,
+1,
+"",
+5.93,
+32.0
+],
+[
+"complete",
+11.25,
+0,
+1,
+"",
+10.24,
+1.9
+],
+[
+"accept",
+27.4,
+1,
+2,
+"",
+6.71,
+145.1
+],
+[
+"complete",
+31.55,
+1,
+2,
+"",
+8.45,
+114.2
+],
+[
+"accept",
+35.45,
+2,
+3,
+"",
+7.17,
+84.7
+],
+[
+"complete",
+39.6,
+2,
+3,
+"",
+8.22,
+43.3
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2036,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 54.049999999996935,
+"t_merge": 54.049999999996935,
+"lane_end_stops": 1,
+"stop_time": 27.500000000000256,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 13.829458986507746,
+"min_ttc": 2.6952768395991025,
+"lane_change_times": [
+39.45,
+48.15,
+54.0
+],
+"events": [
+[
+"accept",
+35.7,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+39.45,
+0,
+1,
+"",
+8.14,
+6.5
+],
+[
+"accept",
+44.0,
+1,
+2,
+"",
+2.33,
+279.9
+],
+[
+"complete",
+48.15,
+1,
+2,
+"",
+1.29,
+272.6
+],
+[
+"accept",
+49.85,
+2,
+3,
+"",
+5.88,
+280.9
+],
+[
+"complete",
+54.0,
+2,
+3,
+"",
+16.33,
+231.5
+]
+],
+"samples": [],
+"stop_events": [
+8.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2037,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 27.449999999998447,
+"t_merge": 27.449999999998447,
+"lane_end_stops": 1,
+"stop_time": 1.3000000000000005,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 26.879217768400736,
+"min_ttc": 5.203978206467702,
+"lane_change_times": [
+5.8,
+11.65,
+27.4
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+16.81,
+88.5
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.1,
+2.6
+],
+[
+"accept",
+7.5,
+1,
+2,
+"",
+24.93,
+258.4
+],
+[
+"complete",
+11.65,
+1,
+2,
+"",
+25.0,
+154.7
+],
+[
+"accept",
+23.65,
+2,
+3,
+"",
+0.09,
+25.0
+],
+[
+"complete",
+27.4,
+2,
+3,
+"",
+9.81,
+5.7
+]
+],
+"samples": [],
+"stop_events": [
+22.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2038,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 63.24999999999641,
+"t_merge": 63.24999999999641,
+"lane_end_stops": 1,
+"stop_time": 39.3999999999999,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 16.42741360199267,
+"min_ttc": 7.971630290063722,
+"lane_change_times": [
+51.5,
+57.35,
+63.2
+],
+"events": [
+[
+"accept",
+47.75,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+51.5,
+0,
+1,
+"",
+8.67,
+6.2
+],
+[
+"accept",
+53.2,
+1,
+2,
+"",
+7.64,
+291.9
+],
+[
+"complete",
+57.35,
+1,
+2,
+"",
+8.46,
+255.4
+],
+[
+"accept",
+59.05,
+2,
+3,
+"",
+12.8,
+251.9
+],
+[
+"complete",
+63.2,
+2,
+3,
+"",
+14.08,
+190.7
+]
+],
+"samples": [],
+"stop_events": [
+8.65
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2039,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 87.0999999999972,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.906968451111595,
+"min_ttc": 1.9362323250830802,
+"lane_change_times": [
+7.45,
+58.25
+],
+"events": [
+[
+"accept",
+3.3,
+0,
+1,
+"",
+13.95,
+63.9
+],
+[
+"complete",
+7.45,
+0,
+1,
+"",
+17.71,
+2.2
+],
+[
+"accept",
+54.5,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+58.25,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+26.7,
+61.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2040,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 98.79999999999887,
+"t_merge": 98.79999999999887,
+"lane_end_stops": 1,
+"stop_time": 74.94999999999789,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 27.58049880588065,
+"min_ttc": 7.039138635182336,
+"lane_change_times": [
+87.15,
+92.95,
+98.75
+],
+"events": [
+[
+"accept",
+83.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+87.15,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+88.8,
+1,
+2,
+"",
+15.07,
+282.9
+],
+[
+"complete",
+92.95,
+1,
+2,
+"",
+16.34,
+214.4
+],
+[
+"accept",
+94.6,
+2,
+3,
+"",
+18.08,
+198.9
+],
+[
+"complete",
+98.75,
+2,
+3,
+"",
+10.49,
+140.5
+]
+],
+"samples": [],
+"stop_events": [
+8.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2041,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 30.499999999998273,
+"t_merge": 30.499999999998273,
+"lane_end_stops": 1,
+"stop_time": 6.499999999999985,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 20.33014962005869,
+"min_ttc": 6.019635603350925,
+"lane_change_times": [
+18.75,
+24.6,
+30.45
+],
+"events": [
+[
+"accept",
+15.0,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+18.75,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+20.45,
+1,
+2,
+"",
+8.22,
+288.5
+],
+[
+"complete",
+24.6,
+1,
+2,
+"",
+12.35,
+239.2
+],
+[
+"accept",
+26.3,
+2,
+3,
+"",
+16.85,
+228.8
+],
+[
+"complete",
+30.45,
+2,
+3,
+"",
+18.51,
+144.3
+]
+],
+"samples": [],
+"stop_events": [
+8.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2042,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 89.64999999999705,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.918948465808512,
+"min_ttc": 1.9973692327950063,
+"lane_change_times": [
+10.05
+],
+"events": [
+[
+"accept",
+5.9,
+0,
+1,
+"",
+8.51,
+39.5
+],
+[
+"complete",
+10.05,
+0,
+1,
+"",
+11.78,
+1.9
+],
+[
+"accept",
+26.3,
+1,
+2,
+"",
+1.86,
+25.7
+],
+[
+"abort",
+28.25,
+1,
+2,
+"rear_intrusion id=126 g=36.3 c=15.0 T=2.45 esc=0 id=126 g=36.3 c=15.0 T=2.45 esc=0",
+6.14,
+18.5
+]
+],
+"samples": [],
+"stop_events": [
+30.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2043,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 76.99999999999777,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.738900988061971,
+"min_ttc": 2.076259652842348,
+"lane_change_times": [
+26.25
+],
+"events": [
+[
+"accept",
+22.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+26.25,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.65,
+54.45,
+84.2
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2044,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 82.64999999999745,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.166792588533212,
+"min_ttc": 2.0581343876704454,
+"lane_change_times": [
+15.0,
+119.55
+],
+"events": [
+[
+"accept",
+11.25,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+15.0,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+115.8,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+119.55,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.95,
+36.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2045,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 51.69999999999707,
+"t_merge": 51.69999999999707,
+"lane_end_stops": 1,
+"stop_time": 16.250000000000096,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 9.814151440985086,
+"min_ttc": 3.759383962809223,
+"lane_change_times": [
+28.25,
+45.8,
+51.65
+],
+"events": [
+[
+"accept",
+24.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+28.25,
+0,
+1,
+"",
+10.09,
+5.9
+],
+[
+"accept",
+41.65,
+1,
+2,
+"",
+6.45,
+234.9
+],
+[
+"complete",
+45.8,
+1,
+2,
+"",
+5.14,
+212.7
+],
+[
+"accept",
+47.5,
+2,
+3,
+"",
+9.74,
+214.5
+],
+[
+"complete",
+51.65,
+2,
+3,
+"",
+17.37,
+151.3
+]
+],
+"samples": [],
+"stop_events": [
+8.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2046,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 93.29999999999684,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.214045308137884,
+"min_ttc": 2.4538124909972305,
+"lane_change_times": [
+8.9
+],
+"events": [
+[
+"accept",
+4.75,
+0,
+1,
+"",
+12.21,
+54.3
+],
+[
+"complete",
+8.9,
+0,
+1,
+"",
+15.28,
+2.1
+]
+],
+"samples": [],
+"stop_events": [
+26.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2047,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 69.54999999999819,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.353560556552395,
+"min_ttc": 1.9840505309796974,
+"lane_change_times": [
+11.75,
+61.75
+],
+"events": [
+[
+"accept",
+7.6,
+0,
+1,
+"",
+4.08,
+28.3
+],
+[
+"complete",
+11.75,
+0,
+1,
+"",
+4.84,
+7.2
+],
+[
+"accept",
+58.0,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+61.75,
+1,
+2,
+"",
+3.54,
+11.3
+]
+],
+"samples": [],
+"stop_events": [
+45.75,
+63.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2048,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 84.94999999999732,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.4568886339384335,
+"min_ttc": 1.9833475054362715,
+"lane_change_times": [
+30.2
+],
+"events": [
+[
+"accept",
+12.65,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+13.7,
+0,
+1,
+"rear_intrusion id=130 g=87.5 c=11.6 T=9.75 esc=1 id=130 g=87.5 c=11.6 T=9.75 esc=1",
+2.85,
+23.6
+],
+[
+"accept",
+26.45,
+0,
+1,
+"",
+0.0,
+20.3
+],
+[
+"complete",
+30.2,
+0,
+1,
+"",
+7.95,
+4.7
+]
+],
+"samples": [],
+"stop_events": [
+8.5,
+15.35,
+50.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2049,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 22.79999999999871,
+"t_merge": 22.79999999999871,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 15.067663162738839,
+"min_ttc": 6.291507615854786,
+"lane_change_times": [
+11.05,
+16.9,
+22.75
+],
+"events": [
+[
+"accept",
+6.9,
+0,
+1,
+"",
+6.37,
+33.1
+],
+[
+"complete",
+11.05,
+0,
+1,
+"",
+8.8,
+2.2
+],
+[
+"accept",
+12.75,
+1,
+2,
+"",
+7.68,
+287.6
+],
+[
+"complete",
+16.9,
+1,
+2,
+"",
+6.47,
+253.4
+],
+[
+"accept",
+18.6,
+2,
+3,
+"",
+7.21,
+255.8
+],
+[
+"complete",
+22.75,
+2,
+3,
+"",
+8.78,
+222.3
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 3.829816904347825,
+"near_lat_ticks": 0
+},
+{
+"seed": 2050,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 4,
+"stop_time": 75.84999999999783,
+"aborts": 2,
+"accepts": 4,
+"min_gap": 4.163259527319838,
+"min_ttc": 2.085124632706502,
+"lane_change_times": [
+17.7,
+46.4
+],
+"events": [
+[
+"accept",
+9.0,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+10.05,
+0,
+1,
+"rear_intrusion id=129 g=85.9 c=9.7 T=9.75 esc=1",
+2.85,
+23.6
+],
+[
+"accept",
+13.55,
+0,
+1,
+"",
+5.6,
+15.2
+],
+[
+"complete",
+17.7,
+0,
+1,
+"",
+6.03,
+0.0
+],
+[
+"accept",
+42.65,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+46.4,
+1,
+2,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+111.75,
+2,
+3,
+"",
+1.35,
+5.5
+],
+[
+"abort",
+113.45,
+2,
+3,
+"rear_emergency id=130 g=8.2 c=15.0 T=2.85 esc=0",
+2.89,
+1.3
+]
+],
+"samples": [],
+"stop_events": [
+8.4,
+35.55,
+49.2,
+114.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2051,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 23.34999999999868,
+"t_merge": 23.34999999999868,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 15.997606544507477,
+"min_ttc": 5.441989175392679,
+"lane_change_times": [
+11.2,
+17.05,
+23.3
+],
+"events": [
+[
+"accept",
+7.05,
+0,
+1,
+"",
+5.55,
+31.2
+],
+[
+"complete",
+11.2,
+0,
+1,
+"",
+10.09,
+1.9
+],
+[
+"accept",
+12.9,
+1,
+2,
+"",
+8.22,
+284.5
+],
+[
+"complete",
+17.05,
+1,
+2,
+"",
+2.46,
+259.4
+],
+[
+"accept",
+19.15,
+2,
+3,
+"",
+6.7,
+263.7
+],
+[
+"complete",
+23.3,
+2,
+3,
+"",
+18.95,
+210.9
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2052,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 74.7499999999979,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.554122149206421,
+"min_ttc": 1.9621241301499492,
+"lane_change_times": [
+12.05
+],
+"events": [
+[
+"accept",
+7.9,
+0,
+1,
+"",
+3.87,
+28.8
+],
+[
+"complete",
+12.05,
+0,
+1,
+"",
+9.8,
+1.9
+],
+[
+"accept",
+61.2,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+61.9,
+1,
+2,
+"rear_intrusion id=128 g=19.5 c=15.0 T=10.00 esc=0 id=128 g=19.5 c=15.0 T=10.00 esc=0 id=138 g=57.6 c=7.6 T=10.00 esc=1",
+1.8,
+24.5
+]
+],
+"samples": [],
+"stop_events": [
+41.3,
+63.25,
+107.35
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2053,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 67.29999999999832,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 2.88808240426863,
+"min_ttc": 1.866307628135608,
+"lane_change_times": [
+15.15
+],
+"events": [
+[
+"accept",
+11.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+15.15,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+108.15,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+110.7,
+1,
+2,
+"rear_emergency id=128 g=11.3 c=15.0 T=1.58 esc=0",
+7.07,
+16.0
+]
+],
+"samples": [],
+"stop_events": [
+8.6,
+51.3,
+113.0
+],
+"min_sep": 1.6004969566523504,
+"near_lat_ticks": 0
+},
+{
+"seed": 2054,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 22.199999999998745,
+"t_merge": 22.199999999998745,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 11.542401237230678,
+"min_ttc": 3.7427617374934004,
+"lane_change_times": [
+10.45,
+16.3,
+22.15
+],
+"events": [
+[
+"accept",
+6.3,
+0,
+1,
+"",
+7.34,
+35.8
+],
+[
+"complete",
+10.45,
+0,
+1,
+"",
+10.98,
+1.9
+],
+[
+"accept",
+12.15,
+1,
+2,
+"",
+8.42,
+283.4
+],
+[
+"complete",
+16.3,
+1,
+2,
+"",
+6.03,
+246.6
+],
+[
+"accept",
+18.0,
+2,
+3,
+"",
+3.01,
+253.2
+],
+[
+"complete",
+22.15,
+2,
+3,
+"",
+0.78,
+247.8
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2055,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 86.09999999999599,
+"t_merge": 86.09999999999599,
+"lane_end_stops": 1,
+"stop_time": 53.09999999999912,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 13.436087154947614,
+"min_ttc": 7.0785244939446565,
+"lane_change_times": [
+65.05,
+79.75,
+86.05
+],
+"events": [
+[
+"accept",
+61.3,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+65.05,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+75.6,
+1,
+2,
+"",
+7.61,
+205.2
+],
+[
+"complete",
+79.75,
+1,
+2,
+"",
+5.37,
+180.3
+],
+[
+"accept",
+81.9,
+2,
+3,
+"",
+10.2,
+177.1
+],
+[
+"complete",
+86.05,
+2,
+3,
+"",
+6.77,
+142.3
+]
+],
+"samples": [],
+"stop_events": [
+8.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2056,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 39.39999999999777,
+"t_merge": 39.39999999999777,
+"lane_end_stops": 1,
+"stop_time": 14.100000000000065,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 15.57288831962731,
+"min_ttc": 3.4718563614060263,
+"lane_change_times": [
+26.15,
+32.0,
+39.35
+],
+"events": [
+[
+"accept",
+22.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+26.15,
+0,
+1,
+"",
+5.51,
+8.8
+],
+[
+"accept",
+27.85,
+1,
+2,
+"",
+5.44,
+297.5
+],
+[
+"complete",
+32.0,
+1,
+2,
+"",
+1.54,
+286.9
+],
+[
+"accept",
+35.2,
+2,
+3,
+"",
+6.12,
+285.3
+],
+[
+"complete",
+39.35,
+2,
+3,
+"",
+3.92,
+265.7
+]
+],
+"samples": [],
+"stop_events": [
+8.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2057,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 47.549999999999436,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.339983682247748,
+"min_ttc": 2.24144790239028,
+"lane_change_times": [
+17.1
+],
+"events": [
+[
+"accept",
+13.35,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+17.1,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.55,
+82.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2058,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 56.14999999999895,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.211237654329068,
+"min_ttc": 1.9579939776563433,
+"lane_change_times": [
+5.8,
+34.95
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+16.82,
+95.9
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+21.57,
+9.9
+],
+[
+"accept",
+30.8,
+1,
+2,
+"",
+3.32,
+146.6
+],
+[
+"complete",
+34.95,
+1,
+2,
+"",
+5.36,
+129.1
+]
+],
+"samples": [],
+"stop_events": [
+91.7,
+104.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2059,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 74.09999999999793,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.8920922250775334,
+"min_ttc": 2.3366899409473003,
+"lane_change_times": [
+7.85,
+16.4
+],
+"events": [
+[
+"accept",
+3.7,
+0,
+1,
+"",
+14.01,
+64.4
+],
+[
+"complete",
+7.85,
+0,
+1,
+"",
+17.65,
+2.3
+],
+[
+"accept",
+12.25,
+1,
+2,
+"",
+10.0,
+245.1
+],
+[
+"complete",
+16.4,
+1,
+2,
+"",
+9.11,
+207.7
+]
+],
+"samples": [],
+"stop_events": [
+45.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2060,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 79.29999999999764,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.290222226918047,
+"min_ttc": 2.4014753267646363,
+"lane_change_times": [
+29.55
+],
+"events": [
+[
+"accept",
+25.8,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+29.55,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.3,
+58.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2061,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 4,
+"stop_time": 58.299999999998825,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.909763026375856,
+"min_ttc": 2.020699816497704,
+"lane_change_times": [
+16.3,
+32.85
+],
+"events": [
+[
+"accept",
+12.55,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+16.3,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+28.7,
+1,
+2,
+"",
+9.84,
+164.8
+],
+[
+"complete",
+32.85,
+1,
+2,
+"",
+9.59,
+129.4
+]
+],
+"samples": [],
+"stop_events": [
+9.35,
+53.0,
+63.8,
+111.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2062,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 70.54999999999814,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.69038711667929,
+"min_ttc": 2.0721641864455376,
+"lane_change_times": [
+36.0
+],
+"events": [
+[
+"accept",
+5.95,
+0,
+1,
+"",
+7.34,
+35.8
+],
+[
+"abort",
+6.6,
+0,
+1,
+"rear_intrusion id=122 g=26.7 c=2.6 T=10.00 esc=1 id=122 g=26.7 c=2.6 T=10.00 esc=1",
+7.52,
+31.0
+],
+[
+"accept",
+32.25,
+0,
+1,
+"",
+0.0,
+23.5
+],
+[
+"complete",
+36.0,
+0,
+1,
+"",
+9.36,
+5.4
+]
+],
+"samples": [],
+"stop_events": [
+8.6,
+65.5,
+84.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2063,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 51.19999999999923,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 2.916094401767964,
+"min_ttc": 1.9318457588509923,
+"lane_change_times": [
+19.5
+],
+"events": [
+[
+"accept",
+15.75,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+19.5,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.55,
+75.35
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2064,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 68.19999999999827,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.182560089294668,
+"min_ttc": 2.31404596064385,
+"lane_change_times": [
+14.55,
+20.4
+],
+"events": [
+[
+"accept",
+10.8,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+14.55,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+16.25,
+1,
+2,
+"",
+15.22,
+282.1
+],
+[
+"complete",
+20.4,
+1,
+2,
+"",
+14.68,
+217.7
+]
+],
+"samples": [],
+"stop_events": [
+8.7,
+49.0,
+105.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2065,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 73.89999999999795,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.591741809813641,
+"min_ttc": 2.346060227475903,
+"lane_change_times": [
+8.1
+],
+"events": [
+[
+"accept",
+3.95,
+0,
+1,
+"",
+12.5,
+57.4
+],
+[
+"complete",
+8.1,
+0,
+1,
+"",
+16.1,
+2.2
+],
+[
+"accept",
+76.3,
+1,
+2,
+"",
+0.0,
+24.6
+],
+[
+"abort",
+78.8,
+1,
+2,
+"rear_emergency id=126 g=11.7 c=15.0 T=1.65 esc=0",
+6.86,
+16.0
+]
+],
+"samples": [],
+"stop_events": [
+38.85,
+53.5,
+81.05
+],
+"min_sep": 1.6008044736728424,
+"near_lat_ticks": 0
+},
+{
+"seed": 2066,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 4,
+"stop_time": 59.199999999998774,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 2.0713012587086155,
+"min_ttc": 1.0577492429039281,
+"lane_change_times": [
+32.9,
+39.45
+],
+"events": [
+[
+"accept",
+29.15,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+32.9,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+35.3,
+1,
+2,
+"",
+10.08,
+282.2
+],
+[
+"complete",
+39.45,
+1,
+2,
+"",
+3.9,
+254.3
+]
+],
+"samples": [],
+"stop_events": [
+9.45,
+62.25,
+88.55,
+91.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2067,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 67.14999999999833,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 4.055692862049739,
+"min_ttc": 2.262357982288101,
+"lane_change_times": [
+9.75,
+24.85
+],
+"events": [
+[
+"accept",
+5.6,
+0,
+1,
+"",
+7.86,
+37.4
+],
+[
+"complete",
+9.75,
+0,
+1,
+"",
+11.31,
+1.9
+],
+[
+"accept",
+20.7,
+1,
+2,
+"",
+13.67,
+181.9
+],
+[
+"complete",
+24.85,
+1,
+2,
+"",
+16.41,
+118.4
+],
+[
+"accept",
+77.65,
+2,
+3,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+80.1,
+2,
+3,
+"rear_emergency id=132 g=12.0 c=15.0 T=1.73 esc=0",
+6.88,
+16.7
+]
+],
+"samples": [],
+"stop_events": [
+45.75,
+52.5,
+82.4
+],
+"min_sep": 1.6039824086965533,
+"near_lat_ticks": 0
+},
+{
+"seed": 2068,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 48.19999999999727,
+"t_merge": 48.19999999999727,
+"lane_end_stops": 1,
+"stop_time": 4.849999999999991,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 29.783975544434213,
+"min_ttc": 6.563615565608205,
+"lane_change_times": [
+16.95,
+42.3,
+48.15
+],
+"events": [
+[
+"accept",
+13.2,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+16.95,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+38.15,
+1,
+2,
+"",
+2.82,
+20.9
+],
+[
+"complete",
+42.3,
+1,
+2,
+"",
+7.2,
+1.7
+],
+[
+"accept",
+44.0,
+2,
+3,
+"",
+1.46,
+7.3
+],
+[
+"complete",
+48.15,
+2,
+3,
+"",
+6.0,
+0.0
+]
+],
+"samples": [],
+"stop_events": [
+8.65
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2069,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 82.69999999999744,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.337124999661853,
+"min_ttc": 1.1968213145757496,
+"lane_change_times": [
+20.15
+],
+"events": [
+[
+"accept",
+16.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+20.15,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.15,
+44.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2070,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 91.09999999999697,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.0164253793274725,
+"min_ttc": 2.0490525640050343,
+"lane_change_times": [
+10.25
+],
+"events": [
+[
+"accept",
+6.1,
+0,
+1,
+"",
+8.33,
+38.9
+],
+[
+"complete",
+10.25,
+0,
+1,
+"",
+11.64,
+1.9
+]
+],
+"samples": [],
+"stop_events": [
+28.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2071,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 90.94999999999698,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.8797446379234657,
+"min_ttc": 1.751957186661792,
+"lane_change_times": [
+6.2
+],
+"events": [
+[
+"accept",
+2.05,
+0,
+1,
+"",
+16.33,
+79.6
+],
+[
+"complete",
+6.2,
+0,
+1,
+"",
+18.62,
+3.6
+],
+[
+"accept",
+51.2,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+53.55,
+1,
+2,
+"rear_emergency id=128 g=10.7 c=15.0 T=1.88 esc=0",
+5.27,
+17.8
+]
+],
+"samples": [],
+"stop_events": [
+25.2,
+55.4
+],
+"min_sep": 1.5800934055007994,
+"near_lat_ticks": 0
+},
+{
+"seed": 2072,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 42.74999999999971,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 4.568220436687824,
+"min_ttc": 2.2133786863664215,
+"lane_change_times": [
+19.2,
+57.15
+],
+"events": [
+[
+"accept",
+15.45,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+19.2,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+25.9,
+1,
+2,
+"",
+7.51,
+235.5
+],
+[
+"abort",
+26.55,
+1,
+2,
+"rear_intrusion id=129 g=38.7 c=3.8 T=10.00 esc=1 id=129 g=38.7 c=3.8 T=10.00 esc=1",
+5.91,
+231.2
+],
+[
+"accept",
+53.0,
+1,
+2,
+"",
+6.45,
+176.8
+],
+[
+"complete",
+57.15,
+1,
+2,
+"",
+3.7,
+151.0
+]
+],
+"samples": [],
+"stop_events": [
+9.25,
+86.2
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2073,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 61.24999999999866,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 4.318461494459655,
+"min_ttc": 2.468550098874454,
+"lane_change_times": [
+9.75,
+31.3
+],
+"events": [
+[
+"accept",
+5.6,
+0,
+1,
+"",
+7.14,
+35.2
+],
+[
+"complete",
+9.75,
+0,
+1,
+"",
+8.88,
+2.4
+],
+[
+"accept",
+27.15,
+1,
+2,
+"",
+10.11,
+186.5
+],
+[
+"complete",
+31.3,
+1,
+2,
+"",
+9.92,
+144.8
+],
+[
+"accept",
+78.2,
+2,
+3,
+"",
+0.0,
+24.8
+],
+[
+"abort",
+80.35,
+2,
+3,
+"rear_emergency id=129 g=10.1 c=15.0 T=2.18 esc=0",
+6.14,
+18.5
+]
+],
+"samples": [],
+"stop_events": [
+54.65,
+82.65
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2074,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 74.14999999999793,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 14.40644316119932,
+"min_ttc": 3.350938809876026,
+"lane_change_times": [
+34.1
+],
+"events": [
+[
+"accept",
+30.35,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+34.1,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.3,
+67.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2075,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 93.89999999999681,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.719399212179496,
+"min_ttc": 2.109426596660955,
+"lane_change_times": [
+7.9
+],
+"events": [
+[
+"accept",
+3.75,
+0,
+1,
+"",
+13.55,
+62.1
+],
+[
+"complete",
+7.9,
+0,
+1,
+"",
+17.26,
+2.2
+]
+],
+"samples": [],
+"stop_events": [
+26.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2076,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 78.39999999999769,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.197437550446068,
+"min_ttc": 2.124354001652236,
+"lane_change_times": [
+26.75
+],
+"events": [
+[
+"accept",
+23.0,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+26.75,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.5,
+55.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2077,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 38.899999999997796,
+"t_merge": 38.899999999997796,
+"lane_end_stops": 1,
+"stop_time": 12.30000000000004,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 13.507348616618316,
+"min_ttc": 4.278725776629538,
+"lane_change_times": [
+24.15,
+33.0,
+38.85
+],
+"events": [
+[
+"accept",
+20.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+24.15,
+0,
+1,
+"",
+7.11,
+7.0
+],
+[
+"accept",
+28.85,
+1,
+2,
+"",
+6.58,
+274.6
+],
+[
+"complete",
+33.0,
+1,
+2,
+"",
+9.71,
+238.7
+],
+[
+"accept",
+34.7,
+2,
+3,
+"",
+14.38,
+232.5
+],
+[
+"complete",
+38.85,
+2,
+3,
+"",
+8.79,
+181.8
+]
+],
+"samples": [],
+"stop_events": [
+8.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2078,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 92.69999999999749,
+"t_merge": 92.69999999999749,
+"lane_end_stops": 1,
+"stop_time": 50.14999999999929,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 8.453823957060393,
+"min_ttc": 5.507671855344843,
+"lane_change_times": [
+62.65,
+86.85,
+92.65
+],
+"events": [
+[
+"accept",
+58.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+62.65,
+0,
+1,
+"",
+9.94,
+6.0
+],
+[
+"accept",
+70.2,
+1,
+2,
+"",
+1.75,
+267.6
+],
+[
+"abort",
+70.85,
+1,
+2,
+"rear_intrusion id=141 g=77.8 c=10.2 T=10.00 esc=1 id=141 g=77.8 c=10.2 T=10.00 esc=1 id=142 g=111.9 c=10.9 T=10.00 esc=1",
+1.6,
+266.5
+],
+[
+"accept",
+82.7,
+1,
+2,
+"",
+3.49,
+242.2
+],
+[
+"complete",
+86.85,
+1,
+2,
+"",
+5.0,
+224.7
+],
+[
+"accept",
+88.5,
+2,
+3,
+"",
+9.67,
+226.8
+],
+[
+"complete",
+92.65,
+2,
+3,
+"",
+10.16,
+176.9
+]
+],
+"samples": [],
+"stop_events": [
+9.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2079,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 89.99999999999703,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.9128794007535816,
+"min_ttc": 2.0947056436361247,
+"lane_change_times": [
+17.85
+],
+"events": [
+[
+"accept",
+14.1,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+17.85,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.85,
+35.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2080,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 79.69999999999762,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.320346273891971,
+"min_ttc": 2.111551109281442,
+"lane_change_times": [
+10.9,
+41.1
+],
+"events": [
+[
+"accept",
+6.75,
+0,
+1,
+"",
+7.39,
+35.9
+],
+[
+"complete",
+10.9,
+0,
+1,
+"",
+11.01,
+1.9
+],
+[
+"accept",
+37.35,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+41.1,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+34.1,
+43.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2081,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 118.75000000000341,
+"t_merge": 118.75000000000341,
+"lane_end_stops": 1,
+"stop_time": 88.34999999999712,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 9.783885473585485,
+"min_ttc": 4.559042614957367,
+"lane_change_times": [
+101.25,
+107.05,
+118.7
+],
+"events": [
+[
+"accept",
+97.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+101.25,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+102.9,
+1,
+2,
+"",
+8.13,
+288.9
+],
+[
+"complete",
+107.05,
+1,
+2,
+"",
+12.75,
+238.6
+],
+[
+"accept",
+114.55,
+2,
+3,
+"",
+8.31,
+151.2
+],
+[
+"complete",
+118.7,
+2,
+3,
+"",
+3.62,
+128.4
+]
+],
+"samples": [],
+"stop_events": [
+9.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2082,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 71.1499999999981,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.31949120724488,
+"min_ttc": 2.0977905673318764,
+"lane_change_times": [
+51.7
+],
+"events": [
+[
+"accept",
+30.85,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+31.9,
+0,
+1,
+"rear_intrusion id=127 g=36.1 c=2.7 T=9.75 esc=1 id=127 g=36.1 c=2.7 T=9.75 esc=1 id=130 g=63.4 c=5.9 T=9.75 esc=1",
+2.85,
+23.6
+],
+[
+"accept",
+47.95,
+0,
+1,
+"",
+0.0,
+20.3
+],
+[
+"complete",
+51.7,
+0,
+1,
+"",
+7.95,
+4.7
+]
+],
+"samples": [],
+"stop_events": [
+9.3,
+33.55,
+83.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2083,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 119.6000000000036,
+"t_merge": 119.6000000000036,
+"lane_end_stops": 4,
+"stop_time": 75.99999999999783,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 2.7206706193385344,
+"min_ttc": 1.286082419557965,
+"lane_change_times": [
+30.05,
+53.2,
+119.55
+],
+"events": [
+[
+"accept",
+26.3,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+30.05,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+49.05,
+1,
+2,
+"",
+1.58,
+25.5
+],
+[
+"complete",
+53.2,
+1,
+2,
+"",
+0.52,
+12.2
+],
+[
+"accept",
+87.35,
+2,
+3,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+89.5,
+2,
+3,
+"rear_emergency id=123 g=10.3 c=15.0 T=2.18 esc=0",
+6.15,
+18.7
+],
+[
+"accept",
+115.8,
+2,
+3,
+"",
+0.0,
+10.9
+],
+[
+"complete",
+119.55,
+2,
+3,
+"",
+0.73,
+3.6
+]
+],
+"samples": [],
+"stop_events": [
+8.5,
+53.25,
+70.45,
+91.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2084,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 119.80000000000365,
+"t_merge": 119.80000000000365,
+"lane_end_stops": 3,
+"stop_time": 62.849999999998566,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 4.123302442089084,
+"min_ttc": 3.0463221034683152,
+"lane_change_times": [
+15.15,
+30.2,
+119.75
+],
+"events": [
+[
+"accept",
+11.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+15.15,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+26.05,
+1,
+2,
+"",
+13.29,
+164.0
+],
+[
+"complete",
+30.2,
+1,
+2,
+"",
+12.86,
+110.1
+],
+[
+"accept",
+95.9,
+2,
+3,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+98.0,
+2,
+3,
+"rear_emergency id=130 g=9.9 c=15.0 T=2.26 esc=0",
+6.0,
+19.0
+],
+[
+"accept",
+116.0,
+2,
+3,
+"",
+0.0,
+11.4
+],
+[
+"complete",
+119.75,
+2,
+3,
+"",
+5.37,
+1.5
+]
+],
+"samples": [],
+"stop_events": [
+8.5,
+52.55,
+100.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2085,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 112.85000000000207,
+"t_merge": 112.85000000000207,
+"lane_end_stops": 3,
+"stop_time": 58.14999999999883,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 3.495456516465822,
+"min_ttc": 2.2101223872614986,
+"lane_change_times": [
+10.95,
+85.95,
+112.8
+],
+"events": [
+[
+"accept",
+6.8,
+0,
+1,
+"",
+6.15,
+32.6
+],
+[
+"complete",
+10.95,
+0,
+1,
+"",
+10.34,
+1.9
+],
+[
+"accept",
+82.2,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+85.95,
+1,
+2,
+"",
+10.11,
+5.9
+],
+[
+"accept",
+109.05,
+2,
+3,
+"",
+0.0,
+5.9
+],
+[
+"complete",
+112.8,
+2,
+3,
+"",
+4.4,
+0.0
+]
+],
+"samples": [],
+"stop_events": [
+39.45,
+48.5,
+88.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2086,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 72.24999999999804,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.8938321390149326,
+"min_ttc": 2.0595094270170424,
+"lane_change_times": [
+23.35
+],
+"events": [
+[
+"accept",
+19.6,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+23.35,
+0,
+1,
+"",
+8.86,
+6.2
+]
+],
+"samples": [],
+"stop_events": [
+9.85,
+57.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2087,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 75.39999999999786,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 9.236669019470412,
+"min_ttc": 3.1293101388878934,
+"lane_change_times": [
+38.85
+],
+"events": [
+[
+"accept",
+35.1,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+38.85,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+61.6,
+1,
+2,
+"",
+7.28,
+72.2
+],
+[
+"abort",
+63.35,
+1,
+2,
+"rear_emergency id=131 g=9.7 c=15.0 T=2.77 esc=0",
+4.62,
+61.9
+]
+],
+"samples": [],
+"stop_events": [
+9.1,
+70.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2088,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 39.04999999999779,
+"t_merge": 39.04999999999779,
+"lane_end_stops": 1,
+"stop_time": 14.700000000000074,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 9.682542754772555,
+"min_ttc": 4.019979683207833,
+"lane_change_times": [
+27.3,
+33.15,
+39.0
+],
+"events": [
+[
+"accept",
+23.55,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+27.3,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+29.0,
+1,
+2,
+"",
+15.19,
+282.2
+],
+[
+"complete",
+33.15,
+1,
+2,
+"",
+16.22,
+204.2
+],
+[
+"accept",
+34.85,
+2,
+3,
+"",
+10.66,
+195.5
+],
+[
+"complete",
+39.0,
+2,
+3,
+"",
+0.55,
+175.6
+]
+],
+"samples": [],
+"stop_events": [
+9.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2089,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 103.19999999999987,
+"t_merge": 103.19999999999987,
+"lane_end_stops": 1,
+"stop_time": 68.24999999999827,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 10.064266490550551,
+"min_ttc": 3.1129577939961495,
+"lane_change_times": [
+81.45,
+89.85,
+103.15
+],
+"events": [
+[
+"accept",
+77.7,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+81.45,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+85.7,
+1,
+2,
+"",
+15.63,
+258.4
+],
+[
+"complete",
+89.85,
+1,
+2,
+"",
+15.87,
+185.1
+],
+[
+"accept",
+99.0,
+2,
+3,
+"",
+3.65,
+121.9
+],
+[
+"complete",
+103.15,
+2,
+3,
+"",
+0.79,
+111.2
+]
+],
+"samples": [],
+"stop_events": [
+9.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2090,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 49.3499999999972,
+"t_merge": 49.3499999999972,
+"lane_end_stops": 1,
+"stop_time": 15.950000000000092,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 14.939133127399884,
+"min_ttc": 6.311456327180263,
+"lane_change_times": [
+28.65,
+42.6,
+49.3
+],
+"events": [
+[
+"accept",
+24.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+28.65,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+38.45,
+1,
+2,
+"",
+6.9,
+207.6
+],
+[
+"complete",
+42.6,
+1,
+2,
+"",
+9.65,
+172.3
+],
+[
+"accept",
+45.15,
+2,
+3,
+"",
+11.17,
+156.7
+],
+[
+"complete",
+49.3,
+2,
+3,
+"",
+7.31,
+117.4
+]
+],
+"samples": [],
+"stop_events": [
+9.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2091,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 33.34999999999811,
+"t_merge": 33.34999999999811,
+"lane_end_stops": 1,
+"stop_time": 7.7499999999999805,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 21.70598793032292,
+"min_ttc": 6.942463049763099,
+"lane_change_times": [
+21.6,
+27.45,
+33.3
+],
+"events": [
+[
+"accept",
+17.45,
+0,
+1,
+"",
+1.35,
+24.7
+],
+[
+"complete",
+21.6,
+0,
+1,
+"",
+9.24,
+1.8
+],
+[
+"accept",
+23.3,
+1,
+2,
+"",
+8.04,
+285.5
+],
+[
+"complete",
+27.45,
+1,
+2,
+"",
+9.48,
+242.9
+],
+[
+"accept",
+29.15,
+2,
+3,
+"",
+13.94,
+237.5
+],
+[
+"complete",
+33.3,
+2,
+3,
+"",
+23.53,
+154.9
+]
+],
+"samples": [],
+"stop_events": [
+9.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2092,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 39.84999999999774,
+"t_merge": 39.84999999999774,
+"lane_end_stops": 1,
+"stop_time": 16.050000000000093,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 25.23524883951464,
+"min_ttc": 7.4895636475304395,
+"lane_change_times": [
+28.1,
+33.95,
+39.8
+],
+"events": [
+[
+"accept",
+24.35,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+28.1,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+29.8,
+1,
+2,
+"",
+14.99,
+282.1
+],
+[
+"complete",
+33.95,
+1,
+2,
+"",
+13.44,
+223.1
+],
+[
+"accept",
+35.65,
+2,
+3,
+"",
+18.01,
+210.8
+],
+[
+"complete",
+39.8,
+2,
+3,
+"",
+21.85,
+120.4
+]
+],
+"samples": [],
+"stop_events": [
+8.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2093,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 46.79999999999735,
+"t_merge": 46.79999999999735,
+"lane_end_stops": 0,
+"stop_time": 9.299999999999997,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 3.4123693919097207,
+"min_ttc": 2.19009626116116,
+"lane_change_times": [
+5.8,
+40.9,
+46.75
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+15.58,
+89.3
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+18.47,
+9.3
+],
+[
+"accept",
+36.75,
+1,
+2,
+"",
+4.19,
+182.7
+],
+[
+"complete",
+40.9,
+1,
+2,
+"",
+7.7,
+156.7
+],
+[
+"accept",
+42.6,
+2,
+3,
+"",
+12.58,
+153.6
+],
+[
+"complete",
+46.75,
+2,
+3,
+"",
+9.7,
+100.5
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2094,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 47.349999999997316,
+"t_merge": 47.349999999997316,
+"lane_end_stops": 1,
+"stop_time": 14.650000000000073,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 15.684094372295476,
+"min_ttc": 3.447384736949548,
+"lane_change_times": [
+29.4,
+41.45,
+47.3
+],
+"events": [
+[
+"accept",
+8.65,
+0,
+1,
+"",
+3.52,
+27.5
+],
+[
+"abort",
+9.3,
+0,
+1,
+"rear_intrusion id=124 g=53.9 c=5.9 T=10.00 esc=1 id=124 g=53.9 c=5.9 T=10.00 esc=1 id=127 g=80.0 c=7.7 T=10.00 esc=1",
+4.34,
+25.1
+],
+[
+"accept",
+25.65,
+0,
+1,
+"",
+0.0,
+19.9
+],
+[
+"complete",
+29.4,
+0,
+1,
+"",
+7.78,
+4.6
+],
+[
+"accept",
+37.3,
+1,
+2,
+"",
+11.27,
+191.0
+],
+[
+"complete",
+41.45,
+1,
+2,
+"",
+3.44,
+161.5
+],
+[
+"accept",
+43.15,
+2,
+3,
+"",
+7.59,
+166.8
+],
+[
+"complete",
+47.3,
+2,
+3,
+"",
+10.83,
+119.2
+]
+],
+"samples": [],
+"stop_events": [
+11.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2095,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 99.64999999999907,
+"t_merge": 99.64999999999907,
+"lane_end_stops": 2,
+"stop_time": 63.79999999999851,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 3.463587972665664,
+"min_ttc": 1.939234317570425,
+"lane_change_times": [
+9.35,
+38.5,
+99.6
+],
+"events": [
+[
+"accept",
+5.2,
+0,
+1,
+"",
+8.41,
+39.9
+],
+[
+"complete",
+9.35,
+0,
+1,
+"",
+11.94,
+1.9
+],
+[
+"accept",
+34.75,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+38.5,
+1,
+2,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+95.85,
+2,
+3,
+"",
+0.0,
+5.8
+],
+[
+"complete",
+99.6,
+2,
+3,
+"",
+5.37,
+0.0
+]
+],
+"samples": [],
+"stop_events": [
+26.1,
+41.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2096,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 66.49999999999837,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.357222986079478,
+"min_ttc": 2.156884772698307,
+"lane_change_times": [
+57.95
+],
+"events": [
+[
+"accept",
+54.2,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+57.95,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.25,
+93.05,
+112.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2097,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 74.24999999999793,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.643636707468943,
+"min_ttc": 1.8582549880380148,
+"lane_change_times": [
+10.8,
+90.1
+],
+"events": [
+[
+"accept",
+6.65,
+0,
+1,
+"",
+7.48,
+36.2
+],
+[
+"complete",
+10.8,
+0,
+1,
+"",
+11.06,
+1.9
+],
+[
+"accept",
+86.35,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+90.1,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+39.55,
+92.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2098,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 63.44999999999853,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.375976583713054,
+"min_ttc": 2.450402240058062,
+"lane_change_times": [
+13.8,
+56.5
+],
+"events": [
+[
+"accept",
+10.05,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+13.8,
+0,
+1,
+"",
+6.79,
+7.2
+],
+[
+"accept",
+52.75,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+56.5,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.9,
+51.8,
+59.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2099,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 83.99999999999737,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 12.75680633519994,
+"min_ttc": 2.6172556021760154,
+"lane_change_times": [
+9.75
+],
+"events": [
+[
+"accept",
+5.6,
+0,
+1,
+"",
+8.47,
+39.3
+],
+[
+"complete",
+9.75,
+0,
+1,
+"",
+11.75,
+1.9
+]
+],
+"samples": [],
+"stop_events": [
+36.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2100,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 91.94999999999692,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.624039433535245,
+"min_ttc": 1.9531521329917552,
+"lane_change_times": [
+5.9
+],
+"events": [
+[
+"accept",
+1.75,
+0,
+1,
+"",
+18.51,
+95.3
+],
+[
+"complete",
+5.9,
+0,
+1,
+"",
+20.48,
+6.6
+]
+],
+"samples": [],
+"stop_events": [
+28.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2101,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 88.6499999999971,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 4.353110967123541,
+"min_ttc": 2.0788269097598633,
+"lane_change_times": [
+6.25,
+40.1
+],
+"events": [
+[
+"accept",
+2.1,
+0,
+1,
+"",
+18.12,
+97.3
+],
+[
+"complete",
+6.25,
+0,
+1,
+"",
+24.9,
+3.9
+],
+[
+"accept",
+36.35,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+40.1,
+1,
+2,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+50.75,
+2,
+3,
+"",
+0.0,
+5.8
+],
+[
+"abort",
+52.9,
+2,
+3,
+"rear_emergency id=125 g=8.1 c=15.0 T=2.18 esc=0",
+2.88,
+1.6
+]
+],
+"samples": [],
+"stop_events": [
+21.95,
+42.9,
+54.25
+],
+"min_sep": 1.512462705632995,
+"near_lat_ticks": 0
+},
+{
+"seed": 2102,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 93.79999999999681,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.336254673823419,
+"min_ttc": 1.9535410214276494,
+"lane_change_times": [
+8.15
+],
+"events": [
+[
+"accept",
+4.0,
+0,
+1,
+"",
+19.66,
+66.2
+],
+[
+"complete",
+8.15,
+0,
+1,
+"",
+17.01,
+2.2
+]
+],
+"samples": [],
+"stop_events": [
+26.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2103,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 21.94999999999876,
+"t_merge": 21.94999999999876,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 12.583385438230323,
+"min_ttc": 5.928218952059113,
+"lane_change_times": [
+10.2,
+16.05,
+21.9
+],
+"events": [
+[
+"accept",
+6.05,
+0,
+1,
+"",
+6.33,
+33.0
+],
+[
+"complete",
+10.2,
+0,
+1,
+"",
+8.6,
+2.3
+],
+[
+"accept",
+11.9,
+1,
+2,
+"",
+7.62,
+287.9
+],
+[
+"complete",
+16.05,
+1,
+2,
+"",
+1.91,
+268.2
+],
+[
+"accept",
+17.75,
+2,
+3,
+"",
+6.09,
+276.0
+],
+[
+"complete",
+21.9,
+2,
+3,
+"",
+17.63,
+225.1
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.6568266666666664,
+"near_lat_ticks": 0
+},
+{
+"seed": 2104,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 85.04999999999731,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 1.4740655640835598,
+"min_ttc": 1.0926245446267493,
+"lane_change_times": [
+10.7,
+42.1
+],
+"events": [
+[
+"accept",
+6.55,
+0,
+1,
+"",
+6.78,
+34.2
+],
+[
+"complete",
+10.7,
+0,
+1,
+"",
+10.66,
+1.9
+],
+[
+"accept",
+38.35,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+42.1,
+1,
+2,
+"",
+3.54,
+11.3
+],
+[
+"accept",
+99.75,
+2,
+3,
+"",
+0.0,
+22.9
+],
+[
+"abort",
+100.75,
+2,
+3,
+"rear_intrusion id=135 g=39.0 c=15.0 T=10.00 esc=0 id=135 g=39.0 c=15.0 T=10.00 esc=0",
+2.7,
+21.6
+]
+],
+"samples": [],
+"stop_events": [
+27.9,
+43.45,
+102.35
+],
+"min_sep": 1.4740655640835598,
+"near_lat_ticks": 0
+},
+{
+"seed": 2105,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 63.14999999999642,
+"t_merge": 63.14999999999642,
+"lane_end_stops": 1,
+"stop_time": 39.24999999999991,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 12.201698452615673,
+"min_ttc": 3.1435420738052064,
+"lane_change_times": [
+51.4,
+57.25,
+63.1
+],
+"events": [
+[
+"accept",
+47.65,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+51.4,
+0,
+1,
+"",
+7.68,
+6.6
+],
+[
+"accept",
+53.1,
+1,
+2,
+"",
+4.56,
+294.4
+],
+[
+"complete",
+57.25,
+1,
+2,
+"",
+2.92,
+279.1
+],
+[
+"accept",
+58.95,
+2,
+3,
+"",
+7.1,
+285.3
+],
+[
+"complete",
+63.1,
+2,
+3,
+"",
+19.55,
+230.0
+]
+],
+"samples": [],
+"stop_events": [
+8.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2106,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 51.1999999999971,
+"t_merge": 51.1999999999971,
+"lane_end_stops": 1,
+"stop_time": 11.700000000000031,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 7.761507361963481,
+"min_ttc": 3.3289684109344164,
+"lane_change_times": [
+24.35,
+43.15,
+51.15
+],
+"events": [
+[
+"accept",
+20.6,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+24.35,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+39.0,
+1,
+2,
+"",
+6.49,
+134.8
+],
+[
+"complete",
+43.15,
+1,
+2,
+"",
+2.7,
+116.2
+],
+[
+"accept",
+47.0,
+2,
+3,
+"",
+2.81,
+118.6
+],
+[
+"complete",
+51.15,
+2,
+3,
+"",
+4.31,
+103.7
+]
+],
+"samples": [],
+"stop_events": [
+9.2
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2107,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 4,
+"stop_time": 70.04999999999816,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.357743089683254,
+"min_ttc": 2.0705617352366446,
+"lane_change_times": [
+38.6
+],
+"events": [
+[
+"accept",
+24.45,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+25.5,
+0,
+1,
+"rear_intrusion id=134 g=74.9 c=11.1 T=9.75 esc=1 id=134 g=74.9 c=11.1 T=9.75 esc=1",
+2.85,
+23.6
+],
+[
+"accept",
+34.85,
+0,
+1,
+"",
+0.09,
+20.3
+],
+[
+"complete",
+38.6,
+0,
+1,
+"",
+7.75,
+4.5
+]
+],
+"samples": [],
+"stop_events": [
+9.45,
+27.15,
+70.1,
+83.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2108,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 88.8499999999971,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.355214386608566,
+"min_ttc": 2.2737594325164956,
+"lane_change_times": [
+14.7
+],
+"events": [
+[
+"accept",
+6.1,
+0,
+1,
+"",
+7.59,
+36.5
+],
+[
+"abort",
+6.75,
+0,
+1,
+"rear_intrusion id=126 g=69.0 c=11.7 T=10.00 esc=1 id=126 g=69.0 c=11.7 T=10.00 esc=1",
+7.73,
+31.6
+],
+[
+"accept",
+10.95,
+0,
+1,
+"",
+0.01,
+24.3
+],
+[
+"complete",
+14.7,
+0,
+1,
+"",
+9.79,
+5.7
+]
+],
+"samples": [],
+"stop_events": [
+8.35,
+34.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2109,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 81.89999999999749,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.8443738875491817,
+"min_ttc": 2.0266305225490817,
+"lane_change_times": [
+21.75
+],
+"events": [
+[
+"accept",
+7.95,
+0,
+1,
+"",
+4.51,
+29.1
+],
+[
+"abort",
+8.6,
+0,
+1,
+"rear_intrusion id=124 g=53.5 c=4.5 T=10.00 esc=1 id=124 g=53.5 c=4.5 T=10.00 esc=1",
+5.25,
+26.1
+],
+[
+"accept",
+18.0,
+0,
+1,
+"",
+0.0,
+20.1
+],
+[
+"complete",
+21.75,
+0,
+1,
+"",
+7.86,
+4.6
+]
+],
+"samples": [],
+"stop_events": [
+10.7,
+45.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2110,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 86.149999999996,
+"t_merge": 86.149999999996,
+"lane_end_stops": 3,
+"stop_time": 50.44999999999927,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 3.1280613094882597,
+"min_ttc": 1.8440567707368998,
+"lane_change_times": [
+5.8,
+45.0,
+86.1
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+18.29,
+93.9
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.72,
+3.0
+],
+[
+"accept",
+40.85,
+1,
+2,
+"",
+0.29,
+20.5
+],
+[
+"complete",
+45.0,
+1,
+2,
+"",
+8.53,
+1.8
+],
+[
+"accept",
+82.35,
+2,
+3,
+"",
+0.0,
+4.4
+],
+[
+"complete",
+86.1,
+2,
+3,
+"",
+5.37,
+0.0
+]
+],
+"samples": [],
+"stop_events": [
+23.25,
+40.5,
+47.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2111,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 88.19999999999713,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 13.427204793004194,
+"min_ttc": 2.032257994728239,
+"lane_change_times": [
+9.35
+],
+"events": [
+[
+"accept",
+5.2,
+0,
+1,
+"",
+9.78,
+44.6
+],
+[
+"complete",
+9.35,
+0,
+1,
+"",
+13.0,
+2.0
+]
+],
+"samples": [],
+"stop_events": [
+31.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2112,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 56.19999999999681,
+"t_merge": 56.19999999999681,
+"lane_end_stops": 1,
+"stop_time": 30.450000000000298,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 24.149773778638462,
+"min_ttc": 7.0683459687032295,
+"lane_change_times": [
+43.3,
+50.3,
+56.15
+],
+"events": [
+[
+"accept",
+39.55,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+43.3,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+46.15,
+1,
+2,
+"",
+11.43,
+277.3
+],
+[
+"complete",
+50.3,
+1,
+2,
+"",
+23.19,
+204.3
+],
+[
+"accept",
+52.0,
+2,
+3,
+"",
+23.78,
+177.9
+],
+[
+"complete",
+56.15,
+2,
+3,
+"",
+14.03,
+97.7
+]
+],
+"samples": [],
+"stop_events": [
+9.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2113,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 36.49999999999793,
+"t_merge": 36.49999999999793,
+"lane_end_stops": 1,
+"stop_time": 6.499999999999985,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 13.705581458774134,
+"min_ttc": 2.150191060389361,
+"lane_change_times": [
+19.2,
+26.8,
+36.45
+],
+"events": [
+[
+"accept",
+15.45,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+19.2,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+22.65,
+1,
+2,
+"",
+20.44,
+251.0
+],
+[
+"complete",
+26.8,
+1,
+2,
+"",
+15.04,
+169.0
+],
+[
+"accept",
+32.3,
+2,
+3,
+"",
+4.74,
+108.9
+],
+[
+"complete",
+36.45,
+2,
+3,
+"",
+7.15,
+83.2
+]
+],
+"samples": [],
+"stop_events": [
+9.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2114,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 106.60000000000065,
+"t_merge": 106.60000000000065,
+"lane_end_stops": 1,
+"stop_time": 73.94999999999794,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 3.594491800555261,
+"min_ttc": 1.9300922319901297,
+"lane_change_times": [
+9.5,
+18.7,
+106.55
+],
+"events": [
+[
+"accept",
+5.35,
+0,
+1,
+"",
+9.2,
+42.0
+],
+[
+"complete",
+9.5,
+0,
+1,
+"",
+12.35,
+2.0
+],
+[
+"accept",
+14.55,
+1,
+2,
+"",
+22.64,
+202.1
+],
+[
+"complete",
+18.7,
+1,
+2,
+"",
+17.77,
+117.7
+],
+[
+"accept",
+102.8,
+2,
+3,
+"",
+0.0,
+22.5
+],
+[
+"complete",
+106.55,
+2,
+3,
+"",
+2.83,
+9.7
+]
+],
+"samples": [],
+"stop_events": [
+29.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2115,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 98.49999999999655,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.752553315249429,
+"min_ttc": 1.1589501079165636,
+"lane_change_times": [
+5.85,
+14.35
+],
+"events": [
+[
+"accept",
+1.7,
+0,
+1,
+"",
+17.86,
+96.3
+],
+[
+"complete",
+5.85,
+0,
+1,
+"",
+24.85,
+3.4
+],
+[
+"accept",
+10.2,
+1,
+2,
+"",
+25.0,
+192.5
+],
+[
+"complete",
+14.35,
+1,
+2,
+"",
+25.0,
+88.7
+]
+],
+"samples": [],
+"stop_events": [
+21.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2116,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 79.44999999999763,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.5575009393164123,
+"min_ttc": 2.0492393052463624,
+"lane_change_times": [
+20.95
+],
+"events": [
+[
+"accept",
+17.2,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+20.95,
+0,
+1,
+"",
+10.1,
+5.9
+],
+[
+"accept",
+117.85,
+1,
+2,
+"",
+0.0,
+25.0
+]
+],
+"samples": [],
+"stop_events": [
+8.9,
+47.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2117,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 86.9499999999972,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.9097709915957353,
+"min_ttc": 2.0105902739043824,
+"lane_change_times": [
+13.0
+],
+"events": [
+[
+"accept",
+8.85,
+0,
+1,
+"",
+1.34,
+25.4
+],
+[
+"complete",
+13.0,
+0,
+1,
+"",
+10.38,
+2.0
+]
+],
+"samples": [],
+"stop_events": [
+33.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2118,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 22.699999999998717,
+"t_merge": 22.699999999998717,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 18.93246753203563,
+"min_ttc": 5.578434929304533,
+"lane_change_times": [
+10.85,
+16.7,
+22.65
+],
+"events": [
+[
+"accept",
+6.7,
+0,
+1,
+"",
+6.68,
+34.0
+],
+[
+"complete",
+10.85,
+0,
+1,
+"",
+10.61,
+1.9
+],
+[
+"accept",
+12.55,
+1,
+2,
+"",
+8.33,
+283.9
+],
+[
+"complete",
+16.7,
+1,
+2,
+"",
+12.57,
+231.2
+],
+[
+"accept",
+18.5,
+2,
+3,
+"",
+10.81,
+224.5
+],
+[
+"complete",
+22.65,
+2,
+3,
+"",
+5.6,
+188.7
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.807338032491511,
+"near_lat_ticks": 0
+},
+{
+"seed": 2119,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 70.39999999999814,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.75735937878693,
+"min_ttc": 1.6808150898587029,
+"lane_change_times": [
+10.0,
+49.25
+],
+"events": [
+[
+"accept",
+5.85,
+0,
+1,
+"",
+9.9,
+44.6
+],
+[
+"complete",
+10.0,
+0,
+1,
+"",
+12.99,
+2.0
+],
+[
+"accept",
+45.1,
+1,
+2,
+"",
+1.91,
+25.7
+],
+[
+"complete",
+49.25,
+1,
+2,
+"",
+10.0,
+1.9
+]
+],
+"samples": [],
+"stop_events": [
+52.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2120,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 57.79999999999672,
+"t_merge": 57.79999999999672,
+"lane_end_stops": 1,
+"stop_time": 24.850000000000218,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 8.817937219892372,
+"min_ttc": 3.4203538636068433,
+"lane_change_times": [
+37.35,
+51.9,
+57.75
+],
+"events": [
+[
+"accept",
+33.6,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+37.35,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+47.75,
+1,
+2,
+"",
+0.82,
+247.2
+],
+[
+"complete",
+51.9,
+1,
+2,
+"",
+0.47,
+244.5
+],
+[
+"accept",
+53.6,
+2,
+3,
+"",
+5.09,
+254.1
+],
+[
+"complete",
+57.75,
+2,
+3,
+"",
+17.43,
+207.2
+]
+],
+"samples": [],
+"stop_events": [
+9.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2121,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 74.89999999999789,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.843764868825488,
+"min_ttc": 2.068275699628048,
+"lane_change_times": [
+35.3,
+114.05
+],
+"events": [
+[
+"accept",
+31.55,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+35.3,
+0,
+1,
+"",
+3.8,
+10.9
+],
+[
+"accept",
+109.9,
+1,
+2,
+"",
+3.16,
+262.7
+],
+[
+"complete",
+114.05,
+1,
+2,
+"",
+4.71,
+245.4
+]
+],
+"samples": [],
+"stop_events": [
+9.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2122,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 37.74999999999786,
+"t_merge": 37.74999999999786,
+"lane_end_stops": 1,
+"stop_time": 3.049999999999997,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 9.046247494433402,
+"min_ttc": 2.9758484244205854,
+"lane_change_times": [
+15.35,
+31.85,
+37.7
+],
+"events": [
+[
+"accept",
+11.6,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+15.35,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+27.7,
+1,
+2,
+"",
+3.52,
+233.9
+],
+[
+"complete",
+31.85,
+1,
+2,
+"",
+4.54,
+216.5
+],
+[
+"accept",
+33.55,
+2,
+3,
+"",
+9.05,
+219.4
+],
+[
+"complete",
+37.7,
+2,
+3,
+"",
+10.59,
+173.6
+]
+],
+"samples": [],
+"stop_events": [
+8.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2123,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 3,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 83.4999999999974,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 4.217999707772208,
+"min_ttc": 1.8806558683308339,
+"lane_change_times": [
+11.2,
+17.05
+],
+"events": [
+[
+"accept",
+7.05,
+0,
+1,
+"",
+6.95,
+16.1
+],
+[
+"complete",
+11.2,
+0,
+1,
+"",
+6.02,
+0.3
+],
+[
+"accept",
+12.9,
+1,
+2,
+"",
+11.12,
+283.4
+],
+[
+"complete",
+17.05,
+1,
+2,
+"",
+16.56,
+217.2
+],
+[
+"accept",
+118.65,
+2,
+3,
+"",
+0.0,
+22.4
+]
+],
+"samples": [],
+"stop_events": [
+35.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2124,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 43.74999999999752,
+"t_merge": 43.74999999999752,
+"lane_end_stops": 2,
+"stop_time": 5.849999999999987,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 28.420359986602705,
+"min_ttc": 4.4877888990335455,
+"lane_change_times": [
+11.15,
+35.5,
+43.7
+],
+"events": [
+[
+"accept",
+7.0,
+0,
+1,
+"",
+6.64,
+33.8
+],
+[
+"complete",
+11.15,
+0,
+1,
+"",
+10.58,
+1.9
+],
+[
+"accept",
+31.75,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+35.5,
+1,
+2,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+39.95,
+2,
+3,
+"",
+0.04,
+5.9
+],
+[
+"complete",
+43.7,
+2,
+3,
+"",
+5.37,
+0.0
+]
+],
+"samples": [],
+"stop_events": [
+28.15,
+38.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2125,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 73.8999999999958,
+"t_merge": 73.8999999999958,
+"lane_end_stops": 1,
+"stop_time": 49.699999999999314,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 14.142465037236263,
+"min_ttc": 6.0899415959823955,
+"lane_change_times": [
+62.15,
+68.0,
+73.85
+],
+"events": [
+[
+"accept",
+58.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+62.15,
+0,
+1,
+"",
+7.43,
+6.8
+],
+[
+"accept",
+63.85,
+1,
+2,
+"",
+7.42,
+293.7
+],
+[
+"complete",
+68.0,
+1,
+2,
+"",
+6.15,
+267.6
+],
+[
+"accept",
+69.7,
+2,
+3,
+"",
+8.37,
+269.2
+],
+[
+"complete",
+73.85,
+2,
+3,
+"",
+12.06,
+227.4
+]
+],
+"samples": [],
+"stop_events": [
+9.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2126,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 34.29999999999806,
+"t_merge": 34.29999999999806,
+"lane_end_stops": 1,
+"stop_time": 8.649999999999988,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 14.41686200068986,
+"min_ttc": 3.3549821689214396,
+"lane_change_times": [
+21.4,
+28.4,
+34.25
+],
+"events": [
+[
+"accept",
+17.65,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+21.4,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+24.25,
+1,
+2,
+"",
+11.34,
+277.3
+],
+[
+"complete",
+28.4,
+1,
+2,
+"",
+8.59,
+239.1
+],
+[
+"accept",
+30.1,
+2,
+3,
+"",
+13.28,
+234.8
+],
+[
+"complete",
+34.25,
+2,
+3,
+"",
+11.18,
+167.8
+]
+],
+"samples": [],
+"stop_events": [
+9.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2127,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 96.14999999999668,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.8583780541665647,
+"min_ttc": 2.0087477036581185,
+"lane_change_times": [
+5.8
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+16.88,
+82.8
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+22.69,
+2.5
+],
+[
+"accept",
+27.35,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+28.4,
+1,
+2,
+"rear_intrusion id=124 g=52.7 c=5.9 T=9.75 esc=1 id=124 g=52.7 c=5.9 T=9.75 esc=1",
+2.85,
+23.6
+]
+],
+"samples": [],
+"stop_events": [
+21.5,
+30.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2128,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 87.44999999999717,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.0039881984546355,
+"min_ttc": 1.9542840116730522,
+"lane_change_times": [
+6.1,
+11.95
+],
+"events": [
+[
+"accept",
+1.95,
+0,
+1,
+"",
+17.39,
+85.7
+],
+[
+"complete",
+6.1,
+0,
+1,
+"",
+22.35,
+3.2
+],
+[
+"accept",
+7.8,
+1,
+2,
+"",
+21.73,
+262.9
+],
+[
+"complete",
+11.95,
+1,
+2,
+"",
+17.28,
+182.6
+]
+],
+"samples": [],
+"stop_events": [
+29.35
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2129,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 30.449999999998276,
+"t_merge": 30.449999999998276,
+"lane_end_stops": 1,
+"stop_time": 6.499999999999985,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 21.10795521723736,
+"min_ttc": 4.40596344675667,
+"lane_change_times": [
+18.7,
+24.55,
+30.4
+],
+"events": [
+[
+"accept",
+14.95,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+18.7,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+20.4,
+1,
+2,
+"",
+15.19,
+282.2
+],
+[
+"complete",
+24.55,
+1,
+2,
+"",
+20.23,
+199.7
+],
+[
+"accept",
+26.25,
+2,
+3,
+"",
+15.65,
+184.0
+],
+[
+"complete",
+30.4,
+2,
+3,
+"",
+10.95,
+126.0
+]
+],
+"samples": [],
+"stop_events": [
+8.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2130,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 77.79999999999772,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.419068307679481,
+"min_ttc": 1.6247049659075614,
+"lane_change_times": [
+7.3,
+32.05
+],
+"events": [
+[
+"accept",
+3.15,
+0,
+1,
+"",
+14.13,
+65.7
+],
+[
+"complete",
+7.3,
+0,
+1,
+"",
+16.91,
+2.5
+],
+[
+"accept",
+27.9,
+1,
+2,
+"",
+8.22,
+101.2
+],
+[
+"complete",
+32.05,
+1,
+2,
+"",
+8.6,
+65.4
+]
+],
+"samples": [],
+"stop_events": [
+38.0,
+45.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2131,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 22.29999999999874,
+"t_merge": 22.29999999999874,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 18.552684348322884,
+"min_ttc": 4.5369901113041005,
+"lane_change_times": [
+5.8,
+16.4,
+22.25
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+17.7,
+107.0
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.94,
+12.8
+],
+[
+"accept",
+12.25,
+1,
+2,
+"",
+9.91,
+210.9
+],
+[
+"complete",
+16.4,
+1,
+2,
+"",
+3.48,
+183.6
+],
+[
+"accept",
+18.1,
+2,
+3,
+"",
+8.04,
+188.2
+],
+[
+"complete",
+22.25,
+2,
+3,
+"",
+12.76,
+136.3
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.6740000000000022,
+"near_lat_ticks": 0
+},
+{
+"seed": 2132,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 62.89999999999643,
+"t_merge": 62.89999999999643,
+"lane_end_stops": 2,
+"stop_time": 23.150000000000194,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 6.421529747340713,
+"min_ttc": 3.9230214087003348,
+"lane_change_times": [
+38.55,
+56.75,
+62.85
+],
+"events": [
+[
+"accept",
+23.3,
+0,
+1,
+"",
+0.0,
+24.1
+],
+[
+"abort",
+24.35,
+0,
+1,
+"rear_intrusion id=130 g=47.4 c=5.2 T=9.75 esc=1 id=130 g=47.4 c=5.2 T=9.75 esc=1",
+2.85,
+22.7
+],
+[
+"accept",
+34.8,
+0,
+1,
+"",
+0.0,
+19.4
+],
+[
+"complete",
+38.55,
+0,
+1,
+"",
+7.58,
+4.5
+],
+[
+"accept",
+52.6,
+1,
+2,
+"",
+3.17,
+254.3
+],
+[
+"complete",
+56.75,
+1,
+2,
+"",
+5.68,
+236.6
+],
+[
+"accept",
+58.7,
+2,
+3,
+"",
+10.62,
+234.5
+],
+[
+"complete",
+62.85,
+2,
+3,
+"",
+14.54,
+173.4
+]
+],
+"samples": [],
+"stop_events": [
+8.85,
+26.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2133,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 85.64999999999728,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 14.466760348941364,
+"min_ttc": 5.357975564636554,
+"lane_change_times": [
+98.65,
+104.45
+],
+"events": [
+[
+"accept",
+94.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+98.65,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+100.3,
+1,
+2,
+"",
+8.13,
+288.9
+],
+[
+"complete",
+104.45,
+1,
+2,
+"",
+20.28,
+230.6
+]
+],
+"samples": [],
+"stop_events": [
+9.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2134,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 65.54999999999629,
+"t_merge": 65.54999999999629,
+"lane_end_stops": 2,
+"stop_time": 18.55000000000013,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 4.41487687105149,
+"min_ttc": 3.0653641321137437,
+"lane_change_times": [
+7.25,
+14.3,
+65.5
+],
+"events": [
+[
+"accept",
+3.1,
+0,
+1,
+"",
+15.03,
+71.5
+],
+[
+"complete",
+7.25,
+0,
+1,
+"",
+19.69,
+2.3
+],
+[
+"accept",
+10.15,
+1,
+2,
+"",
+23.82,
+235.1
+],
+[
+"complete",
+14.3,
+1,
+2,
+"",
+18.06,
+141.3
+],
+[
+"accept",
+61.75,
+2,
+3,
+"",
+0.0,
+24.9
+],
+[
+"complete",
+65.5,
+2,
+3,
+"",
+2.0,
+21.6
+]
+],
+"samples": [],
+"stop_events": [
+28.55,
+45.9
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2135,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 94.54999999999677,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.7933837226032665,
+"min_ttc": 1.9954929863322994,
+"lane_change_times": [
+5.8
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+18.33,
+93.8
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.69,
+3.0
+]
+],
+"samples": [],
+"stop_events": [
+25.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2136,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 48.799999999999365,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 2.3575745508708223,
+"min_ttc": 1.0544080336605264,
+"lane_change_times": [
+14.55,
+48.45
+],
+"events": [
+[
+"accept",
+10.8,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+14.55,
+0,
+1,
+"",
+10.03,
+5.9
+],
+[
+"accept",
+22.4,
+1,
+2,
+"",
+4.56,
+240.9
+],
+[
+"abort",
+23.05,
+1,
+2,
+"rear_intrusion id=121 g=53.1 c=6.2 T=10.00 esc=1 id=121 g=53.1 c=6.2 T=10.00 esc=1 id=123 g=75.2 c=7.5 T=10.00 esc=1",
+3.62,
+238.3
+],
+[
+"accept",
+44.3,
+1,
+2,
+"",
+3.53,
+213.4
+],
+[
+"complete",
+48.45,
+1,
+2,
+"",
+10.91,
+184.8
+]
+],
+"samples": [],
+"stop_events": [
+9.25,
+78.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2137,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 58.39999999999669,
+"t_merge": 58.39999999999669,
+"lane_end_stops": 1,
+"stop_time": 28.45000000000027,
+"aborts": 2,
+"accepts": 5,
+"min_gap": 18.05345222886669,
+"min_ttc": 6.443824496991454,
+"lane_change_times": [
+40.4,
+52.5,
+58.35
+],
+"events": [
+[
+"accept",
+5.45,
+0,
+1,
+"",
+9.3,
+42.3
+],
+[
+"abort",
+6.1,
+0,
+1,
+"rear_intrusion id=124 g=46.1 c=3.7 T=10.00 esc=1",
+9.25,
+36.3
+],
+[
+"accept",
+36.65,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+40.4,
+0,
+1,
+"",
+10.11,
+5.9
+],
+[
+"accept",
+42.2,
+1,
+2,
+"",
+8.43,
+287.7
+],
+[
+"abort",
+42.85,
+1,
+2,
+"rear_intrusion id=132 g=41.6 c=3.6 T=10.00 esc=1 id=132 g=41.6 c=3.6 T=10.00 esc=1",
+9.56,
+281.7
+],
+[
+"accept",
+48.35,
+1,
+2,
+"",
+2.8,
+253.9
+],
+[
+"complete",
+52.5,
+1,
+2,
+"",
+2.46,
+244.2
+],
+[
+"accept",
+54.2,
+2,
+3,
+"",
+7.16,
+250.3
+],
+[
+"complete",
+58.35,
+2,
+3,
+"",
+19.32,
+194.8
+]
+],
+"samples": [],
+"stop_events": [
+8.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2138,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 90.499999999997,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 2.8446133954319635,
+"min_ttc": 1.7639241080187473,
+"lane_change_times": [
+7.45
+],
+"events": [
+[
+"accept",
+3.3,
+0,
+1,
+"",
+14.5,
+68.9
+],
+[
+"complete",
+7.45,
+0,
+1,
+"",
+19.04,
+2.3
+],
+[
+"accept",
+26.8,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+28.75,
+1,
+2,
+"rear_intrusion id=127 g=17.4 c=15.0 T=2.53 esc=0 id=127 g=17.4 c=15.0 T=2.53 esc=0",
+5.55,
+19.9
+]
+],
+"samples": [],
+"stop_events": [
+25.7,
+30.95
+],
+"min_sep": 1.472422204520801,
+"near_lat_ticks": 0
+},
+{
+"seed": 2139,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 74.29999999999792,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.9759420157705563,
+"min_ttc": 1.989685155490689,
+"lane_change_times": [
+8.45,
+53.35
+],
+"events": [
+[
+"accept",
+4.3,
+0,
+1,
+"",
+11.52,
+51.6
+],
+[
+"complete",
+8.45,
+0,
+1,
+"",
+13.35,
+2.3
+],
+[
+"accept",
+49.6,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+53.35,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+39.5,
+56.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2140,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 86.8999999999972,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.205954254704466,
+"min_ttc": 1.8977110483105324,
+"lane_change_times": [
+7.25
+],
+"events": [
+[
+"accept",
+3.1,
+0,
+1,
+"",
+15.55,
+74.1
+],
+[
+"complete",
+7.25,
+0,
+1,
+"",
+17.12,
+3.8
+],
+[
+"accept",
+104.2,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+106.7,
+1,
+2,
+"rear_emergency id=125 g=12.3 c=15.0 T=1.65 esc=0",
+6.98,
+16.4
+]
+],
+"samples": [],
+"stop_events": [
+28.65,
+109.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2141,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 76.24999999999781,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 12.79218789887318,
+"min_ttc": 3.542877987655206,
+"lane_change_times": [
+33.65
+],
+"events": [
+[
+"accept",
+29.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+33.65,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+61.95,
+1,
+2,
+"",
+2.26,
+26.0
+],
+[
+"abort",
+62.75,
+1,
+2,
+"rear_intrusion id=134 g=38.4 c=15.0 T=8.83 esc=0 id=134 g=38.4 c=15.0 T=8.83 esc=0",
+3.53,
+24.0
+]
+],
+"samples": [],
+"stop_events": [
+9.4,
+64.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2142,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 20.099999999998865,
+"t_merge": 20.099999999998865,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 23.266056188632945,
+"min_ttc": 5.02247643369176,
+"lane_change_times": [
+8.35,
+14.2,
+20.05
+],
+"events": [
+[
+"accept",
+4.2,
+0,
+1,
+"",
+13.54,
+62.1
+],
+[
+"complete",
+8.35,
+0,
+1,
+"",
+17.24,
+2.2
+],
+[
+"accept",
+10.05,
+1,
+2,
+"",
+21.76,
+266.3
+],
+[
+"complete",
+14.2,
+1,
+2,
+"",
+14.36,
+193.7
+],
+[
+"accept",
+15.9,
+2,
+3,
+"",
+18.88,
+179.9
+],
+[
+"complete",
+20.05,
+2,
+3,
+"",
+13.95,
+108.8
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2143,
+"planner": "baseline",
+"success": false,
+"collision": true,
+"final_lane": 2,
+"t_end": 112.75000000000205,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 67.29999999999832,
+"aborts": 0,
+"accepts": 2,
+"min_gap": -3.467888905572579,
+"min_ttc": 2.0734225673808067,
+"lane_change_times": [
+39.0,
+59.55
+],
+"events": [
+[
+"accept",
+35.25,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+39.0,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+55.4,
+1,
+2,
+"",
+6.33,
+124.6
+],
+[
+"complete",
+59.55,
+1,
+2,
+"",
+2.97,
+101.0
+]
+],
+"samples": [],
+"stop_events": [
+9.05
+],
+"min_sep": -0.0760000000000014,
+"near_lat_ticks": 4
+},
+{
+"seed": 2144,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 36.89999999999791,
+"t_merge": 36.89999999999791,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 8.419402016482849,
+"min_ttc": 2.8794139310783544,
+"lane_change_times": [
+8.6,
+29.25,
+36.85
+],
+"events": [
+[
+"accept",
+4.45,
+0,
+1,
+"",
+12.65,
+57.0
+],
+[
+"complete",
+8.6,
+0,
+1,
+"",
+9.13,
+8.5
+],
+[
+"accept",
+16.8,
+1,
+2,
+"",
+1.34,
+273.5
+],
+[
+"abort",
+17.45,
+1,
+2,
+"rear_intrusion id=131 g=85.8 c=11.7 T=10.00 esc=1 id=131 g=85.8 c=11.7 T=10.00 esc=1",
+1.25,
+272.6
+],
+[
+"accept",
+25.1,
+1,
+2,
+"",
+6.09,
+244.8
+],
+[
+"complete",
+29.25,
+1,
+2,
+"",
+6.31,
+215.3
+],
+[
+"accept",
+32.7,
+2,
+3,
+"",
+13.95,
+192.2
+],
+[
+"complete",
+36.85,
+2,
+3,
+"",
+12.45,
+124.5
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2145,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 68.49999999999825,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.8487880256753897,
+"min_ttc": 1.9875217297462284,
+"lane_change_times": [
+6.0,
+17.7
+],
+"events": [
+[
+"accept",
+1.85,
+0,
+1,
+"",
+17.0,
+83.3
+],
+[
+"complete",
+6.0,
+0,
+1,
+"",
+15.61,
+9.0
+],
+[
+"accept",
+13.55,
+1,
+2,
+"",
+10.93,
+233.7
+],
+[
+"complete",
+17.7,
+1,
+2,
+"",
+13.07,
+182.6
+]
+],
+"samples": [],
+"stop_events": [
+40.6,
+50.7,
+73.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2146,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 64.49999999999633,
+"t_merge": 64.49999999999633,
+"lane_end_stops": 1,
+"stop_time": 28.650000000000272,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 7.6606129613632845,
+"min_ttc": 3.2142948557809885,
+"lane_change_times": [
+41.65,
+58.6,
+64.45
+],
+"events": [
+[
+"accept",
+37.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+41.65,
+0,
+1,
+"",
+7.5,
+6.7
+],
+[
+"accept",
+54.45,
+1,
+2,
+"",
+3.62,
+270.0
+],
+[
+"complete",
+58.6,
+1,
+2,
+"",
+8.07,
+246.0
+],
+[
+"accept",
+60.3,
+2,
+3,
+"",
+12.9,
+242.4
+],
+[
+"complete",
+64.45,
+2,
+3,
+"",
+15.3,
+174.8
+]
+],
+"samples": [],
+"stop_events": [
+9.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2147,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 69.24999999999608,
+"t_merge": 69.24999999999608,
+"lane_end_stops": 1,
+"stop_time": 32.50000000000029,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 20.085022212125722,
+"min_ttc": 5.997878926381261,
+"lane_change_times": [
+45.25,
+54.25,
+69.2
+],
+"events": [
+[
+"accept",
+41.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+45.25,
+0,
+1,
+"",
+10.03,
+5.9
+],
+[
+"accept",
+50.1,
+1,
+2,
+"",
+3.26,
+271.0
+],
+[
+"complete",
+54.25,
+1,
+2,
+"",
+1.8,
+260.8
+],
+[
+"accept",
+65.05,
+2,
+3,
+"",
+8.94,
+151.8
+],
+[
+"complete",
+69.2,
+2,
+3,
+"",
+3.45,
+127.3
+]
+],
+"samples": [],
+"stop_events": [
+9.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2148,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 29.449999999998333,
+"t_merge": 29.449999999998333,
+"lane_end_stops": 1,
+"stop_time": 2.7499999999999982,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 17.167381018696176,
+"min_ttc": 4.866923839156888,
+"lane_change_times": [
+15.45,
+23.55,
+29.4
+],
+"events": [
+[
+"accept",
+11.7,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+15.45,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+19.4,
+1,
+2,
+"",
+9.66,
+266.3
+],
+[
+"complete",
+23.55,
+1,
+2,
+"",
+9.52,
+226.0
+],
+[
+"accept",
+25.25,
+2,
+3,
+"",
+14.23,
+220.1
+],
+[
+"complete",
+29.4,
+2,
+3,
+"",
+16.9,
+145.9
+]
+],
+"samples": [],
+"stop_events": [
+9.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2149,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 75.74999999999784,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.0532316446987693,
+"min_ttc": 1.9818837785746632,
+"lane_change_times": [
+8.45,
+26.0
+],
+"events": [
+[
+"accept",
+4.3,
+0,
+1,
+"",
+13.02,
+59.0
+],
+[
+"complete",
+8.45,
+0,
+1,
+"",
+11.73,
+6.5
+],
+[
+"accept",
+21.85,
+1,
+2,
+"",
+9.02,
+178.5
+],
+[
+"complete",
+26.0,
+1,
+2,
+"",
+9.26,
+140.3
+]
+],
+"samples": [],
+"stop_events": [
+38.9,
+57.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2150,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 73.89999999999795,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 5.09979148382638,
+"min_ttc": 7.338107632091236,
+"lane_change_times": [
+41.05
+],
+"events": [
+[
+"accept",
+37.3,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+41.05,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.5,
+75.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2151,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 52.59999999999702,
+"t_merge": 52.59999999999702,
+"lane_end_stops": 1,
+"stop_time": 28.55000000000027,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 12.374354608922985,
+"min_ttc": 4.8890258681221,
+"lane_change_times": [
+40.85,
+46.7,
+52.55
+],
+"events": [
+[
+"accept",
+37.1,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+40.85,
+0,
+1,
+"",
+6.07,
+8.0
+],
+[
+"accept",
+42.55,
+1,
+2,
+"",
+6.08,
+296.1
+],
+[
+"complete",
+46.7,
+1,
+2,
+"",
+7.11,
+270.2
+],
+[
+"accept",
+48.4,
+2,
+3,
+"",
+11.97,
+268.2
+],
+[
+"complete",
+52.55,
+2,
+3,
+"",
+17.11,
+197.9
+]
+],
+"samples": [],
+"stop_events": [
+8.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2152,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 32.44999999999816,
+"t_merge": 32.44999999999816,
+"lane_end_stops": 1,
+"stop_time": 4.6499999999999915,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 12.729731569731484,
+"min_ttc": 2.355306433075441,
+"lane_change_times": [
+17.55,
+26.55,
+32.4
+],
+"events": [
+[
+"accept",
+6.7,
+0,
+1,
+"",
+4.93,
+29.9
+],
+[
+"abort",
+7.35,
+0,
+1,
+"rear_intrusion id=126 g=73.7 c=8.9 T=10.00 esc=1 id=126 g=73.7 c=8.9 T=10.00 esc=1",
+5.59,
+26.6
+],
+[
+"accept",
+13.8,
+0,
+1,
+"",
+0.0,
+20.4
+],
+[
+"complete",
+17.55,
+0,
+1,
+"",
+7.99,
+4.7
+],
+[
+"accept",
+22.4,
+1,
+2,
+"",
+3.49,
+269.6
+],
+[
+"complete",
+26.55,
+1,
+2,
+"",
+0.92,
+263.1
+],
+[
+"accept",
+28.25,
+2,
+3,
+"",
+5.53,
+272.0
+],
+[
+"complete",
+32.4,
+2,
+3,
+"",
+17.98,
+223.2
+]
+],
+"samples": [],
+"stop_events": [
+9.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2153,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 89.04999999999708,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 4.1745658061070685,
+"min_ttc": 2.022615538359541,
+"lane_change_times": [
+16.75
+],
+"events": [
+[
+"accept",
+7.05,
+0,
+1,
+"",
+5.05,
+30.1
+],
+[
+"abort",
+7.7,
+0,
+1,
+"rear_intrusion id=126 g=97.1 c=14.8 T=10.00 esc=1 id=126 g=97.1 c=14.8 T=10.00 esc=1",
+5.68,
+26.8
+],
+[
+"accept",
+13.0,
+0,
+1,
+"",
+0.0,
+20.5
+],
+[
+"complete",
+16.75,
+0,
+1,
+"",
+8.03,
+4.7
+]
+],
+"samples": [],
+"stop_events": [
+9.8,
+34.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2154,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 58.099999999998836,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 3.759649074804031,
+"min_ttc": 1.8328755555312266,
+"lane_change_times": [
+18.2,
+47.95
+],
+"events": [
+[
+"accept",
+14.45,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+18.2,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+43.8,
+1,
+2,
+"",
+8.26,
+192.2
+],
+[
+"complete",
+47.95,
+1,
+2,
+"",
+10.46,
+153.1
+],
+[
+"accept",
+91.2,
+2,
+3,
+"",
+0.0,
+21.9
+],
+[
+"abort",
+93.5,
+2,
+3,
+"rear_emergency id=134 g=10.6 c=15.0 T=1.95 esc=0",
+5.75,
+14.9
+]
+],
+"samples": [],
+"stop_events": [
+9.1,
+63.55,
+95.55
+],
+"min_sep": 1.6023026958328277,
+"near_lat_ticks": 0
+},
+{
+"seed": 2155,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 25.899999999998535,
+"t_merge": 25.899999999998535,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 17.62590428032965,
+"min_ttc": 7.216175362783419,
+"lane_change_times": [
+11.8,
+20.0,
+25.85
+],
+"events": [
+[
+"accept",
+7.65,
+0,
+1,
+"",
+5.41,
+30.9
+],
+[
+"complete",
+11.8,
+0,
+1,
+"",
+10.04,
+1.9
+],
+[
+"accept",
+15.85,
+1,
+2,
+"",
+11.29,
+248.3
+],
+[
+"complete",
+20.0,
+1,
+2,
+"",
+11.41,
+204.4
+],
+[
+"accept",
+21.7,
+2,
+3,
+"",
+11.65,
+197.7
+],
+[
+"complete",
+25.85,
+2,
+3,
+"",
+7.39,
+158.1
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2156,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 80.24999999999758,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.2113249317663417,
+"min_ttc": 1.852629343027463,
+"lane_change_times": [
+11.4
+],
+"events": [
+[
+"accept",
+7.25,
+0,
+1,
+"",
+3.95,
+28.1
+],
+[
+"complete",
+11.4,
+0,
+1,
+"",
+9.67,
+1.9
+]
+],
+"samples": [],
+"stop_events": [
+39.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2157,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 72.69999999999801,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.3904138549162894,
+"min_ttc": 2.0530968050508687,
+"lane_change_times": [
+13.45,
+102.1
+],
+"events": [
+[
+"accept",
+9.7,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+13.45,
+0,
+1,
+"",
+10.03,
+5.9
+],
+[
+"accept",
+98.35,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+102.1,
+1,
+2,
+"",
+3.9,
+11.2
+]
+],
+"samples": [],
+"stop_events": [
+8.8,
+43.5,
+103.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2158,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 80.09999999999759,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.2307089013994528,
+"min_ttc": 2.154006216754056,
+"lane_change_times": [
+5.8,
+12.25
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+16.73,
+89.7
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+21.09,
+3.7
+],
+[
+"accept",
+8.1,
+1,
+2,
+"",
+14.29,
+261.4
+],
+[
+"complete",
+12.25,
+1,
+2,
+"",
+10.77,
+215.7
+]
+],
+"samples": [],
+"stop_events": [
+34.35,
+86.15
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2159,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 83.94999999999737,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.753898249073302,
+"min_ttc": 2.003108041472297,
+"lane_change_times": [
+17.7
+],
+"events": [
+[
+"accept",
+13.95,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+17.7,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.35,
+41.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2160,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 113.25000000000216,
+"t_merge": 113.25000000000216,
+"lane_end_stops": 3,
+"stop_time": 66.74999999999835,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 2.0415444443700608,
+"min_ttc": 1.3984718976950763,
+"lane_change_times": [
+10.45,
+57.85,
+113.2
+],
+"events": [
+[
+"accept",
+6.3,
+0,
+1,
+"",
+6.95,
+34.7
+],
+[
+"complete",
+10.45,
+0,
+1,
+"",
+10.75,
+1.9
+],
+[
+"accept",
+54.1,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+57.85,
+1,
+2,
+"",
+1.31,
+12.8
+],
+[
+"accept",
+109.45,
+2,
+3,
+"",
+0.0,
+24.5
+],
+[
+"complete",
+113.2,
+2,
+3,
+"",
+9.39,
+5.8
+]
+],
+"samples": [],
+"stop_events": [
+37.65,
+58.55,
+72.85
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2161,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 52.899999999997,
+"t_merge": 52.899999999997,
+"lane_end_stops": 1,
+"stop_time": 26.600000000000243,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 7.827652042260226,
+"min_ttc": 4.36947387501595,
+"lane_change_times": [
+38.45,
+47.0,
+52.85
+],
+"events": [
+[
+"accept",
+34.7,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+38.45,
+0,
+1,
+"",
+3.62,
+11.1
+],
+[
+"accept",
+42.85,
+1,
+2,
+"",
+3.0,
+299.0
+],
+[
+"complete",
+47.0,
+1,
+2,
+"",
+6.5,
+279.5
+],
+[
+"accept",
+48.7,
+2,
+3,
+"",
+11.1,
+278.9
+],
+[
+"complete",
+52.85,
+2,
+3,
+"",
+18.59,
+209.9
+]
+],
+"samples": [],
+"stop_events": [
+8.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2162,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 77.64999999999773,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 14.463419941335019,
+"min_ttc": 2.9358729191988027,
+"lane_change_times": [
+13.25
+],
+"events": [
+[
+"accept",
+9.5,
+0,
+1,
+"",
+0.03,
+25.0
+],
+[
+"complete",
+13.25,
+0,
+1,
+"",
+10.38,
+6.4
+],
+[
+"accept",
+47.45,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+48.7,
+1,
+2,
+"rear_intrusion id=134 g=25.9 c=15.0 T=5.03 esc=0 id=134 g=25.9 c=15.0 T=5.03 esc=0",
+3.45,
+23.0
+]
+],
+"samples": [],
+"stop_events": [
+9.35,
+40.2,
+50.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2163,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 105.80000000000047,
+"t_merge": 105.80000000000047,
+"lane_end_stops": 2,
+"stop_time": 67.39999999999831,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 2.381683672584245,
+"min_ttc": 1.249215785511713,
+"lane_change_times": [
+10.3,
+39.95,
+105.75
+],
+"events": [
+[
+"accept",
+6.15,
+0,
+1,
+"",
+5.08,
+37.8
+],
+[
+"complete",
+10.3,
+0,
+1,
+"",
+12.64,
+2.0
+],
+[
+"accept",
+36.2,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+39.95,
+1,
+2,
+"",
+1.66,
+12.2
+],
+[
+"accept",
+102.0,
+2,
+3,
+"",
+0.0,
+24.7
+],
+[
+"complete",
+105.75,
+2,
+3,
+"",
+9.97,
+5.8
+]
+],
+"samples": [],
+"stop_events": [
+30.6,
+40.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2164,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 52.74999999999701,
+"t_merge": 52.74999999999701,
+"lane_end_stops": 1,
+"stop_time": 28.40000000000027,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 17.191965362349606,
+"min_ttc": 5.849282753677976,
+"lane_change_times": [
+41.0,
+46.85,
+52.7
+],
+"events": [
+[
+"accept",
+37.25,
+0,
+1,
+"",
+0.09,
+25.0
+],
+[
+"complete",
+41.0,
+0,
+1,
+"",
+8.66,
+5.9
+],
+[
+"accept",
+42.7,
+1,
+2,
+"",
+7.68,
+291.3
+],
+[
+"complete",
+46.85,
+1,
+2,
+"",
+9.05,
+254.6
+],
+[
+"accept",
+48.55,
+2,
+3,
+"",
+13.68,
+249.7
+],
+[
+"complete",
+52.7,
+2,
+3,
+"",
+19.69,
+171.0
+]
+],
+"samples": [],
+"stop_events": [
+9.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2165,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 60.44999999999657,
+"t_merge": 60.44999999999657,
+"lane_end_stops": 1,
+"stop_time": 26.050000000000235,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 17.06645321430912,
+"min_ttc": 2.9971874460066066,
+"lane_change_times": [
+40.15,
+51.5,
+60.4
+],
+"events": [
+[
+"accept",
+8.2,
+0,
+1,
+"",
+1.75,
+25.6
+],
+[
+"abort",
+8.85,
+0,
+1,
+"rear_intrusion id=123 g=95.2 c=9.0 T=10.00 esc=1 id=123 g=95.2 c=9.0 T=10.00 esc=1",
+2.57,
+24.4
+],
+[
+"accept",
+36.4,
+0,
+1,
+"",
+0.0,
+21.2
+],
+[
+"complete",
+40.15,
+0,
+1,
+"",
+8.34,
+4.9
+],
+[
+"accept",
+47.35,
+1,
+2,
+"",
+5.35,
+232.5
+],
+[
+"complete",
+51.5,
+1,
+2,
+"",
+2.37,
+218.5
+],
+[
+"accept",
+56.25,
+2,
+3,
+"",
+10.97,
+197.9
+],
+[
+"complete",
+60.4,
+2,
+3,
+"",
+13.68,
+135.6
+]
+],
+"samples": [],
+"stop_events": [
+10.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2166,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 91.84999999999692,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.4915891854313372,
+"min_ttc": 1.922431422497115,
+"lane_change_times": [
+5.8
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+15.81,
+104.1
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+20.23,
+20.2
+]
+],
+"samples": [],
+"stop_events": [
+28.2
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2167,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 52.849999999997,
+"t_merge": 52.849999999997,
+"lane_end_stops": 1,
+"stop_time": 29.000000000000277,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 8.087114600822474,
+"min_ttc": 2.7946129924085032,
+"lane_change_times": [
+41.1,
+46.95,
+52.8
+],
+"events": [
+[
+"accept",
+37.35,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+41.1,
+0,
+1,
+"",
+8.88,
+6.2
+],
+[
+"accept",
+42.8,
+1,
+2,
+"",
+7.65,
+291.7
+],
+[
+"complete",
+46.95,
+1,
+2,
+"",
+2.49,
+269.0
+],
+[
+"accept",
+48.65,
+2,
+3,
+"",
+6.97,
+275.5
+],
+[
+"complete",
+52.8,
+2,
+3,
+"",
+16.62,
+222.4
+]
+],
+"samples": [],
+"stop_events": [
+8.65
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2168,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 27.649999999998435,
+"t_merge": 27.649999999998435,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 12.834418342517495,
+"min_ttc": 5.135075074782824,
+"lane_change_times": [
+9.45,
+21.75,
+27.6
+],
+"events": [
+[
+"accept",
+5.3,
+0,
+1,
+"",
+10.49,
+47.2
+],
+[
+"complete",
+9.45,
+0,
+1,
+"",
+11.25,
+2.6
+],
+[
+"accept",
+17.6,
+1,
+2,
+"",
+6.64,
+244.7
+],
+[
+"complete",
+21.75,
+1,
+2,
+"",
+4.76,
+215.3
+],
+[
+"accept",
+23.45,
+2,
+3,
+"",
+8.89,
+218.4
+],
+[
+"complete",
+27.6,
+2,
+3,
+"",
+6.63,
+177.6
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2169,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 71.39999999999809,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.899408401106541,
+"min_ttc": 2.1277385167140577,
+"lane_change_times": [
+11.8
+],
+"events": [
+[
+"accept",
+7.65,
+0,
+1,
+"",
+3.31,
+27.2
+],
+[
+"complete",
+11.8,
+0,
+1,
+"",
+8.34,
+2.2
+],
+[
+"accept",
+114.55,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+116.9,
+1,
+2,
+"rear_emergency id=116 g=10.6 c=15.0 T=1.88 esc=0",
+5.27,
+17.8
+]
+],
+"samples": [],
+"stop_events": [
+44.75,
+118.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2170,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 83.29999999999535,
+"t_merge": 83.29999999999535,
+"lane_end_stops": 1,
+"stop_time": 32.85000000000027,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 4.931459966091751,
+"min_ttc": 2.7373550546257945,
+"lane_change_times": [
+26.3,
+77.4,
+83.25
+],
+"events": [
+[
+"accept",
+4.15,
+0,
+1,
+"",
+13.56,
+62.2
+],
+[
+"abort",
+4.8,
+0,
+1,
+"rear_intrusion id=127 g=48.7 c=5.6 T=10.00 esc=1 id=127 g=48.7 c=5.6 T=10.00 esc=1",
+13.8,
+53.4
+],
+[
+"accept",
+22.55,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+26.3,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+73.25,
+1,
+2,
+"",
+3.66,
+169.9
+],
+[
+"complete",
+77.4,
+1,
+2,
+"",
+5.66,
+149.5
+],
+[
+"accept",
+79.1,
+2,
+3,
+"",
+8.53,
+150.6
+],
+[
+"complete",
+83.25,
+2,
+3,
+"",
+4.9,
+123.1
+]
+],
+"samples": [],
+"stop_events": [
+9.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2171,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 30.949999999998248,
+"t_merge": 30.949999999998248,
+"lane_end_stops": 1,
+"stop_time": 3.649999999999995,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 19.43321289332738,
+"min_ttc": 7.979111041569624,
+"lane_change_times": [
+15.9,
+25.05,
+30.9
+],
+"events": [
+[
+"accept",
+12.15,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+15.9,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+20.9,
+1,
+2,
+"",
+10.82,
+240.3
+],
+[
+"complete",
+25.05,
+1,
+2,
+"",
+8.72,
+200.5
+],
+[
+"accept",
+26.75,
+2,
+3,
+"",
+13.2,
+196.4
+],
+[
+"complete",
+30.9,
+2,
+3,
+"",
+14.15,
+131.1
+]
+],
+"samples": [],
+"stop_events": [
+8.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2172,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 68.09999999999827,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.189297484393592,
+"min_ttc": 2.0660354025913445,
+"lane_change_times": [
+30.75,
+37.85
+],
+"events": [
+[
+"accept",
+27.0,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+30.75,
+0,
+1,
+"",
+8.87,
+6.2
+],
+[
+"accept",
+33.7,
+1,
+2,
+"",
+11.21,
+279.8
+],
+[
+"complete",
+37.85,
+1,
+2,
+"",
+12.13,
+231.9
+]
+],
+"samples": [],
+"stop_events": [
+9.2,
+66.95,
+72.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2173,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 92.54999999999688,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.33419709541937,
+"min_ttc": 2.09688421530899,
+"lane_change_times": [
+10.45
+],
+"events": [
+[
+"accept",
+6.3,
+0,
+1,
+"",
+6.19,
+32.7
+],
+[
+"complete",
+10.45,
+0,
+1,
+"",
+10.36,
+1.9
+]
+],
+"samples": [],
+"stop_events": [
+27.5
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2174,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 65.74999999999628,
+"t_merge": 65.74999999999628,
+"lane_end_stops": 1,
+"stop_time": 34.60000000000017,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 21.157789471554224,
+"min_ttc": 6.126636113759667,
+"lane_change_times": [
+46.5,
+52.35,
+65.7
+],
+"events": [
+[
+"accept",
+42.75,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+46.5,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+48.2,
+1,
+2,
+"",
+8.22,
+288.5
+],
+[
+"complete",
+52.35,
+1,
+2,
+"",
+17.41,
+230.8
+],
+[
+"accept",
+61.55,
+2,
+3,
+"",
+7.06,
+127.8
+],
+[
+"complete",
+65.7,
+2,
+3,
+"",
+3.91,
+105.7
+]
+],
+"samples": [],
+"stop_events": [
+8.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2175,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 92.2999999999969,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.873253618235026,
+"min_ttc": 2.0176969982667403,
+"lane_change_times": [
+5.8,
+25.75
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+18.51,
+98.0
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.88,
+3.9
+],
+[
+"accept",
+22.0,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+25.75,
+1,
+2,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+21.5,
+28.55
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2176,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 4,
+"stop_time": 64.59999999999847,
+"aborts": 1,
+"accepts": 2,
+"min_gap": 3.57000218809668,
+"min_ttc": 2.200887394091657,
+"lane_change_times": [
+31.75
+],
+"events": [
+[
+"accept",
+28.0,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+31.75,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+104.15,
+1,
+2,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+106.4,
+1,
+2,
+"rear_emergency id=135 g=10.4 c=15.0 T=2.03 esc=0",
+6.43,
+18.1
+]
+],
+"samples": [],
+"stop_events": [
+9.0,
+68.5,
+86.2,
+108.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2177,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 69.94999999999817,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 3.37705400327377,
+"min_ttc": 2.0149491352514795,
+"lane_change_times": [
+34.55,
+50.25
+],
+"events": [
+[
+"accept",
+12.15,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+13.2,
+0,
+1,
+"rear_intrusion id=128 g=66.6 c=5.9 T=9.75 esc=1 id=128 g=66.6 c=5.9 T=9.75 esc=1 id=130 g=105.2 c=11.6 T=9.75 esc=1",
+2.85,
+23.6
+],
+[
+"accept",
+30.8,
+0,
+1,
+"",
+0.0,
+17.1
+],
+[
+"complete",
+34.55,
+0,
+1,
+"",
+6.7,
+4.0
+],
+[
+"accept",
+46.1,
+1,
+2,
+"",
+2.35,
+177.5
+],
+[
+"complete",
+50.25,
+1,
+2,
+"",
+0.91,
+172.5
+]
+],
+"samples": [],
+"stop_events": [
+9.25,
+17.05,
+67.35
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2178,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 37.849999999997856,
+"t_merge": 37.849999999997856,
+"lane_end_stops": 1,
+"stop_time": 5.299999999999989,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 15.671329056838402,
+"min_ttc": 5.823629718269654,
+"lane_change_times": [
+18.35,
+31.95,
+37.8
+],
+"events": [
+[
+"accept",
+14.6,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+18.35,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+27.8,
+1,
+2,
+"",
+9.02,
+208.0
+],
+[
+"complete",
+31.95,
+1,
+2,
+"",
+7.07,
+173.7
+],
+[
+"accept",
+33.65,
+2,
+3,
+"",
+11.62,
+172.2
+],
+[
+"complete",
+37.8,
+2,
+3,
+"",
+7.81,
+127.9
+]
+],
+"samples": [],
+"stop_events": [
+9.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2179,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 22.44999999999873,
+"t_merge": 22.44999999999873,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 13.570386183126459,
+"min_ttc": 27.650437647011,
+"lane_change_times": [
+6.05,
+14.1,
+22.4
+],
+"events": [
+[
+"accept",
+1.9,
+0,
+1,
+"",
+18.74,
+100.7
+],
+[
+"complete",
+6.05,
+0,
+1,
+"",
+24.96,
+5.0
+],
+[
+"accept",
+9.95,
+1,
+2,
+"",
+25.0,
+205.2
+],
+[
+"complete",
+14.1,
+1,
+2,
+"",
+25.0,
+101.5
+],
+[
+"accept",
+18.25,
+2,
+3,
+"",
+10.29,
+46.1
+],
+[
+"complete",
+22.4,
+2,
+3,
+"",
+13.35,
+2.0
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2180,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 73.94999999999794,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.558238030386974,
+"min_ttc": 3.8948829236161813,
+"lane_change_times": [
+68.5,
+74.35
+],
+"events": [
+[
+"accept",
+64.75,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+68.5,
+0,
+1,
+"",
+10.09,
+5.9
+],
+[
+"accept",
+70.2,
+1,
+2,
+"",
+8.13,
+288.9
+],
+[
+"complete",
+74.35,
+1,
+2,
+"",
+9.11,
+247.8
+]
+],
+"samples": [],
+"stop_events": [
+9.4,
+101.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2181,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 57.24999999999675,
+"t_merge": 57.24999999999675,
+"lane_end_stops": 1,
+"stop_time": 22.650000000000187,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 12.093073377190564,
+"min_ttc": 4.30387754421715,
+"lane_change_times": [
+35.15,
+51.35,
+57.2
+],
+"events": [
+[
+"accept",
+31.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+35.15,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+47.2,
+1,
+2,
+"",
+7.02,
+184.6
+],
+[
+"complete",
+51.35,
+1,
+2,
+"",
+11.77,
+138.1
+],
+[
+"accept",
+53.05,
+2,
+3,
+"",
+9.4,
+134.0
+],
+[
+"complete",
+57.2,
+2,
+3,
+"",
+3.08,
+108.3
+]
+],
+"samples": [],
+"stop_events": [
+9.05
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2182,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 80.34999999999758,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.576174289384994,
+"min_ttc": 1.95266106065612,
+"lane_change_times": [
+36.8
+],
+"events": [
+[
+"accept",
+33.05,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+36.8,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+8.6,
+64.45
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2183,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 60.64999999999869,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 3.8688163724524713,
+"min_ttc": 2.0532881720592484,
+"lane_change_times": [
+26.15,
+55.8
+],
+"events": [
+[
+"accept",
+22.4,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+26.15,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+51.65,
+1,
+2,
+"",
+4.86,
+178.7
+],
+[
+"complete",
+55.8,
+1,
+2,
+"",
+7.47,
+151.8
+]
+],
+"samples": [],
+"stop_events": [
+9.45,
+74.7,
+100.95
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2184,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 68.9499999999961,
+"t_merge": 68.9499999999961,
+"lane_end_stops": 2,
+"stop_time": 38.49999999999995,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 20.753377330591135,
+"min_ttc": 5.946394227091258,
+"lane_change_times": [
+53.4,
+59.8,
+68.9
+],
+"events": [
+[
+"accept",
+28.05,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"abort",
+29.1,
+0,
+1,
+"rear_intrusion id=131 g=63.5 c=8.3 T=9.75 esc=1 id=131 g=63.5 c=8.3 T=9.75 esc=1",
+2.85,
+23.6
+],
+[
+"accept",
+49.65,
+0,
+1,
+"",
+0.0,
+20.3
+],
+[
+"complete",
+53.4,
+0,
+1,
+"",
+7.95,
+4.6
+],
+[
+"accept",
+55.65,
+1,
+2,
+"",
+9.38,
+285.0
+],
+[
+"complete",
+59.8,
+1,
+2,
+"",
+10.1,
+235.4
+],
+[
+"accept",
+64.75,
+2,
+3,
+"",
+5.94,
+216.5
+],
+[
+"complete",
+68.9,
+2,
+3,
+"",
+4.74,
+194.4
+]
+],
+"samples": [],
+"stop_events": [
+9.05,
+30.75
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2185,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 53.04999999999699,
+"t_merge": 53.04999999999699,
+"lane_end_stops": 1,
+"stop_time": 29.000000000000277,
+"aborts": 1,
+"accepts": 4,
+"min_gap": 8.257345509934325,
+"min_ttc": 2.4165757797659584,
+"lane_change_times": [
+41.3,
+47.15,
+53.0
+],
+"events": [
+[
+"accept",
+8.5,
+0,
+1,
+"",
+1.6,
+25.5
+],
+[
+"abort",
+9.15,
+0,
+1,
+"rear_intrusion id=121 g=45.9 c=5.6 T=10.00 esc=1 id=121 g=45.9 c=5.6 T=10.00 esc=1 id=125 g=92.8 c=9.9 T=10.00 esc=1",
+2.43,
+24.4
+],
+[
+"accept",
+37.55,
+0,
+1,
+"",
+0.0,
+21.6
+],
+[
+"complete",
+41.3,
+0,
+1,
+"",
+3.72,
+7.7
+],
+[
+"accept",
+43.0,
+1,
+2,
+"",
+1.29,
+300.9
+],
+[
+"complete",
+47.15,
+1,
+2,
+"",
+0.39,
+298.5
+],
+[
+"accept",
+48.85,
+2,
+3,
+"",
+5.02,
+308.2
+],
+[
+"complete",
+53.0,
+2,
+3,
+"",
+17.47,
+261.6
+]
+],
+"samples": [],
+"stop_events": [
+10.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2186,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 80.24999999999758,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.23436530833834,
+"min_ttc": 2.022544843285616,
+"lane_change_times": [
+9.25
+],
+"events": [
+[
+"accept",
+5.1,
+0,
+1,
+"",
+10.85,
+48.8
+],
+[
+"complete",
+9.25,
+0,
+1,
+"",
+12.74,
+2.3
+]
+],
+"samples": [],
+"stop_events": [
+39.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2187,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 72.64999999999802,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 1.1712414778957623,
+"min_ttc": 0.994530291074817,
+"lane_change_times": [
+6.35,
+42.4
+],
+"events": [
+[
+"accept",
+2.2,
+0,
+1,
+"",
+17.53,
+98.4
+],
+[
+"complete",
+6.35,
+0,
+1,
+"",
+21.22,
+8.4
+],
+[
+"accept",
+38.65,
+1,
+2,
+"",
+0.17,
+25.0
+],
+[
+"complete",
+42.4,
+1,
+2,
+"",
+3.47,
+12.3
+],
+[
+"accept",
+104.35,
+2,
+3,
+"",
+0.0,
+24.0
+],
+[
+"abort",
+106.7,
+2,
+3,
+"rear_emergency id=132 g=11.2 c=15.0 T=1.88 esc=0",
+6.43,
+16.4
+]
+],
+"samples": [],
+"stop_events": [
+38.55,
+43.75,
+108.9
+],
+"min_sep": 1.1712414778957623,
+"near_lat_ticks": 0
+},
+{
+"seed": 2188,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 60.4499999999987,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.07791659006773,
+"min_ttc": 2.780843058407268,
+"lane_change_times": [
+9.0,
+25.9
+],
+"events": [
+[
+"accept",
+4.85,
+0,
+1,
+"",
+12.2,
+54.9
+],
+[
+"complete",
+9.0,
+0,
+1,
+"",
+12.32,
+4.5
+],
+[
+"accept",
+21.75,
+1,
+2,
+"",
+9.86,
+169.8
+],
+[
+"complete",
+25.9,
+1,
+2,
+"",
+9.91,
+129.0
+]
+],
+"samples": [],
+"stop_events": [
+43.7,
+74.65,
+81.4
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2189,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 18.699999999998937,
+"t_merge": 18.699999999998937,
+"lane_end_stops": 0,
+"stop_time": 0.0,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 27.821900469714542,
+"min_ttc": 4.503271796450695,
+"lane_change_times": [
+5.8,
+12.8,
+18.65
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+16.66,
+100.4
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.9,
+8.9
+],
+[
+"accept",
+8.65,
+1,
+2,
+"",
+17.68,
+245.6
+],
+[
+"complete",
+12.8,
+1,
+2,
+"",
+7.09,
+195.1
+],
+[
+"accept",
+14.5,
+2,
+3,
+"",
+11.11,
+194.4
+],
+[
+"complete",
+18.65,
+2,
+3,
+"",
+16.47,
+128.8
+]
+],
+"samples": [],
+"stop_events": [],
+"min_sep": 2.2013964500000007,
+"near_lat_ticks": 0
+},
+{
+"seed": 2190,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 68.14999999999827,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 4.048779506252515,
+"min_ttc": 3.3554523056238517,
+"lane_change_times": [
+32.8
+],
+"events": [
+[
+"accept",
+29.05,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+32.8,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.05,
+67.25,
+74.3
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2191,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 85.44999999999729,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.436531806736582,
+"min_ttc": 1.9190158398001251,
+"lane_change_times": [
+18.95
+],
+"events": [
+[
+"accept",
+15.2,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+18.95,
+0,
+1,
+"",
+10.12,
+5.9
+]
+],
+"samples": [],
+"stop_events": [
+9.5,
+40.6
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2192,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 66.64999999999836,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 3.7958111169505173,
+"min_ttc": 2.4779578691327293,
+"lane_change_times": [
+19.25,
+38.75
+],
+"events": [
+[
+"accept",
+15.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+19.25,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+34.6,
+1,
+2,
+"",
+7.64,
+133.3
+],
+[
+"complete",
+38.75,
+1,
+2,
+"",
+3.15,
+108.0
+],
+[
+"accept",
+72.75,
+2,
+3,
+"",
+0.0,
+24.4
+],
+[
+"abort",
+75.2,
+2,
+3,
+"rear_emergency id=126 g=11.6 c=15.0 T=1.73 esc=0",
+6.72,
+16.2
+]
+],
+"samples": [],
+"stop_events": [
+9.55,
+55.25,
+77.45
+],
+"min_sep": 1.6031419615753517,
+"near_lat_ticks": 0
+},
+{
+"seed": 2193,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 44.0999999999975,
+"t_merge": 44.0999999999975,
+"lane_end_stops": 1,
+"stop_time": 15.10000000000008,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 16.57439744020678,
+"min_ttc": 2.3847280196827816,
+"lane_change_times": [
+27.2,
+33.05,
+44.05
+],
+"events": [
+[
+"accept",
+23.45,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+27.2,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+28.9,
+1,
+2,
+"",
+8.22,
+288.5
+],
+[
+"complete",
+33.05,
+1,
+2,
+"",
+15.77,
+232.4
+],
+[
+"accept",
+39.9,
+2,
+3,
+"",
+4.63,
+119.0
+],
+[
+"complete",
+44.05,
+2,
+3,
+"",
+5.69,
+101.9
+]
+],
+"samples": [],
+"stop_events": [
+8.65
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2194,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 65.8499999999984,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 3.1382546398360205,
+"min_ttc": 1.844661703301461,
+"lane_change_times": [
+37.25
+],
+"events": [
+[
+"accept",
+33.5,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+37.25,
+0,
+1,
+"",
+8.86,
+6.2
+]
+],
+"samples": [],
+"stop_events": [
+8.9,
+79.1
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2195,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 44.24999999999749,
+"t_merge": 44.24999999999749,
+"lane_end_stops": 1,
+"stop_time": 7.499999999999981,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 9.69925731079752,
+"min_ttc": 5.044601720612399,
+"lane_change_times": [
+19.65,
+37.95,
+44.2
+],
+"events": [
+[
+"accept",
+15.9,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+19.65,
+0,
+1,
+"",
+10.12,
+5.9
+],
+[
+"accept",
+33.8,
+1,
+2,
+"",
+6.38,
+178.6
+],
+[
+"complete",
+37.95,
+1,
+2,
+"",
+5.03,
+156.1
+],
+[
+"accept",
+40.05,
+2,
+3,
+"",
+10.65,
+153.7
+],
+[
+"complete",
+44.2,
+2,
+3,
+"",
+6.85,
+116.0
+]
+],
+"samples": [],
+"stop_events": [
+8.7
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2196,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 1,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 1,
+"stop_time": 86.24999999999724,
+"aborts": 0,
+"accepts": 1,
+"min_gap": 2.862500049344362,
+"min_ttc": 1.7919302734592457,
+"lane_change_times": [
+8.15
+],
+"events": [
+[
+"accept",
+4.0,
+0,
+1,
+"",
+11.45,
+51.3
+],
+[
+"complete",
+8.15,
+0,
+1,
+"",
+14.55,
+2.1
+]
+],
+"samples": [],
+"stop_events": [
+33.8
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2197,
+"planner": "baseline",
+"success": true,
+"collision": false,
+"final_lane": 3,
+"t_end": 96.99999999999847,
+"t_merge": 96.99999999999847,
+"lane_end_stops": 1,
+"stop_time": 65.49999999999842,
+"aborts": 0,
+"accepts": 3,
+"min_gap": 3.165461910206318,
+"min_ttc": 1.8907841976987185,
+"lane_change_times": [
+5.8,
+11.65,
+96.95
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+18.05,
+92.4
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+24.61,
+2.8
+],
+[
+"accept",
+7.5,
+1,
+2,
+"",
+19.56,
+261.8
+],
+[
+"complete",
+11.65,
+1,
+2,
+"",
+9.48,
+204.1
+],
+[
+"accept",
+93.2,
+2,
+3,
+"",
+0.0,
+23.1
+],
+[
+"complete",
+96.95,
+2,
+3,
+"",
+9.18,
+5.3
+]
+],
+"samples": [],
+"stop_events": [
+28.0
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2198,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 3,
+"stop_time": 54.19999999999906,
+"aborts": 0,
+"accepts": 2,
+"min_gap": 4.2655879866032365,
+"min_ttc": 3.486221526829851,
+"lane_change_times": [
+37.1,
+53.75
+],
+"events": [
+[
+"accept",
+33.35,
+0,
+1,
+"",
+0.0,
+25.0
+],
+[
+"complete",
+37.1,
+0,
+1,
+"",
+9.95,
+6.0
+],
+[
+"accept",
+49.6,
+1,
+2,
+"",
+3.96,
+220.7
+],
+[
+"complete",
+53.75,
+1,
+2,
+"",
+1.71,
+209.3
+]
+],
+"samples": [],
+"stop_events": [
+8.55,
+84.05,
+113.25
+],
+"min_sep": 1.604,
+"near_lat_ticks": 0
+},
+{
+"seed": 2199,
+"planner": "baseline",
+"success": false,
+"collision": false,
+"final_lane": 2,
+"t_end": 120.0000000000037,
+"t_merge": NaN,
+"lane_end_stops": 2,
+"stop_time": 86.64999999999722,
+"aborts": 1,
+"accepts": 3,
+"min_gap": 4.4298809444764515,
+"min_ttc": 2.0855755275235763,
+"lane_change_times": [
+5.8,
+27.3
+],
+"events": [
+[
+"accept",
+1.65,
+0,
+1,
+"",
+16.78,
+91.8
+],
+[
+"complete",
+5.8,
+0,
+1,
+"",
+22.52,
+6.9
+],
+[
+"accept",
+23.15,
+1,
+2,
+"",
+2.81,
+22.7
+],
+[
+"complete",
+27.3,
+1,
+2,
+"",
+7.84,
+1.7
+],
+[
+"accept",
+68.2,
+2,
+3,
+"",
+0.09,
+5.4
+],
+[
+"abort",
+70.6,
+2,
+3,
+"rear_emergency id=127 g=9.2 c=15.0 T=1.80 esc=0",
+2.93,
+0.1
+]
+],
+"samples": [],
+"stop_events": [
+29.85,
+71.95
+],
+"min_sep": 1.3754520351443311,
+"near_lat_ticks": 0
+}
+]
+}

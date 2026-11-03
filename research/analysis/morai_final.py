@@ -9,6 +9,7 @@
 접촉 분류(MORAI /CollisionData, 자차와 0.3 m 이내):
   during_ego_lane_change      자차 차선 변경 중 (판단 로직 책임)
   ego_lane_keeping            자차가 움직이며 차선 유지 중
+  npc_side_merge              그중 NPC 가 옆 차선에서 1 s 동안 0.25 m 이상 다가온 접촉(차선 끝 강제 합류)
   npc_contact_ego_stationary  자차 정지(차선 끝 대기) 중 NPC 가 피하다 접촉
   npc_cut_in_after_merge      합류 완료 뒤 NPC(차선 끝 강제 합류)가 끼어듦
 """
@@ -48,6 +49,54 @@ def contacts_with_speed(r):
         return cs
 
 
+def lateral_approach(tag, uid, tc):
+    """접촉 1 s 전과 접촉 때 NPC 의 자차 기준 횡 위치(m). NPC 가 옆 차선에서 다가왔는지 본다."""
+    import bisect
+    import math
+    import numpy as np
+    import rosbag
+    sys.path.insert(0, str(HERE))
+    from contact_scene import npc_center
+    b = rosbag.Bag(str(BAGS / f"{tag}.bag"))
+    odom, comp, objs = [], [], []
+    for top, m, t in b.read_messages(topics=["/odom", "/Object_topic", "/Competition_topic"]):
+        ts = t.to_sec()
+        if top == "/odom":
+            q = m.pose.pose.orientation
+            odom.append((ts, m.pose.pose.position.x, m.pose.pose.position.y,
+                         math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))))
+        elif top == "/Competition_topic":
+            comp.append((ts, math.hypot(m.velocity.x, m.velocity.y)))
+        else:
+            for o in m.npc_list:
+                if o.unique_id == uid:
+                    objs.append((ts,) + npc_center(o)[:2])
+    b.close()
+    odom, comp = np.array(odom), np.array(comp)
+    t0 = comp[np.where(comp[:, 1] > 0.5)[0][0], 0]
+    ot = odom[:, 0]
+
+    def lat_at(trel):
+        best = min(objs, key=lambda r: abs(r[0] - t0 - trel))
+        i = min(bisect.bisect_left(ot, best[0]), len(ot) - 1)
+        _, ex, ey, eyaw = odom[i]
+        dx, dy = best[1] - ex, best[2] - ey
+        return -dx * math.sin(eyaw) + dy * math.cos(eyaw)
+    return lat_at(tc - 1.0), lat_at(tc)
+
+
+def refine_kind(r, c):
+    """자차가 움직이며 차선 유지 중인 접촉 → NPC 가 옆에서 1 s 동안 0.25 m 이상 다가왔으면 NPC 측면 합류."""
+    if c["kind"] != "ego_lane_keeping":
+        return c["kind"]
+    try:
+        before, now = lateral_approach(r["tag"], c["uid"], c["t"])
+    except Exception:
+        return c["kind"]
+    c["lat_before"], c["lat_now"] = round(before, 2), round(now, 2)
+    return "npc_side_merge" if abs(before) > 1.5 and abs(before) - abs(now) > 0.25 else c["kind"]
+
+
 def main():
     rows = {}
     for line in LOG.read_text().splitlines():
@@ -57,6 +106,8 @@ def main():
                 rows[r["tag"]] = r            # 같은 tag 가 여러 번이면 마지막
     for r in rows.values():
         r["contacts"] = contacts_with_speed(r)
+        for c in r["contacts"]:
+            c["kind"] = refine_kind(r, c)
     cell = collections.defaultdict(list)
     for r in rows.values():
         cell[(r["phase"] if r["phase"] != "C" else "C", r["scenario"].replace("research_", ""), r["method"])].append(r)
@@ -65,7 +116,7 @@ def main():
         k = collections.Counter(c["kind"] for r in rs for c in r["contacts"])
         return k
 
-    print("| 단계 | 시나리오 | 방법 | n | 성공 | 합류 시간 중앙값 (s) | 차선 끝 정지 | 정지 시간 (s) | abort | 최소 간격 (m) | 접촉: 차선 변경 중 / 주행 중 / 정지 중 / 합류 후 |")
+    print("| 단계 | 시나리오 | 방법 | n | 성공 | 합류 시간 중앙값 (s) | 차선 끝 정지 | 정지 시간 (s) | abort | 최소 간격 (m) | 접촉: 차선 변경 중 / 주행 중 / NPC 측면 합류 / 정지 중 / 합류 후 |")
     print("|---|---|---|---|---|---|---|---|---|---|---|")
     table = []
     for key in sorted(cell):
@@ -85,7 +136,7 @@ def main():
         tm = f"{row['t_merge_median']:.1f}" if ok else "–"
         print(f"| {ph} | {sc} | {m} | {len(rs)} | {len(ok)}/{len(rs)} | {tm} | {row['lane_end_stops_median']:.0f} | "
               f"{row['stop_time_median']:.1f} | {row['aborts_mean']:.1f} | {row['min_gap']:.2f} | "
-              f"{k['during_ego_lane_change']} / {k['ego_lane_keeping']} / {k['npc_contact_ego_stationary']} / "
+              f"{k['during_ego_lane_change']} / {k['ego_lane_keeping']} / {k['npc_side_merge']} / {k['npc_contact_ego_stationary']} / "
               f"{k['npc_cut_in_after_merge']} |")
 
     # 짝비교: 같은 (단계, 시나리오, 반복) 의 기존 vs 트리+게이트 정리
