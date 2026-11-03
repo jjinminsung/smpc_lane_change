@@ -36,6 +36,10 @@ class TargetSelectorNode {
     pnh_.param<std::string>("waypoint_directory", waypoint_directory_, "");
     pnh_.param<std::string>("target_source", target_source_, "tracked_objects");
     pnh_.param<std::string>("object_topic", object_topic_, "/Object_topic");
+    // /Object_topic 위치는 MORAI 시나리오 로컬 좌표다. /odom 과 차선 CSV 는 UTM 이므로
+    // 시나리오 mapInfo 의 east/north offset 을 더해야 차선에 배정된다(research 1단계 M4).
+    pnh_.param("object_topic_offset_x", object_offset_x_, 0.0);
+    pnh_.param("object_topic_offset_y", object_offset_y_, 0.0);
     pnh_.param<std::string>("tracked_objects_topic", tracked_objects_topic_, "/tracked_objects");
     pnh_.param<std::string>("odom_topic", odom_topic_, "/odom");
     pnh_.param<std::string>("state_topic", state_topic_, "/gps_state");
@@ -1014,8 +1018,8 @@ class TargetSelectorNode {
     for (const auto& npc : msg->npc_list) {
       CandidateObject obj;
       obj.id = npc.unique_id;
-      obj.x = npc.position.x;
-      obj.y = npc.position.y;
+      obj.x = npc.position.x + object_offset_x_;
+      obj.y = npc.position.y + object_offset_y_;
       obj.yaw = npc.heading * M_PI / 180.0;
       // MORAI ObjectStatus.msg documents velocity in km/h. x/y are vehicle-local longitudinal/lateral components.
       obj.velocity_in_map = false;
@@ -1414,6 +1418,8 @@ class TargetSelectorNode {
   ros::Subscriber object_sub_, tracked_objects_sub_, odom_sub_, state_sub_, status_sub_;
   ros::Publisher target_pub_, marker_pub_, csv_path_marker_pub_;
   std::string waypoint_directory_, target_source_, object_topic_, tracked_objects_topic_, odom_topic_, state_topic_;
+  double object_offset_x_{0.0};
+  double object_offset_y_{0.0};
   std::map<int, LanePath> lanes_;
   std::map<int, std::string> lane_csv_paths_;
   std::unordered_map<int, YawHistory> yaw_history_;

@@ -11,6 +11,7 @@
 
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/String.h>
 #include <waypoint_maker/Lane.h>
@@ -64,6 +65,9 @@ class LaneChangeSupervisor {
                motion_start_displacement_m_, 0.30);
     pnh_.param("motion_start_timeout_sec", motion_start_timeout_sec_, 0.0);
     pnh_.param("active_rear_guard_enabled", active_rear_guard_enabled_, false);
+    // 트리 플래너(research): smpc_decision 의 /smpc/tree_abort 를 따른다. 켜면 rear_abort 는 끈다.
+    pnh_.param("tree_abort_enabled", tree_abort_enabled_, false);
+    if (tree_abort_enabled_) active_rear_guard_enabled_ = false;
     pnh_.param("active_rear_guard_min_gap_m", active_rear_guard_min_gap_m_, 9.0);
     pnh_.param("active_rear_guard_min_ttc_sec", active_rear_guard_min_ttc_sec_, 3.0);
     pnh_.param("active_rear_guard_min_headway_sec",
@@ -116,6 +120,10 @@ class LaneChangeSupervisor {
 
     decision_sub_ = nh_.subscribe("/smpc/decision", 10,
                                   &LaneChangeSupervisor::decisionCallback, this);
+    if (tree_abort_enabled_) {
+      tree_abort_sub_ = nh_.subscribe("/smpc/tree_abort", 10,
+                                      &LaneChangeSupervisor::treeAbortCallback, this);
+    }
     targets_sub_ = nh_.subscribe("/smpc/targets", 10,
                                   &LaneChangeSupervisor::targetsCallback, this);
     state_sub_ = nh_.subscribe("/gps_state", 10,
@@ -882,6 +890,24 @@ class LaneChangeSupervisor {
     abortLaneChange("rear_intrusion_before_target_center", elapsed, cls);
   }
 
+  void treeAbortCallback(const std_msgs::Bool::ConstPtr& msg) {
+    if (!msg->data || !active_ || !have_targets_) return;
+    if (latest_targets_.current_lane_id != source_lane_ ||
+        latest_targets_.target_lane_id != target_lane_) {
+      return;
+    }
+    if (std::abs(latest_targets_.ego_d_target) <=
+        std::max(0.0, active_rear_guard_abort_before_target_center_abs_d_m_)) {
+      return;   // 목표 차선 경계를 넘었으면 복귀하지 않는다(rear_abort 와 같은 규칙)
+    }
+    const TimeoutClassification cls = classifyTimeoutPose();
+    const double elapsed = completion_clock_started_
+        ? std::max(0.0, (ros::Time::now() - completion_start_).toSec())
+        : 0.0;
+    publishDebug("tree_return_confirmed");
+    abortLaneChange("tree_return_before_target_center", elapsed, cls);
+  }
+
   void decisionCallback(const smpc_lane_change::LaneChangeDecision::ConstPtr& msg) {
     if (!have_lane_ || active_) return;
     if (inactive_sync_pending_) {
@@ -1182,6 +1208,8 @@ class LaneChangeSupervisor {
 
   ros::NodeHandle nh_, pnh_;
   ros::Subscriber decision_sub_, targets_sub_, state_sub_, odom_sub_, final_waypoint_sub_;
+  ros::Subscriber tree_abort_sub_;
+  bool tree_abort_enabled_{false};
   ros::Publisher path_pub_, status_pub_, debug_pub_;
   ros::Timer timer_;
 

@@ -15,6 +15,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Point.h>
@@ -25,6 +26,7 @@
 #include <smpc_lane_change/BehaviorLongitudinalStatus.h>
 #include <smpc_lane_change/BehaviorPlan.h>
 #include <smpc_lane_change/LaneChangeDecision.h>
+#include <smpc_lane_change/LaneChangeStatus.h>
 #include <smpc_lane_change/TargetVehicle.h>
 #include <smpc_lane_change/TargetVehicleSet.h>
 #include <smpc_lane_change/lane_path.hpp>
@@ -373,6 +375,22 @@ class SmpcDecisionNode {
     pnh_.param("probability_accel_scale_mps2", probability_accel_scale_mps2_, 3.0);
     pnh_.param("observed_accel_alpha", observed_accel_alpha_, 0.35);
     pnh_.param("max_observed_accel_mps2", max_observed_accel_mps2_, 6.0);
+    // 트리 플래너 (research). 기본 꺼짐 = 기존 SMPC 그대로.
+    pnh_.param("tree_planner_enabled", tree_planner_enabled_, false);
+    pnh_.param("tree_keep_gates", tree_keep_gates_, true);
+    pnh_.param("tree_monitor_enabled", tree_monitor_enabled_, true);
+    pnh_.getParam("tree_onsets_sec", tree_onsets_sec_);
+    pnh_.param("tree_rear_detect_delay_sec", tree_rear_detect_delay_sec_, 0.5);
+    pnh_.param("tree_front_detect_delay_sec", tree_front_detect_delay_sec_, 0.3);
+    pnh_.param("tree_escape_accel_mps2", tree_escape_accel_mps2_, 1.5);
+    pnh_.param("tree_return_time_full_sec", tree_return_time_full_sec_, 3.1);
+    pnh_.param("tree_return_decel_mps2", tree_return_decel_mps2_, -1.5);
+    pnh_.param("tree_brake_decel_mps2", tree_brake_decel_mps2_, -3.0);
+    pnh_.param("tree_abort_before_abs_d_m", tree_abort_before_abs_d_m_, 1.75);
+    pnh_.getParam("tree_response_cost", tree_response_cost_);
+    if (tree_response_cost_.size() != 5) tree_response_cost_ = {0.0, 1.0, 30.0, 35.0, 5.0};
+    pnh_.param("tree_risk_weight", tree_risk_weight_, 80.0);
+    pnh_.param("tree_abort_risk_factor", tree_abort_risk_factor_, 2.0);
 
     pnh_.param("lateral_mode_enabled", lateral_mode_enabled_, true);
     pnh_.param("lateral_mode_probability", lateral_mode_probability_, 0.03);
@@ -464,6 +482,10 @@ class SmpcDecisionNode {
         nh_.advertise<visualization_msgs::MarkerArray>("/smpc/prediction_markers", 1);
     keep_path_pub_ = nh_.advertise<nav_msgs::Path>("/smpc/ego_keep_prediction", 1);
     change_path_pub_ = nh_.advertise<nav_msgs::Path>("/smpc/ego_change_prediction", 1);
+    tree_abort_pub_ = nh_.advertise<std_msgs::Bool>("/smpc/tree_abort", 10);
+    tree_debug_pub_ = nh_.advertise<std_msgs::String>("/smpc/tree_debug", 10);
+    lc_status_sub_ = nh_.subscribe("/smpc/lane_change_status", 10,
+                                   &SmpcDecisionNode::laneChangeStatusCallback, this);
 
     const double period = 1.0 / std::max(1.0, publish_rate_hz_);
     timer_ = nh_.createTimer(ros::Duration(period), &SmpcDecisionNode::timerCallback, this);
@@ -496,6 +518,8 @@ class SmpcDecisionNode {
     double lateral_rate_mps{0.0};
     // 이 모드에서 TV 가 낼 수 있는 최대 속도.  무한대면 기존 동작(상한 없음).
     double max_speed_mps{std::numeric_limits<double>::infinity()};
+    // 트리 플래너(research): 이 시각까지는 등속, 이후 accel_mps2. 기존 mode 는 0 이다.
+    double onset_sec{0.0};
   };
 
   struct VehicleHistory {
@@ -1673,6 +1697,19 @@ class SmpcDecisionNode {
     return std::max(0.0, d_cap + v_max * (tau - t_cap));
   }
 
+  // onset 이 있는 mode: onset 전 등속, 이후 cappedAccel*. onset 0 이면 기존 식과 같다.
+  static double modeSpeed(double v0, const TvMode& mode, double tau) {
+    if (mode.onset_sec <= 0.0) return cappedAccelSpeed(v0, mode.accel_mps2, tau, mode.max_speed_mps);
+    return cappedAccelSpeed(v0, mode.accel_mps2, std::max(0.0, tau - mode.onset_sec), mode.max_speed_mps);
+  }
+
+  static double modeDistance(double v0, const TvMode& mode, double tau) {
+    if (mode.onset_sec <= 0.0) return cappedAccelDistance(v0, mode.accel_mps2, tau, mode.max_speed_mps);
+    const double before = std::min(std::max(0.0, tau), mode.onset_sec);
+    return std::max(0.0, v0) * before +
+        cappedAccelDistance(v0, mode.accel_mps2, std::max(0.0, tau - mode.onset_sec), mode.max_speed_mps);
+  }
+
   static double pressure01(double value, double low, double high) {
     if (high <= low) return value >= high ? 1.0 : 0.0;
     return std::clamp((value - low) / (high - low), 0.0, 1.0);
@@ -2760,11 +2797,8 @@ class SmpcDecisionNode {
     const auto* lane = laneFor(v.lane_id);
     if (!lane) return p;
 
-    const double predicted_v_long =
-        cappedAccelSpeed(v.v_long, mode.accel_mps2, tau, mode.max_speed_mps);
-    const double ds = cappedAccelDistance(v.v_long, mode.accel_mps2, tau,
-                                          mode.max_speed_mps) +
-        std::max(0.0, extra_ds);
+    const double predicted_v_long = modeSpeed(v.v_long, mode, tau);
+    const double ds = modeDistance(v.v_long, mode, tau) + std::max(0.0, extra_ds);
     double d = v.d;
     if (std::abs(mode.lateral_rate_mps) > 1e-3) {
       d += mode.lateral_rate_mps * tau;
@@ -2950,8 +2984,7 @@ class SmpcDecisionNode {
         for (std::size_t k = 0; k < steps; ++k) {
           const auto& ego = ego_traj[k];
           if (react_to_this_vehicle) {
-            const double tv_v = cappedAccelSpeed(
-                vehicle.v_long, mode.accel_mps2, ego.t, mode.max_speed_mps);
+            const double tv_v = modeSpeed(vehicle.v_long, mode, ego.t);
             if (!std::isfinite(reaction_trigger_t) && tv_v < ego.v) {
               reaction_trigger_t = ego.t;
             }
@@ -4003,6 +4036,466 @@ class SmpcDecisionNode {
     debug_marker_pub_.publish(marker);
   }
 
+  // ======================================================================
+  // 시나리오 트리 플래너 (research/tree-planner). 파이썬 기준 구현:
+  // research/sim/smpc_sim/tree.py. tree_planner_enabled=false 이면 아무것도 바뀌지 않는다.
+  //
+  // 루트 a0 하나마다: 가지 j(정상 / 뒤차 가속 onset 0·1·2·3 s / 앞차 급제동, 확률 p_j,
+  // 분기 시점 t_b = onset + 감지 지연), 가지별 대응(계속/계속+가속/복귀/복귀+감속/제동).
+  // min_c Σ_j p_j J_j(c_j)  s.t.  모든 스텝 k 에서 Σ_j p_j r_j(c_j, k) ≤ ε  를 조합 열거로 푼다.
+  // ======================================================================
+  enum TreeResponse { kTreeContinue = 0, kTreeContAccel, kTreeReturn, kTreeReturnDecel, kTreeBrake };
+
+  struct TreeBranch {
+    std::string name;
+    double probability{0.0};
+    double t_b{std::numeric_limits<double>::infinity()};
+    std::map<int, TvMode> modes;   // 이 가지에서 사건을 일으키는 차량. 나머지는 nominal.
+  };
+
+  struct TreeResult {
+    bool feasible{false};
+    double cost{std::numeric_limits<double>::infinity()};
+    double peak_risk{1.0};
+    std::vector<int> combo;
+  };
+
+  std::vector<TreeBranch> treeBranches(const smpc_lane_change::TargetVehicleSet& t,
+                                       const smpc_lane_change::TargetVehicle* rear_override) const {
+    std::vector<TreeBranch> out;
+    const smpc_lane_change::TargetVehicle* rear =
+        rear_override ? rear_override : (t.target_rear.valid ? &t.target_rear : nullptr);
+    double p_rear = rear ? adaptiveEventProbability(*rear) : 0.0;
+    std::vector<const smpc_lane_change::TargetVehicle*> fronts;
+    if (t.target_front.valid) fronts.push_back(&t.target_front);
+    if (t.current_front.valid) fronts.push_back(&t.current_front);
+    double p_front = 0.0;
+    for (const auto* f : fronts) p_front = std::max(p_front, adaptiveEventProbability(*f));
+    p_rear = std::min(p_rear, 0.95);
+    p_front = std::min(p_front, 0.95 - p_rear);
+    TreeBranch nominal;
+    nominal.name = "nominal";
+    nominal.probability = 1.0 - p_rear - p_front;
+    out.push_back(nominal);
+    if (rear && p_rear > 1e-6) {
+      const bool already = observedLongitudinalAccel(*rear) >= 0.5;
+      const std::vector<double> onsets = already ? std::vector<double>{0.0} : tree_onsets_sec_;
+      for (const double o : onsets) {
+        TreeBranch b;
+        std::ostringstream name;
+        name << "rear@" << static_cast<int>(std::round(o));
+        b.name = name.str();
+        b.probability = p_rear / static_cast<double>(onsets.size());
+        b.t_b = already ? 0.0 : o + tree_rear_detect_delay_sec_;
+        TvMode m{"rear_accel", 1.0, rear_accel_mps2_, 0.0};
+        m.onset_sec = o;
+        b.modes[rear->unique_id] = m;
+        out.push_back(b);
+      }
+    }
+    if (!fronts.empty() && p_front > 1e-6) {
+      TreeBranch b;
+      b.name = "front_brake";
+      b.probability = p_front;
+      b.t_b = tree_front_detect_delay_sec_;
+      for (const auto* f : fronts) b.modes[f->unique_id] = TvMode{"front_brake", 1.0, front_brake_accel_mps2_, 0.0};
+      out.push_back(b);
+    }
+    return out;
+  }
+
+  // 루트 궤적 → 대응 r 의 궤적. 목표 차선 Frenet (s, d) 에서 바꾼 뒤 지도 좌표로 되돌린다.
+  // allowed 가 false 면 그 대응은 쓸 수 없다(복귀는 목표 차선 경계 1.75 m 전까지만).
+  std::vector<PredPose> treeResponse(const std::vector<PredPose>& root, bool change_left, double t_b,
+                                     int response, const smpc_lane_change::TargetVehicleSet& t,
+                                     bool* allowed) const {
+    *allowed = true;
+    if (response == kTreeContinue) return root;
+    const std::size_t K = root.size();
+    if (K == 0 || !std::isfinite(t_b) || t_b >= root.back().t) {
+      *allowed = false;
+      return {};
+    }
+    if (!change_left && (response == kTreeReturn || response == kTreeReturnDecel)) {
+      *allowed = false;
+      return {};
+    }
+    const auto* target_lane = laneFor(t.target_lane_id);
+    if (!target_lane) {
+      *allowed = false;
+      return {};
+    }
+    const double ext = 400.0;
+    std::vector<double> s(K), d(K), v(K), tk(K);
+    for (std::size_t k = 0; k < K; ++k) {
+      const auto pr = target_lane->projectExtended(root[k].x, root[k].y, ext, ext);
+      s[k] = pr.s;
+      d[k] = pr.d;
+      v[k] = root[k].v;
+      tk[k] = root[k].t;
+    }
+    const double d0 = t.ego_d_target;
+    auto interp = [&](const std::vector<double>& y, double y_at0, double tq) {
+      if (tq <= tk[0]) {
+        const double a = tk[0] > 1e-9 ? tq / tk[0] : 1.0;
+        return y_at0 + (y[0] - y_at0) * a;
+      }
+      for (std::size_t k = 1; k < K; ++k) {
+        if (tq <= tk[k]) {
+          const double a = (tq - tk[k - 1]) / std::max(1e-9, tk[k] - tk[k - 1]);
+          return y[k - 1] + (y[k] - y[k - 1]) * a;
+        }
+      }
+      return y.back();
+    };
+    const double d_b = interp(d, d0, t_b);
+    const double v_b = interp(v, v[0], t_b);
+    const double d_src = -lane_width_m_;
+    if ((response == kTreeReturn || response == kTreeReturnDecel) &&
+        std::abs(d_b) <= tree_abort_before_abs_d_m_) {
+      *allowed = false;
+      return {};
+    }
+    std::vector<double> v2 = v, d2 = d;
+    for (std::size_t k = 0; k < K; ++k) {
+      if (!(tk[k] > t_b + 1e-9)) continue;
+      const double tau = tk[k] - t_b;
+      switch (response) {
+        case kTreeContAccel:
+          v2[k] = std::max(v[k], std::min(v[k] + tree_escape_accel_mps2_ * tau,
+                                          std::max(0.0, currentTargetSpeedMps())));
+          break;
+        case kTreeBrake:
+          v2[k] = std::max(0.0, v_b + tree_brake_decel_mps2_ * tau);
+          break;
+        case kTreeReturn:
+        case kTreeReturnDecel: {
+          const double dur = std::max(0.8, tree_return_time_full_sec_ * std::abs(d_b - d_src) / lane_width_m_);
+          const double frac = std::clamp(tau / dur, 0.0, 1.0);
+          d2[k] = d_b + (d_src - d_b) * frac;
+          if (response == kTreeReturnDecel) {
+            v2[k] = std::max(0.5 * v_b, v_b + tree_return_decel_mps2_ * tau);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    // 속도가 바뀐 대응은 s 를 다시 적분한다(파이썬과 같은 사다리꼴, 출발점 s[0]).
+    std::vector<double> s2 = s;
+    if (response == kTreeContAccel || response == kTreeBrake || response == kTreeReturnDecel) {
+      double acc = s[0];
+      for (std::size_t k = 1; k < K; ++k) {
+        acc += 0.5 * (v2[k] + v2[k - 1]) * prediction_dt_sec_;
+        if (tk[k] > t_b + 1e-9) s2[k] = acc;
+      }
+    }
+    std::vector<PredPose> out(K);
+    for (std::size_t k = 0; k < K; ++k) {
+      const auto smp = target_lane->sampleExtended(s2[k], d2[k], ext, ext);
+      PredPose p = root[k];
+      if (smp.valid) {
+        p.x = smp.x;
+        p.y = smp.y;
+        p.yaw = smp.yaw;
+      }
+      p.s = s2[k];
+      p.d = d2[k];
+      p.v = v2[k];
+      out[k] = p;
+    }
+    return out;
+  }
+
+  // 가지 하나(차량별 mode 고정)에서 스텝별 충돌 확률 1 - Π_v (1 - P_v,k). evaluateTrajectory 와 같은 식.
+  std::vector<double> treeStepRisk(const std::vector<PredPose>& ego,
+                                   const std::vector<smpc_lane_change::TargetVehicle>& vehicles,
+                                   const TreeBranch& branch, std::vector<double>* min_clear) const {
+    const std::size_t K = ego.size();
+    std::vector<double> no_coll(K, 1.0);
+    if (min_clear) min_clear->assign(K, std::numeric_limits<double>::infinity());
+    for (const auto& vehicle : vehicles) {
+      const auto it = branch.modes.find(vehicle.unique_id);
+      const TvMode mode = it != branch.modes.end()
+          ? it->second : TvMode{"nominal", 1.0, nominal_target_accel_mps2_, 0.0};
+      const bool react = ego_brake_reaction_enabled_ && vehicle.role.find("front") != std::string::npos;
+      double react_v = std::max(0.0, ego_speed_mps_);
+      double lag = 0.0;
+      double trigger = std::numeric_limits<double>::infinity();
+      for (std::size_t k = 0; k < K; ++k) {
+        const auto& e = ego[k];
+        if (react) {
+          const double tv_v = modeSpeed(vehicle.v_long, mode, e.t);
+          if (!std::isfinite(trigger) && tv_v < e.v) trigger = e.t;
+          const bool reacting = std::isfinite(trigger) &&
+              e.t >= trigger + std::max(0.0, ego_brake_reaction_delay_sec_);
+          react_v = reacting
+              ? std::max(tv_v, std::min(e.v, react_v - std::max(0.0, ego_brake_reaction_max_decel_mps2_) * prediction_dt_sec_))
+              : e.v;
+          lag += std::max(0.0, e.v - react_v) * prediction_dt_sec_;
+        }
+        bool exceeded = false;
+        const auto tv = predictTargetPose(vehicle, mode, e.t, &exceeded, lag);
+        if (exceeded) break;
+        if (!tv.valid) continue;
+        const auto c = collisionProbability(e, tv, vehicle, mode);
+        no_coll[k] *= 1.0 - clampProbability(c.probability);
+        if (min_clear) (*min_clear)[k] = std::min((*min_clear)[k], c.signed_clearance);
+      }
+    }
+    std::vector<double> risk(K);
+    for (std::size_t k = 0; k < K; ++k) risk[k] = clampProbability(1.0 - no_coll[k]);
+    return risk;
+  }
+
+  TreeResult treeEvaluate(const std::vector<PredPose>& root, bool change_left,
+                          const smpc_lane_change::TargetVehicleSet& t,
+                          const std::vector<smpc_lane_change::TargetVehicle>& vehicles,
+                          const std::vector<TreeBranch>& branches, double root_cost,
+                          double allowed_risk) const {
+    TreeResult out;
+    const std::size_t B = branches.size();
+    const std::size_t K = root.size();
+    if (K == 0) return out;
+    // risk[b][r][k], ok[b][r]
+    std::vector<std::array<std::vector<double>, 5>> risk(B);
+    std::vector<std::array<bool, 5>> ok(B);
+    bool nominal_clear = true;
+    for (std::size_t b = 0; b < B; ++b) {
+      for (int r = 0; r < 5; ++r) {
+        bool allowed = false;
+        const auto traj = treeResponse(root, change_left, branches[b].t_b, r, t, &allowed);
+        ok[b][r] = allowed;
+        if (!allowed) continue;
+        std::vector<double> clear;
+        risk[b][r] = treeStepRisk(traj, vehicles, branches[b],
+                                  (branches[b].name == "nominal" && r == kTreeContinue) ? &clear : nullptr);
+        if (branches[b].name == "nominal" && r == kTreeContinue) {
+          for (const double c : clear) {
+            if (std::isfinite(c) && c < behavior_min_signed_clearance_m_) nominal_clear = false;
+          }
+        }
+      }
+    }
+    // 가지별 의미 있는 대응만 (파이썬 options() 와 같다)
+    std::vector<std::vector<int>> options(B);
+    for (std::size_t b = 0; b < B; ++b) {
+      const auto& n = branches[b].name;
+      if (n == "nominal") options[b] = {kTreeContinue};
+      else if (n.rfind("rear", 0) == 0) options[b] = {kTreeContinue, kTreeContAccel, kTreeReturn, kTreeReturnDecel};
+      else options[b] = {kTreeContinue, kTreeBrake, kTreeReturn};
+    }
+    std::vector<std::size_t> idx(B, 0);
+    double best_any_peak = std::numeric_limits<double>::infinity();
+    std::vector<int> best_any_combo;
+    while (true) {
+      bool allowed = true;
+      double j = 0.0;
+      std::vector<double> r_sum(K, 0.0);
+      std::vector<int> combo(B);
+      for (std::size_t b = 0; b < B && allowed; ++b) {
+        const int r = options[b][idx[b]];
+        combo[b] = r;
+        if (!ok[b][r]) {
+          allowed = false;
+          break;
+        }
+        const double p = branches[b].probability;
+        j += p * tree_response_cost_[static_cast<std::size_t>(r)];
+        for (std::size_t k = 0; k < K; ++k) r_sum[k] += p * risk[b][r][k];
+      }
+      if (allowed) {
+        const double peak = *std::max_element(r_sum.begin(), r_sum.end());
+        const double total = root_cost + j + tree_risk_weight_ * peak;
+        if (peak <= allowed_risk && nominal_clear && total < out.cost) {
+          out.feasible = true;
+          out.cost = total;
+          out.peak_risk = peak;
+          out.combo = combo;
+        }
+        if (peak < best_any_peak) {
+          best_any_peak = peak;
+          best_any_combo = combo;
+        }
+      }
+      // 다음 조합 (가지별 자리 올림)
+      std::size_t b = 0;
+      while (b < B && ++idx[b] >= options[b].size()) {
+        idx[b] = 0;
+        ++b;
+      }
+      if (b >= B) break;
+    }
+    if (!out.feasible) {
+      out.peak_risk = best_any_peak;
+      out.combo = best_any_combo;
+    }
+    return out;
+  }
+
+  // 차선 변경 중 재계획: '지금 계속(이후 분기 허용)' vs '지금 복귀'. true 면 복귀한다.
+  bool treeMonitorReturn(const smpc_lane_change::TargetVehicleSet& t,
+                         const std::vector<smpc_lane_change::TargetVehicle>& vehicles,
+                         const smpc_lane_change::TargetVehicle* rear, double allowed_risk,
+                         std::string* detail) const {
+    const double d_t = std::abs(t.ego_d_target);
+    if (d_t <= tree_abort_before_abs_d_m_ || vehicles.empty()) return false;
+    const auto* target_lane = laneFor(t.target_lane_id);
+    if (!target_lane) return false;
+    const double v_e = std::max(0.0, ego_speed_mps_);
+    const double T_blend = (have_reference_preview_ && reference_preview_.valid &&
+                            reference_preview_.mode == waypoint_system::PathSwitchPreview::BLEND)
+        ? reference_preview_.blend_duration_sec : waypoint_blend_duration_sec_;
+    const double T_rem = std::max(0.5, T_blend * d_t / lane_width_m_);
+    const double T_back = std::max(0.8, tree_return_time_full_sec_ *
+                                            std::abs(t.ego_d_target + lane_width_m_) / lane_width_m_);
+    const double pre_cap = egoPredictionTargetSpeedMps();
+    const double mission = currentTargetSpeedMps();
+    double v_post = mission;
+    if (t.target_front.valid) v_post = std::min(v_post, std::max(0.0, t.target_front.v_long));
+    const double d0 = std::abs(t.ego_d_target);
+    const double sw = d0 > change_rollout_soft_acc_start_abs_d_m_
+        ? T_rem * (1.0 - change_rollout_soft_acc_start_abs_d_m_ / d0) : 0.0;
+    const auto ego_proj = target_lane->projectExtended(ego_x_, ego_y_, 400.0, 400.0);
+    std::vector<PredPose> go, back;
+    double v_go = v_e, s_go = ego_proj.s, v_bk = v_e, s_bk = ego_proj.s;
+    const double dt = prediction_dt_sec_;
+    for (int k = 1; k <= std::max(1, horizon_steps_); ++k) {
+      const double tau = dt * k;
+      // 계속: blendStage 와 같은 법칙 (t_sw = 0), 0.2 s 단위
+      const double ref = (tau - dt) < sw ? pre_cap : v_post;
+      double vn = v_go;
+      if (ref > v_go + 0.05) vn = std::min(ref, v_go + 2.4 * dt);
+      else if (ref < v_go - 0.05) vn = std::max(ref, v_go - 4.0 * dt);
+      s_go += 0.5 * dt * (v_go + vn);
+      v_go = std::max(0.0, vn);
+      // 복귀: KEEP 법칙(speedTargetRollout)
+      double vb = v_bk;
+      if (pre_cap > v_bk + 0.05) vb = std::min(pre_cap, v_bk + 2.4 * dt);
+      else if (pre_cap < v_bk - 0.05) vb = std::max(pre_cap, v_bk - 9.0 * dt);
+      s_bk += 0.5 * dt * (v_bk + vb);
+      v_bk = std::max(0.0, vb);
+      const double d_go = t.ego_d_target * (1.0 - std::clamp(tau / T_rem, 0.0, 1.0));
+      const double d_bk = t.ego_d_target + (-lane_width_m_ - t.ego_d_target) * std::clamp(tau / T_back, 0.0, 1.0);
+      for (int which = 0; which < 2; ++which) {
+        const double s_q = which == 0 ? s_go : s_bk;
+        const double d_q = which == 0 ? d_go : d_bk;
+        const auto smp = target_lane->sampleExtended(s_q, d_q, 400.0, 400.0);
+        PredPose p;
+        p.valid = smp.valid;
+        p.t = tau;
+        p.x = smp.x;
+        p.y = smp.y;
+        p.yaw = smp.yaw;
+        p.s = s_q;
+        p.d = d_q;
+        p.v = which == 0 ? v_go : v_bk;
+        (which == 0 ? go : back).push_back(p);
+      }
+    }
+    const auto branches = treeBranches(t, rear);
+    const double eps = tree_abort_risk_factor_ * allowed_risk;
+    const TreeResult r_go = treeEvaluate(go, true, t, vehicles, branches, 0.0, eps);
+    const TreeResult r_bk = treeEvaluate(back, false, t, vehicles, branches,
+                                         tree_response_cost_[kTreeReturn], eps);
+    std::ostringstream os;
+    os << "go_feas=" << r_go.feasible << " go_peak=" << r_go.peak_risk
+       << " back_feas=" << r_bk.feasible << " back_peak=" << r_bk.peak_risk;
+    if (detail) *detail = os.str();
+    const bool revealed = rear && observedLongitudinalAccel(*rear) >= 0.5;
+    if (r_go.feasible) {
+      if (revealed) {
+        for (std::size_t b = 0; b < branches.size() && b < r_go.combo.size(); ++b) {
+          if (branches[b].name.rfind("rear", 0) == 0 &&
+              (r_go.combo[b] == kTreeReturn || r_go.combo[b] == kTreeReturnDecel)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    return r_bk.feasible || r_bk.peak_risk < r_go.peak_risk;
+  }
+
+  // timerCallback 에서 호출: 트리로 CHANGE_NOW / 미래 후보 중 기대 비용 최소를 고른다.
+  void treeSelect(const smpc_lane_change::TargetVehicleSet& t,
+                  const std::vector<smpc_lane_change::TargetVehicle>& vehicles,
+                  const smpc_lane_change::TargetVehicle* rear, bool passing_front,
+                  const ActionSpec& change_now_spec, const std::vector<PredPose>& change_traj,
+                  bool change_now_gates_ok, bool common_ok, double target_gap_cost,
+                  double allowed_risk, bool* request_change, CandidateEval* best_future,
+                  bool* have_future, std::string* detail) {
+    *request_change = false;
+    *have_future = false;
+    if (!common_ok) {
+      if (detail) *detail = "tree common_gate_fail";
+      return;
+    }
+    const auto branches = treeBranches(t, rear);
+    std::ostringstream os;
+    os.setf(std::ios::fixed);
+    os.precision(3);
+    os << "tree br=";
+    for (const auto& b : branches) os << b.name << ":" << b.probability << ",";
+    double best_cost = std::numeric_limits<double>::infinity();
+    int best_index = -1;
+    std::vector<ActionSpec> specs;
+    specs.push_back(change_now_spec);
+    for (const auto& c : buildBehaviorCandidates(t)) {
+      if (c.action != BehaviorAction::kChangeNow && candidateFitsHorizon(c)) specs.push_back(c);
+    }
+    std::vector<int> best_combo;
+    for (std::size_t i = 0; i < specs.size(); ++i) {
+      const auto& spec = specs[i];
+      std::vector<PredPose> traj;
+      bool gate_ok = true;
+      if (i == 0) {
+        traj = change_traj;
+        gate_ok = !change_traj.empty() && (!tree_keep_gates_ || change_now_gates_ok);
+      } else {
+        const double base_cap = egoPredictionTargetSpeedMps();
+        if (!preparationLongitudinalModelCompatible(t, spec, base_cap)) continue;
+        traj = buildEgoTrajectory(t, spec);
+        if (traj.empty()) continue;
+        if (tree_keep_gates_ && !projectedTargetGapTtcSafe(t, traj, spec, rear, passing_front)) continue;
+      }
+      if (!gate_ok || traj.empty()) continue;
+      const double root_cost = lane_change_base_cost_ + target_gap_cost +
+          behavior_delay_cost_weight_ * std::max(0.0, spec.lane_change_start_sec) +
+          behavior_accel_cost_weight_ * spec.prep_accel_mps2 * spec.prep_accel_mps2;
+      const TreeResult r = treeEvaluate(traj, true, t, vehicles, branches, root_cost, allowed_risk);
+      if (r.feasible && r.cost < best_cost) {
+        best_cost = r.cost;
+        best_index = static_cast<int>(i);
+        best_combo = r.combo;
+      }
+    }
+    if (best_index < 0) {
+      os << " none_feasible";
+      if (detail) *detail = os.str();
+      return;
+    }
+    os << " pick=" << specs[best_index].name << " t_lc=" << specs[best_index].lane_change_start_sec
+       << " a=" << specs[best_index].prep_accel_mps2 << " cost=" << best_cost << " resp=";
+    for (const int r : best_combo) os << r;
+    if (detail) *detail = os.str();
+    if (best_index == 0) {
+      *request_change = true;
+      return;
+    }
+    CandidateEval ev = evaluateCandidate(t, vehicles, specs[best_index], allowed_risk, target_gap_cost);
+    ev.feasible = true;
+    ev.cost = best_cost;
+    *best_future = ev;
+    *have_future = true;
+  }
+
+  void laneChangeStatusCallback(const smpc_lane_change::LaneChangeStatus::ConstPtr& msg) {
+    lc_status_ = *msg;
+    have_lc_status_ = true;
+  }
+
   void timerCallback(const ros::TimerEvent&) {
     if (!enabled_ || !have_ego_) return;
 
@@ -4040,6 +4533,21 @@ class SmpcDecisionNode {
             return v.unique_id == effective_target_rear->unique_id;
           });
       if (!already_present) vehicles.push_back(*effective_target_rear);
+    }
+    if (tree_planner_enabled_ && tree_monitor_enabled_) {
+      // 차선 변경 중 재계획(rear_abort 대체). supervisor 가 tree_abort_enabled 일 때 이 값을 따른다.
+      std_msgs::Bool abort_msg;
+      abort_msg.data = false;
+      if (have_lc_status_ && lc_status_.active &&
+          lc_status_.source_lane_id == t.current_lane_id &&
+          lc_status_.target_lane_id == t.target_lane_id) {
+        std::string detail;
+        abort_msg.data = treeMonitorReturn(t, vehicles, effective_target_rear, activeRiskEpsilon(t), &detail);
+        std_msgs::String dm;
+        dm.data = std::string("tree_monitor return=") + (abort_msg.data ? "1 " : "0 ") + detail;
+        tree_debug_pub_.publish(dm);
+      }
+      tree_abort_pub_.publish(abort_msg);
     }
     ActionSpec change_now_spec;
     change_now_spec.action = BehaviorAction::kChangeNow;
@@ -4176,7 +4684,7 @@ class SmpcDecisionNode {
 
     const bool desire_change = endpoint_trigger || current_blocked ||
         (change_cost + decision_hysteresis_cost_ < keep_cost);
-    const bool request_change = desire_change && change_feasible;
+    bool request_change = desire_change && change_feasible;
 
     CandidateEval change_now_candidate;
     change_now_candidate.spec = change_now_spec;
@@ -4274,6 +4782,28 @@ class SmpcDecisionNode {
       have_future_candidate = true;
     } else {
       clearYieldCandidateConfirmation();
+    }
+    if (tree_planner_enabled_) {
+      // 트리 플래너: G4(확률 위험 + 모든 mode clearance) 와 단계별 선택을 트리 평가로 바꾼다.
+      // tree_keep_gates=false 면 G3/G5 도 걷어낸다(연구 방향 2, hard safety 는 트리 안의 위험 제약).
+      std::string tree_detail;
+      const bool common_ok = target_lane_is_left && target_lane_scene_observed &&
+          observed_target_lane_intrusion_safe && change_acc_stable;
+      const bool change_now_gates_ok = deterministic_gap_safe && change_projected_gap_ttc_safe;
+      bool tree_change = false;
+      clearYieldCandidateConfirmation();
+      yield_candidate_confirmation_pending = false;
+      if (desire_change) {
+        treeSelect(t, vehicles, effective_target_rear, passing_front, change_now_spec, change_traj,
+                   change_now_gates_ok, common_ok, target_gap_cost, allowed_risk, &tree_change,
+                   &best_future_candidate, &have_future_candidate, &tree_detail);
+      } else {
+        have_future_candidate = false;
+      }
+      request_change = desire_change && tree_change;
+      std_msgs::String tm;
+      tm.data = tree_detail;
+      tree_debug_pub_.publish(tm);
     }
     const bool future_feasible = change_feasible || have_future_candidate;
 
@@ -4447,6 +4977,24 @@ class SmpcDecisionNode {
   ros::Publisher decision_pub_, behavior_plan_pub_, behavior_request_pub_;
   ros::Publisher debug_pub_, debug_marker_pub_, prediction_marker_pub_;
   ros::Publisher keep_path_pub_, change_path_pub_;
+  ros::Publisher tree_abort_pub_, tree_debug_pub_;
+  ros::Subscriber lc_status_sub_;
+  smpc_lane_change::LaneChangeStatus lc_status_;
+  bool have_lc_status_{false};
+  bool tree_planner_enabled_{false};
+  bool tree_keep_gates_{true};
+  bool tree_monitor_enabled_{true};
+  std::vector<double> tree_onsets_sec_{0.0, 1.0, 2.0, 3.0};
+  double tree_rear_detect_delay_sec_{0.5};
+  double tree_front_detect_delay_sec_{0.3};
+  double tree_escape_accel_mps2_{1.5};
+  double tree_return_time_full_sec_{3.1};
+  double tree_return_decel_mps2_{-1.5};
+  double tree_brake_decel_mps2_{-3.0};
+  double tree_abort_before_abs_d_m_{1.75};
+  std::vector<double> tree_response_cost_{0.0, 1.0, 30.0, 35.0, 5.0};
+  double tree_risk_weight_{80.0};
+  double tree_abort_risk_factor_{2.0};
   ros::Timer timer_;
 
   smpc_lane_change::TargetVehicleSet targets_;

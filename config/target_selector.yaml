@@ -5,6 +5,9 @@ waypoint_directory: ""
 target_source: "tracked_objects"   # tracked_objects/lidar or object_topic/morai
 tracked_objects_topic: "/tracked_objects"
 object_topic: "/Object_topic"
+# /Object_topic 은 MORAI 시나리오 로컬 좌표. K-City 시나리오 mapInfo east/north offset (UTM 으로 변환).
+object_topic_offset_x: 302595.0
+object_topic_offset_y: 4124145.0
 odom_topic: "/odom"
 state_topic: "/gps_state"
 lane_half_width: 2.2

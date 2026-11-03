@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+cpp_check/bin/
+results/cache/
+results/*cache*/
+results/gtcheck_replay/
+*.bag
+*.pkl
+results/value/*.pt.tmp
+results/day1_m3_profiles.csv

@@ -10,6 +10,12 @@
   <arg name="lidar_imu_topic" default="/imu"/>
   <arg name="lidar_use_ego_topic" default="false"/>
   <arg name="use_rviz" default="false"/>
+  <!-- research/tree-planner: 기본값은 모두 기존 SMPC 그대로 -->
+  <arg name="tree_planner_enabled" default="false"/>
+  <arg name="tree_keep_gates" default="true"/>
+  <arg name="tree_abort_enabled" default="$(arg tree_planner_enabled)"/>
+  <!-- yaml: 기존(라이다 트래커로 맞춘) 표. gt: /Object_topic GT 로 다시 맞춘 표(research 1단계 M4) -->
+  <arg name="rear_accel_table" default="yaml"/>
   <arg name="rviz_config" default="$(find smpc_lane_change)/rviz/smpc_debug.rviz"/>
 
   <node if="$(arg use_lidar_tracker)" pkg="lidar_ttc_tracker" type="lidar_ttc_tracker_node.py"
@@ -140,6 +146,12 @@
           name="smpc_decision" output="screen">
       <rosparam command="load" file="$(find smpc_lane_change)/config/smpc_decision.yaml"/>
       <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
+      <param name="tree_planner_enabled" value="$(arg tree_planner_enabled)"/>
+      <param name="tree_keep_gates" value="$(arg tree_keep_gates)"/>
+      <rosparam if="$(eval arg('rear_accel_table') == 'gt')">
+        rear_accel_probability_by_accel: [0.006, 0.007, 0.079, 0.275, 0.672]
+        min_rear_accel_probability: 0.0
+      </rosparam>
     </node>
   </group>
 
@@ -155,6 +167,7 @@
         name="lane_change_supervisor" output="screen">
     <rosparam command="load" file="$(find smpc_lane_change)/config/supervisor.yaml"/>
     <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
+    <param name="tree_abort_enabled" value="$(arg tree_abort_enabled)"/>
   </node>
 
   <node if="$(arg use_rviz)" type="rviz" name="smpc_debug_rviz" pkg="rviz"

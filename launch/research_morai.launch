@@ -1,0 +1,32 @@
+<launch>
+  <!-- research/tree-planner MORAI 실험. 대회 스택(behavior 끔) 위에 SMPC 층을 GT 인지로 얹는다.
+       total_bringup 은 고치지 않는다.
+         기존 SMPC:  roslaunch smpc_lane_change research_morai.launch method:=baseline
+         트리:       roslaunch smpc_lane_change research_morai.launch method:=tree
+         트리+게이트 정리: ... method:=tree tree_keep_gates:=false                       -->
+  <arg name="method" default="baseline"/>              <!-- baseline | tree -->
+  <arg name="tree_keep_gates" default="true"/>
+  <arg name="rear_accel_table" default="gt"/>          <!-- 두 방법 모두 같은 GT 표로 비교 -->
+  <arg name="target_source" default="object_topic"/>   <!-- GT 인지. 라이다 비교는 tracked_objects -->
+  <arg name="sim_ip" default="192.168.100.10"/>        <!-- 집 PC: lo 별칭. 대회 PC: 192.168.0.1 -->
+  <arg name="path_number" default="0"/>
+  <arg name="use_rviz" default="false"/>
+  <arg name="dry_run" default="false"/>
+
+  <include file="$(find total_bringup)/launch/competition.launch">
+    <arg name="sim_ip" value="$(arg sim_ip)"/>
+    <arg name="enable_behavior" value="false"/>
+    <arg name="path_number" value="$(arg path_number)"/>
+    <arg name="use_rviz" value="$(arg use_rviz)"/>
+    <arg name="dry_run" value="$(arg dry_run)"/>
+  </include>
+
+  <include file="$(find smpc_lane_change)/launch/smpc_integration.launch">
+    <arg name="use_rviz" value="false"/>
+    <arg name="use_lidar_tracker" value="false"/>
+    <arg name="target_source" value="$(arg target_source)"/>
+    <arg name="tree_planner_enabled" value="$(eval arg('method') == 'tree')"/>
+    <arg name="tree_keep_gates" value="$(arg tree_keep_gates)"/>
+    <arg name="rear_accel_table" value="$(arg rear_accel_table)"/>
+  </include>
+</launch>
