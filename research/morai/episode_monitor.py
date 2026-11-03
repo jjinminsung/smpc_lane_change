@@ -30,6 +30,7 @@ class Monitor:
         self.moved_at = None
         self.stop_since = None
         self.done_at = None
+        self.lane_since = None
         self.completions = []
         self.prev_active = False
         self.prev_pair = None
@@ -42,6 +43,8 @@ class Monitor:
         self.v = math.hypot(m.velocity.x, m.velocity.y)
 
     def targets(self, m):
+        if m.current_lane_id != self.lane:
+            self.lane_since = rospy.get_time()
         self.lane = m.current_lane_id
         self.ego_s = m.ego_s_current
         self.lane_len = m.current_lane_length
@@ -69,7 +72,10 @@ def main():
                 reason = "no_start"
                 break
         else:
-            if mon.lane == 3 and mon.done_at is None and any(p == (2, 3) for _, p in mon.completions):
+            # 2→3 전환(완료 또는 abort) 뒤 차선 3 이 3 s 이상 이어져야 완료로 본다. abort 직후 targets 가
+            # 한 번 lane 3 을 내는 경우가 있다(2026-11-04 v3_C_G_s70_d40: 거짓 done 으로 재시도 중에 끊김).
+            if (mon.lane == 3 and mon.done_at is None and any(p == (2, 3) for _, p in mon.completions)
+                    and mon.lane_since is not None and rospy.get_time() - mon.lane_since >= 3.0):
                 mon.done_at = now
             if mon.done_at is not None and now - mon.done_at > 5.0:
                 reason = "done"
