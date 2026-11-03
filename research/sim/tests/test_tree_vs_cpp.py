@@ -68,6 +68,8 @@ class TreeVsCpp(base.RiskVsCpp):
         worst = 0.0
         for i in range(25):
             ego, veh = make_scenario(rng, P)
+            if i % 5 == 0:          # 정지 출발(차선 끝 대기) 경우도 monitor 를 비교한다
+                ego["v0"], ego["v"] = 0.0, np.zeros_like(ego["v"])
             t_grid, roots = roots_for(ego, rng, P)
             rear = next((v["uid"] for v in veh if v["role"] == "target_rear"), -1)
             d_t = float(rng.choice([-3.5, -3.0, -2.4, -2.0]))     # 차선 변경 중 여러 진행 단계

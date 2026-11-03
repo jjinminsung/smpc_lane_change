@@ -402,9 +402,24 @@ class TreePlanner(BaselineSmpc):
         ctx = RolloutContext(v0=v_e, s0=t.ego_s_current, lane=t.current_lane_id, target_lane=t.target_lane_id,
                              ego_d_target=t.ego_d_target, pre_cap=pre_cap, mission=mission,
                              tf_speed=tf.v_long if tf.valid else math.nan, D=T_rem, yield_ref_speed=v_e)
-        from .rollouts import blend_stage_rollout, speed_target_rollout
+        from .rollouts import blend_stage_rollout, speed_target_rollout, bounded_preparation_rollout
         v_go, ds_go = blend_stage_rollout(ctx, taus, 0.0, T_rem, P)
         v_back, ds_back = speed_target_rollout(v_e, taus, pre_cap)
+        if v_e < 1.0:
+            # 정지·저속: 계획과 같은 connector 출발(가속 후 cap, 횡이동은 남은 연결 길이에 비례). C++ 과 같다.
+            cap = P.stopped_launch_connector_speed_cap_by_target_lane_mps[t.target_lane_id]
+            dt_ = P.prediction_dt_sec
+            v, ds, vs, dss = v_e, 0.0, [], []
+            for _ in taus:
+                vn = min(cap, v + P.stopped_launch_connector_max_accel_mps2 * dt_) if cap > v + 0.05 else v
+                ds += 0.5 * dt_ * (v + vn)
+                v = max(0.0, vn)
+                vs.append(v)
+                dss.append(ds)
+            v_go, ds_go = np.array(vs), np.array(dss)
+            L_rem = max(2.0, 20.0 * d_t / P.lane_width_m)
+            u = np.clip(ds_go / L_rem, 0.0, 1.0)
+            y_go = y0 + (y_tgt - y0) * (u * u * u * (10.0 - 15.0 * u + 6.0 * u * u))
         traj = EgoTrajectory(t=taus, x=t.ego_s_current + np.vstack([ds_go, ds_back]),
                              y=np.vstack([y_go, y_back]), yaw=np.zeros((2, K)),
                              v=np.vstack([v_go, v_back]), valid=np.array([True, True]))

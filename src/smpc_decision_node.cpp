@@ -4405,12 +4405,24 @@ class SmpcDecisionNode {
     std::vector<PredPose> go, back;
     double v_go = v_e, s_go = ego_proj.s, v_bk = v_e, s_bk = ego_proj.s;
     const double dt = prediction_dt_sec_;
+    // 정지·저속이면 계획과 같은 connector 출발 모델: 가속 후 cap, 횡이동은 주행 거리(남은 연결 길이)에 비례.
+    // 시간에 비례해 옆으로 미끄러지는 모델은 출발 전 차를 옆 차선에 밀어 넣어 위험을 크게 본다(MORAI S4).
+    const bool launch = v_e < change_rollout_launch_speed_threshold_mps_;
+    const int tgt = std::clamp(t.target_lane_id, 0, 3);
+    const double cap_conn = tgt < static_cast<int>(stopped_launch_connector_speed_cap_by_target_lane_mps_.size())
+        ? stopped_launch_connector_speed_cap_by_target_lane_mps_[tgt] : stopped_launch_connector_speed_cap_mps_;
+    const double join = (have_reference_preview_ && reference_preview_.mode == waypoint_system::PathSwitchPreview::CONNECTOR &&
+                         std::isfinite(reference_preview_.connector_join_arc_m))
+        ? reference_preview_.connector_join_arc_m : 20.0;
+    const double L_rem = std::max(2.0, join * d_t / lane_width_m_);
+    const double s_start = s_go;
     for (int k = 1; k <= std::max(1, horizon_steps_); ++k) {
       const double tau = dt * k;
-      // 계속: blendStage 와 같은 법칙 (t_sw = 0), 0.2 s 단위
-      const double ref = (tau - dt) < sw ? pre_cap : v_post;
+      // 계속: blendStage 와 같은 법칙 (t_sw = 0), 0.2 s 단위. 저속이면 connector 출발.
+      const double ref = launch ? std::max(cap_conn, 0.0) : ((tau - dt) < sw ? pre_cap : v_post);
+      const double up = launch ? stopped_launch_connector_max_accel_mps2_ : 2.4;
       double vn = v_go;
-      if (ref > v_go + 0.05) vn = std::min(ref, v_go + 2.4 * dt);
+      if (ref > v_go + 0.05) vn = std::min(ref, v_go + up * dt);
       else if (ref < v_go - 0.05) vn = std::max(ref, v_go - 4.0 * dt);
       s_go += 0.5 * dt * (v_go + vn);
       v_go = std::max(0.0, vn);
@@ -4420,7 +4432,11 @@ class SmpcDecisionNode {
       else if (pre_cap < v_bk - 0.05) vb = std::max(pre_cap, v_bk - 9.0 * dt);
       s_bk += 0.5 * dt * (v_bk + vb);
       v_bk = std::max(0.0, vb);
-      const double d_go = t.ego_d_target * (1.0 - std::clamp(tau / T_rem, 0.0, 1.0));
+      double d_go = t.ego_d_target * (1.0 - std::clamp(tau / T_rem, 0.0, 1.0));
+      if (launch) {
+        const double u = std::clamp((s_go - s_start) / L_rem, 0.0, 1.0);
+        d_go = t.ego_d_target * (1.0 - u * u * u * (10.0 - 15.0 * u + 6.0 * u * u));
+      }
       const double d_bk = t.ego_d_target + (-lane_width_m_ - t.ego_d_target) * std::clamp(tau / T_back, 0.0, 1.0);
       for (int which = 0; which < 2; ++which) {
         const double s_q = which == 0 ? s_go : s_bk;
