@@ -1096,5 +1096,49 @@
     "lc_active": false
    }
   }
+ ],
+ "tree_gt_nogate_eps008": [
+  {
+   "kind": "npc_merge_alongside"
+  },
+  {
+   "kind": "npc_merge_cut_in"
+  }
+ ],
+ "tree_gt_nogate_eps002": [
+  {
+   "kind": "npc_merge_alongside"
+  },
+  {
+   "kind": "npc_merge_alongside"
+  },
+  {
+   "kind": "npc_merge_cut_in"
+  }
+ ],
+ "tree_gt_nogate_lidar": [
+  {
+   "kind": "npc_merge_cut_in"
+  },
+  {
+   "kind": "npc_merge_cut_in"
+  }
+ ],
+ "baseline_lidar": [
+  {
+   "kind": "npc_merge_cut_in"
+  },
+  {
+   "kind": "npc_merge_cut_in"
+  },
+  {
+   "kind": "npc_merge_cut_in"
+  },
+  {
+   "kind": "npc_merge_alongside"
+  },
+  {
+   "kind": "ego_lane_change"
+  }
  ]
 }
