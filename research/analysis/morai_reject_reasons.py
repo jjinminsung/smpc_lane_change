@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""MORAI 기존 SMPC 가 왜 바꾸지 못했나: 바꾸기를 원한 틱(desire=1)에서 각 게이트가 막은 비율.
+"""MORAI 기존 SMPC 가 왜 바꾸지 못했나: 목표 차선이 바로 옆(|d_t| ≤ 4.5 m)이고 바꾸기를 원한(desire=1) 틱에서
+각 게이트가 막은 비율.
 
-    python3 morai_reject_reasons.py "v2_B_S3*baseline*.bag" "v2_B_S4*baseline*.bag"
-/smpc/smpc_decision_debug 의 플래그를 센다: G3 = 지금 간격·TTC(ttc_ok / rear_hw_ok / gaps 대 req_gap),
-G4 = 위험 > ε 또는 clearance < 0, G5 = projected_gap_ttc_ok. 한 틱에 여러 게이트가 같이 막을 수 있다.
+    python3 morai_reject_reasons.py "v2_B_S[34]*baseline*.bag"
+/smpc/smpc_decision_debug 의 플래그로 다시 계산한다.
+  G3 = 지금 간격(앞·뒤 간격 ≥ 요구 간격)과 TTC·헤드웨이 플래그
+  G4 = 변경 궤적 위험 ≤ ε 이고 모든 mode clearance ≥ 0
+  G5 = projected_gap_ttc_ok
+한 틱에 여러 게이트가 같이 막을 수 있다. 'feasible=1' 은 노드가 직접 낸 판정이다.
 """
+import bisect
+import collections
 import glob
 import re
 import sys
@@ -15,39 +21,46 @@ import rosbag
 BAGS = Path.home() / "bags" / "research"
 
 
-def flag(d, key):
-    m = re.search(key + r"=([-0-9.e+inf]+)", d)
-    return float(m.group(1)) if m else None
+def gates(d):
+    gaps = re.search(r"gaps cur=\S+ tf=(\S+) tr=(\S+) req_gap tf=(\S+) tr=(\S+) eff_tr=(\S+)", d)
+    ttc = re.search(r"ttc_ok tf=(\d) tf_hw=(\d) tr=(\d) rear_hw_ok=(\d)", d)
+    g3 = (gaps is not None and ttc is not None and float(gaps.group(1)) >= float(gaps.group(3)) and
+          float(gaps.group(2)) >= float(gaps.group(5)) and all(x == "1" for x in ttc.groups()))
+    r = re.search(r"step_peak_keep=\S+ change=(\S+)", d)
+    c = re.search(r"clear keep=\S+ change=(\S+)", d)
+    e = re.search(r"risk_eps=(\S+)", d)
+    g4 = r is not None and c is not None and e is not None and float(r.group(1)) <= float(e.group(1)) and \
+        float(c.group(1)) >= 0.0
+    return g3, g4, "projected_gap_ttc_ok=1" in d
 
 
 def main():
-    for pat in sys.argv[1:]:
+    tot, n = collections.Counter(), 0
+    for pat in sys.argv[1:] or ["v2_B_S[34]*baseline*.bag"]:
         for f in sorted(glob.glob(str(BAGS / pat))):
-            n = g3 = g4 = g5 = only_g4 = 0
+            tg, dbg = [], []
             with rosbag.Bag(f) as b:
-                for _, m, _ in b.read_messages(topics=["/smpc/smpc_decision_debug"]):
-                    d = m.data
-                    if " desire=1" not in d:
-                        continue
-                    n += 1
-                    gaps = re.search(r"gaps cur=\S+ tf=(\S+) tr=(\S+) req_gap tf=(\S+) tr=(\S+) eff_tr=(\S+)", d)
-                    ttc = re.search(r"ttc_ok tf=(\d) tf_hw=(\d) tr=(\d) rear_hw_ok=(\d)", d)
-                    gap_ok = gaps is not None and float(gaps.group(1)) >= float(gaps.group(3)) and \
-                        float(gaps.group(2)) >= float(gaps.group(5))
-                    det_ok = gap_ok and ttc is not None and all(x == "1" for x in ttc.groups())
-                    risk = re.search(r"step_peak_keep=\S+ change=(\S+)", d)
-                    clear = re.search(r"clear keep=\S+ change=(\S+)", d)
-                    eps = flag(d, "risk_eps")
-                    g4_ok = risk is not None and clear is not None and eps is not None and \
-                        float(risk.group(1)) <= eps and float(clear.group(1)) >= 0.0
-                    g5_ok = flag(d, "projected_gap_ttc_ok") == 1
-                    g3 += not det_ok
-                    g4 += not g4_ok
-                    g5 += not g5_ok
-                    only_g4 += det_ok and g5_ok and not g4_ok
-            if n:
-                print(f"{Path(f).name}: desire ticks {n}, G3 fail {100 * g3 / n:.0f} %, G4 fail {100 * g4 / n:.0f} %, "
-                      f"G5 fail {100 * g5 / n:.0f} %, G3·G5 pass but G4 fail {100 * only_g4 / n:.0f} %")
+                for top, m, t in b.read_messages(topics=["/smpc/smpc_decision_debug", "/smpc/targets"]):
+                    if top == "/smpc/targets":
+                        tg.append((t.to_sec(), m.ego_d_target))
+                    elif " desire=1" in m.data:
+                        dbg.append((t.to_sec(), m.data))
+            ts = [x[0] for x in tg]
+            for t, d in dbg:
+                i = min(bisect.bisect_left(ts, t), len(tg) - 1)
+                if abs(tg[i][1]) > 4.5:
+                    continue
+                g3, g4, g5 = gates(d)
+                n += 1
+                tot["G3 fail"] += not g3
+                tot["G4 fail"] += not g4
+                tot["G5 fail"] += not g5
+                tot["G3-G5 any fail"] += not (g3 and g4 and g5)
+                tot["G3-G5 all fail"] += not (g3 or g4 or g5)
+                tot["node feasible=1"] += " feasible=1" in d
+    print(f"desire ticks with target lane adjacent: {n}")
+    for k, v in tot.items():
+        print(f"  {k}: {v} ({100.0 * v / max(1, n):.1f} %)")
 
 
 if __name__ == "__main__":
