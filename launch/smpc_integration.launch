@@ -14,6 +14,10 @@
   <arg name="tree_planner_enabled" default="false"/>
   <arg name="tree_keep_gates" default="true"/>
   <arg name="tree_abort_enabled" default="$(arg tree_planner_enabled)"/>
+  <arg name="tree_monitor_enabled" default="true"/>
+  <!-- 2×2 비교용, 기존 판단 경로에서만: 게이트 정리 / 차선 변경 중 트리 모니터 -->
+  <arg name="baseline_keep_gates" default="true"/>
+  <arg name="baseline_tree_monitor" default="false"/>
   <!-- yaml: 기존(라이다 트래커로 맞춘) 표. gt: /Object_topic GT 로 다시 맞춘 표(research 1단계 M4) -->
   <arg name="rear_accel_table" default="yaml"/>
   <arg name="rviz_config" default="$(find smpc_lane_change)/rviz/smpc_debug.rviz"/>
@@ -148,6 +152,9 @@
       <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
       <param name="tree_planner_enabled" value="$(arg tree_planner_enabled)"/>
       <param name="tree_keep_gates" value="$(arg tree_keep_gates)"/>
+      <param name="tree_monitor_enabled" value="$(arg tree_monitor_enabled)"/>
+      <param name="baseline_keep_gates" value="$(arg baseline_keep_gates)"/>
+      <param name="baseline_tree_monitor" value="$(arg baseline_tree_monitor)"/>
       <rosparam if="$(eval arg('rear_accel_table') == 'gt')">
         rear_accel_probability_by_accel: [0.006, 0.007, 0.079, 0.275, 0.672]
         min_rear_accel_probability: 0.0

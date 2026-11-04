@@ -3,9 +3,17 @@
        total_bringup 은 고치지 않는다.
          기존 SMPC:  roslaunch smpc_lane_change research_morai.launch method:=baseline
          트리:       roslaunch smpc_lane_change research_morai.launch method:=tree
-         트리+게이트 정리: ... method:=tree tree_keep_gates:=false                       -->
+         트리+게이트 정리: ... method:=tree tree_keep_gates:=false
+       2×2 (모두 게이트 정리):
+         A 기존 판단 + rear_abort:  method:=baseline baseline_keep_gates:=false
+         B 기존 판단 + 트리 모니터: method:=baseline baseline_keep_gates:=false monitor:=true
+         C 트리 판단 + rear_abort:  method:=tree tree_keep_gates:=false monitor:=false
+         D 트리 판단 + 트리 모니터: method:=tree tree_keep_gates:=false              -->
   <arg name="method" default="baseline"/>              <!-- baseline | tree -->
   <arg name="tree_keep_gates" default="true"/>
+  <arg name="baseline_keep_gates" default="true"/>
+  <!-- 차선 변경 중 트리 모니터로 rear_abort 를 대체할지. 기본: 트리 판단일 때만 -->
+  <arg name="monitor" default="$(eval arg('method') == 'tree')"/>
   <arg name="rear_accel_table" default="gt"/>          <!-- 두 방법 모두 같은 GT 표로 비교 -->
   <arg name="target_source" default="object_topic"/>   <!-- GT 인지. 라이다 비교는 tracked_objects -->
   <arg name="sim_ip" default="192.168.100.10"/>        <!-- 집 PC: lo 별칭. 대회 PC: 192.168.0.1 -->
@@ -32,6 +40,10 @@
     <arg name="target_source" value="$(arg target_source)"/>
     <arg name="tree_planner_enabled" value="$(eval arg('method') == 'tree')"/>
     <arg name="tree_keep_gates" value="$(arg tree_keep_gates)"/>
+    <arg name="tree_monitor_enabled" value="$(arg monitor)"/>
+    <arg name="tree_abort_enabled" value="$(arg monitor)"/>
+    <arg name="baseline_keep_gates" value="$(arg baseline_keep_gates)"/>
+    <arg name="baseline_tree_monitor" value="$(eval arg('monitor') and arg('method') == 'baseline')"/>
     <arg name="rear_accel_table" value="$(arg rear_accel_table)"/>
   </include>
   <param name="/smpc_target_selector/object_topic_offset_x" value="0.0"/>

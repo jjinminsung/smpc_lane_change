@@ -379,6 +379,11 @@ class SmpcDecisionNode {
     pnh_.param("tree_planner_enabled", tree_planner_enabled_, false);
     pnh_.param("tree_keep_gates", tree_keep_gates_, true);
     pnh_.param("tree_monitor_enabled", tree_monitor_enabled_, true);
+    // 2×2 비교용, 기존 판단 경로(tree_planner_enabled=false)에서만 쓴다. 기본값 = 기존 SMPC 그대로.
+    // baseline_keep_gates=false: G3/G5 와 모든-mode clearance 를 걷어낸다(시뮬레이터 baseline_gt_nogate).
+    // baseline_tree_monitor=true: 차선 변경 중 트리 모니터를 돌려 /smpc/tree_abort 를 낸다(tree_gt_nogate_bdec).
+    pnh_.param("baseline_keep_gates", baseline_keep_gates_, true);
+    pnh_.param("baseline_tree_monitor", baseline_tree_monitor_, false);
     pnh_.getParam("tree_onsets_sec", tree_onsets_sec_);
     pnh_.param("tree_rear_detect_delay_sec", tree_rear_detect_delay_sec_, 0.5);
     pnh_.param("tree_front_detect_delay_sec", tree_front_detect_delay_sec_, 0.3);
@@ -3805,8 +3810,9 @@ class SmpcDecisionNode {
     out.projected_gap_ttc_safe =
         out.trajectory.valid && projectedTargetGapTtcSafe(
             t, trajectory, spec, effective_rear, passing_front);
-    out.feasible = out.time_risk_safe && out.legacy_risk_safe && out.clearance_safe &&
-        out.projected_gap_ttc_safe;
+    const bool drop_gates = !tree_planner_enabled_ && !baseline_keep_gates_;
+    out.feasible = out.time_risk_safe && out.legacy_risk_safe &&
+        ((out.clearance_safe && out.projected_gap_ttc_safe) || drop_gates);
     if (!out.trajectory.valid) return out;
 
     const double preparation_time = std::max(0.0, spec.lane_change_start_sec);
@@ -4657,7 +4663,7 @@ class SmpcDecisionNode {
           });
       if (!already_present) vehicles.push_back(*effective_target_rear);
     }
-    if (tree_planner_enabled_ && tree_monitor_enabled_) {
+    if ((tree_planner_enabled_ || baseline_tree_monitor_) && tree_monitor_enabled_) {
       // 차선 변경 중 재계획(rear_abort 대체). supervisor 가 tree_abort_enabled 일 때 이 값을 따른다.
       std_msgs::Bool abort_msg;
       abort_msg.data = false;
@@ -4765,8 +4771,10 @@ class SmpcDecisionNode {
     const bool change_legacy_risk_safe = change_eval.valid &&
         (!behavior_require_legacy_risk_gate_ || change_eval.risk <= allowed_risk);
     const bool change_clearance_safe = clearanceSafe(change_eval);
+    // 기존 판단 + 게이트 정리(2×2 의 A/B): 확률 위험 제약만 남긴다. 디버그 플래그는 원래 값을 낸다.
+    const bool baseline_drop_gates = !tree_planner_enabled_ && !baseline_keep_gates_;
     const bool chance_gap_safe = change_eval.valid && change_time_risk_safe &&
-        change_legacy_risk_safe && change_clearance_safe;
+        change_legacy_risk_safe && (change_clearance_safe || baseline_drop_gates);
     // CHANGE_NOW must satisfy the same all-step target-lane front/rear
     // gap, TTC, and rear-headway gate as a delayed behavior candidate.  An
     // instantaneous gate alone is unsafe for a fast target-rear vehicle:
@@ -4782,8 +4790,8 @@ class SmpcDecisionNode {
     const ProjGateFail change_proj_fail = proj_fail_;
     const bool change_acc_stable = accStableForChangeCommit();
     const bool change_feasible =
-        target_lane_is_left && change_eval.valid && deterministic_gap_safe &&
-        chance_gap_safe && change_projected_gap_ttc_safe &&
+        target_lane_is_left && change_eval.valid && (deterministic_gap_safe || baseline_drop_gates) &&
+        chance_gap_safe && (change_projected_gap_ttc_safe || baseline_drop_gates) &&
         target_lane_scene_observed && observed_target_lane_intrusion_safe &&
         change_acc_stable;
 
@@ -4801,9 +4809,9 @@ class SmpcDecisionNode {
         target_gap_cost;
     if (!target_lane_is_left) change_cost += lane_end_emergency_cost_;
     if (!change_eval.valid) change_cost += lane_end_emergency_cost_;
-    if (!deterministic_gap_safe) change_cost += lane_end_urgent_cost_;
+    if (!deterministic_gap_safe && !baseline_drop_gates) change_cost += lane_end_urgent_cost_;
     if (!chance_gap_safe) change_cost += lane_end_urgent_cost_;
-    if (!change_projected_gap_ttc_safe) change_cost += lane_end_urgent_cost_;
+    if (!change_projected_gap_ttc_safe && !baseline_drop_gates) change_cost += lane_end_urgent_cost_;
 
     const bool desire_change = endpoint_trigger || current_blocked ||
         (change_cost + decision_hysteresis_cost_ < keep_cost);
@@ -4966,6 +4974,7 @@ class SmpcDecisionNode {
           << " tr=" << (target_rear_ttc_safe ? 1 : 0)
           << " rear_hw_ok=" << (target_rear_headway_safe ? 1 : 0)
           << " projected_gap_ttc_ok=" << (change_projected_gap_ttc_safe ? 1 : 0)
+          << " baseline_gates=" << (baseline_drop_gates ? 0 : 1)
           << " pgtc_fail="
           << (!change_proj_fail.valid
                   ? "none"
@@ -5112,6 +5121,8 @@ class SmpcDecisionNode {
   bool tree_planner_enabled_{false};
   bool tree_keep_gates_{true};
   bool tree_monitor_enabled_{true};
+  bool baseline_keep_gates_{true};
+  bool baseline_tree_monitor_{false};
   std::vector<double> tree_onsets_sec_{0.0, 1.0, 2.0, 3.0};
   double tree_rear_detect_delay_sec_{0.5};
   double tree_front_detect_delay_sec_{0.3};

@@ -4,6 +4,10 @@
     python3 run_matrix.py --phase A        # S2 안전 확인: 트리(게이트 유지/정리)
     python3 run_matrix.py --phase B        # 문서 계획: S1–S4 × {기존, 트리+게이트 정리} × 3
     python3 run_matrix.py --phase C        # 속도 격자 12 개 × {기존, 트리+게이트 정리} × 2
+    python3 run_matrix.py --phase E        # 2×2: S1–S4 × {기존, A, B, C, D} × 3 (같은 세션에서 번갈아)
+
+2×2 방법(모두 게이트 정리): baseline_nogate = A 기존 판단 + rear_abort, bdec = B 기존 판단 + 트리 모니터,
+tree_nomon = C 트리 판단 + rear_abort, tree_nogate = D 트리 판단 + 트리 모니터(제안).
 
 이미 끝난 (tag) 는 건너뛴다(중단 후 다시 실행해도 된다). 방법 순서는 반복마다 번갈아
 (기존→트리, 트리→기존) 시간대 차이(교통 상황)를 줄인다.
@@ -21,10 +25,14 @@ OUT = Path.home() / "bags" / "research"
 LOG = REPO / "research" / "results" / "morai_runs.jsonl"
 SHOT = Path("/tmp") / "morai_shots"
 
+# 방법 → (research_morai.launch method, tree_keep_gates, 추가 roslaunch 인자)
 METHODS = {
-    "baseline": ("baseline", "true"),
-    "tree": ("tree", "true"),
-    "tree_nogate": ("tree", "false"),
+    "baseline": ("baseline", "true", []),
+    "tree": ("tree", "true", []),
+    "tree_nogate": ("tree", "false", []),
+    "baseline_nogate": ("baseline", "true", ["baseline_keep_gates:=false"]),
+    "bdec": ("baseline", "true", ["baseline_keep_gates:=false", "monitor:=true"]),
+    "tree_nomon": ("tree", "false", ["monitor:=false"]),
 }
 S = ["research_S1_normal", "research_S2_rear_accel", "research_S3_rear_decel", "research_S4_front_decel"]
 G = [f"research_G_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]
@@ -33,6 +41,7 @@ PHASES = {
     "B": (S, ["baseline", "tree_nogate"], 3),
     "C": (G, ["baseline", "tree_nogate"], 2),
     "D": (S, ["tree"], 2),
+    "E": (S, ["baseline", "baseline_nogate", "bdec", "tree_nomon", "tree_nogate"], 3),
 }
 
 
@@ -85,8 +94,8 @@ def main():
                     LOG.open("a").write(json.dumps(rec) + "\n")
                     print(json.dumps(rec), flush=True)
                     continue
-                method, keep = METHODS[m]
-                rc, so, se = run(["bash", str(HERE / "run_episode.sh"), tag, method, keep], 420)
+                method, keep, extra = METHODS[m]
+                rc, so, se = run(["bash", str(HERE / "run_episode.sh"), tag, method, keep] + extra, 420)
                 mon = None
                 try:
                     mon = json.loads((OUT / f"{tag}.monitor.json").read_text().strip().splitlines()[-1])
