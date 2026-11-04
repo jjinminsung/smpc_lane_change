@@ -349,7 +349,7 @@ class TreePlanner(BaselineSmpc):
         request = BehaviorRequest(lane_pair=(t.current_lane_id, t.target_lane_id), stamp=now)
         selected, reason, change = "", "", False
         if desire and g1 and specs:
-            traj = build_trajectories(ctx, specs, self.track, P)
+            traj = self.root_trajectories(ctx, specs, t)
             root_cost = (P.lane_change_base_cost + target_gap_cost + P.behavior_delay_cost_weight *
                          np.array([s.t_lc for s in specs]) + P.behavior_accel_cost_weight *
                          np.array([s.prep_accel for s in specs]) ** 2)
@@ -360,7 +360,7 @@ class TreePlanner(BaselineSmpc):
                 gate_ok &= projected_gap_ttc_safe(t, traj, specs, R, passing, modes_of, self.lanes, self.hist, now, P)
             compat = (pre_cap + 0.10 >= v_e) or self.acc_ack(t, acc_status)
             gate_ok[1:] &= compat
-            common = g6 and g7 and g8
+            common = self.common_ok(g6, g7, g8)
             feas = np.zeros(len(specs), dtype=bool)
             cost = np.full(len(specs), np.inf)
             combo = np.zeros((len(specs), 1), dtype=int)
@@ -410,6 +410,14 @@ class TreePlanner(BaselineSmpc):
         self.last_request = request if request.active else BehaviorRequest()
         return Decision(change_left=change, request=request, desire=desire, feasible=change,
                         reason=reason, selected=selected)
+
+    # ------------------------------------------------- 하위 클래스 훅
+    def root_trajectories(self, ctx, specs, t):
+        """루트 후보의 자차 궤적. tree_reactive 는 가지마다 따로 굴리므로 여기서는 ctx 만 넘긴다."""
+        return build_trajectories(ctx, specs, self.track, self.P)
+
+    def common_ok(self, g6, g7, g8):
+        return g6 and g7 and g8
 
     # ----------------------------------------------- 실행 중 재계획
     def monitor(self, now, t, v_e, mission):

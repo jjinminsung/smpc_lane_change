@@ -16,7 +16,7 @@ def _tv(npc, ego_s, lane_of, track, role=""):
         valid=True, unique_id=npc.uid, role=role, lane_id=lane, x=npc.s, y=npc.y,
         s=npc.s, d=npc.y - track.center_y(lane), delta_s=delta, yaw=0.0, yaw_rate=0.0,
         v_long=npc.v, v_lat=npc.v_lat, length=npc.length, width=npc.width, half_s=half_s,
-        front_delta_s=delta + half_s, rear_delta_s=delta - half_s, track_hits=100)
+        front_delta_s=delta + half_s, rear_delta_s=delta - half_s, track_hits=100, accel=getattr(npc, "a", 0.0))
 
 
 def build_targets(now, ego, npcs, track, P_sel, forced_pair=None):

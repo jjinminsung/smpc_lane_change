@@ -29,6 +29,7 @@ class TargetVehicle:
     front_delta_s: float = 0.0
     rear_delta_s: float = 0.0
     track_hits: int = 0
+    accel: float = 0.0        # GT 종방향 가속도(MORAI /Object_topic acceleration.x). 메시지에는 아직 없다(plan_v2 2d)
 
     def has_role(self, word):
         return word in self.role

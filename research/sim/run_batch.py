@@ -41,6 +41,9 @@ def planner_factory(name):
             b.name = name
             return b
         return factory
+    if name.startswith("rx"):
+        from smpc_sim.tree_reactive import make_reactive_planner
+        return make_reactive_planner(name)
     if name.startswith("tree"):
         from smpc_sim.tree import make_tree_planner
         return make_tree_planner(name)
