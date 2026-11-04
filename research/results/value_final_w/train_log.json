@@ -1,0 +1,123 @@
+{
+ "reward": {
+  "success": 1.0,
+  "failure": -1.0,
+  "collision": -10.0,
+  "lane_end_stop": -0.2,
+  "time_per_sec": -0.01,
+  "gamma_per_sec": 0.98
+ },
+ "iters": [
+  {
+   "iter": 1,
+   "train_policy": {
+    "n": 300,
+    "success_%": 65.33333333333333,
+    "collision_%": 0.3333333333333333,
+    "merge_time_median_s": 29.69999999999832,
+    "merge_time_p90_s": 79.92499999999546,
+    "lane_end_stops_per_ep": 1.2733333333333334,
+    "stop_time_mean_s": 33.501833333332506,
+    "aborts_per_ep": 0.84,
+    "accepts_per_ep": 3.3066666666666666,
+    "min_gap_p05_m": 3.205271620040642,
+    "min_ttc_p05_s": 1.792110341931451,
+    "min_sep_p05_m": 1.1137155858641492,
+    "eps_sep_below_0.5m": 1,
+    "eps_side_by_side_below_0.5m": 1,
+    "offroad_%": 1.6666666666666667
+   },
+   "fit": {
+    "val_mse": 0.23418238759040833,
+    "const_mse": 0.4390202462673187,
+    "n_train": 35980,
+    "n_val": 3665
+   },
+   "lambda": 30.0,
+   "val": {
+    "n": 100,
+    "success_%": 54.0,
+    "collision_%": 1.0,
+    "merge_time_median_s": 42.599999999997586,
+    "merge_time_p90_s": 94.29999999999787,
+    "lane_end_stops_per_ep": 1.28,
+    "stop_time_mean_s": 32.058499999999256,
+    "aborts_per_ep": 0.81,
+    "accepts_per_ep": 2.85,
+    "min_gap_p05_m": 3.2665705177070863,
+    "min_ttc_p05_s": 1.8059739559691832,
+    "min_sep_p05_m": 1.387753540700815,
+    "eps_sep_below_0.5m": 1,
+    "eps_side_by_side_below_0.5m": 1,
+    "offroad_%": 18.0
+   },
+   "wall_s": 1592.6
+  },
+  {
+   "iter": 2,
+   "train_policy": {
+    "n": 300,
+    "success_%": 52.0,
+    "collision_%": 1.0,
+    "merge_time_median_s": 39.64999999999775,
+    "merge_time_p90_s": 97.22499999999852,
+    "lane_end_stops_per_ep": 1.3466666666666667,
+    "stop_time_mean_s": 36.81666666666576,
+    "aborts_per_ep": 0.81,
+    "accepts_per_ep": 2.87,
+    "min_gap_p05_m": 3.005942473079125,
+    "min_ttc_p05_s": 1.7572246634310218,
+    "min_sep_p05_m": 1.3927661949882737,
+    "eps_sep_below_0.5m": 3,
+    "eps_side_by_side_below_0.5m": 3,
+    "offroad_%": 13.0
+   },
+   "fit": {
+    "val_mse": 0.22490638494491577,
+    "const_mse": 0.3701985478401184,
+    "n_train": 72686,
+    "n_val": 8602
+   },
+   "lambda": 10.0,
+   "val": {
+    "n": 100,
+    "success_%": 63.0,
+    "collision_%": 1.0,
+    "merge_time_median_s": 36.84999999999791,
+    "merge_time_p90_s": 88.78999999999661,
+    "lane_end_stops_per_ep": 1.28,
+    "stop_time_mean_s": 39.54549999999897,
+    "aborts_per_ep": 0.72,
+    "accepts_per_ep": 3.1,
+    "min_gap_p05_m": 3.5046555462955524,
+    "min_ttc_p05_s": 1.7852719551644587,
+    "min_sep_p05_m": 1.3134208777971572,
+    "eps_sep_below_0.5m": 1,
+    "eps_side_by_side_below_0.5m": 1,
+    "offroad_%": 1.0
+   },
+   "wall_s": 2509.8
+  }
+ ],
+ "test": {
+  "n": 200,
+  "success_%": 65.5,
+  "collision_%": 1.0,
+  "merge_time_median_s": 39.14999999999778,
+  "merge_time_p90_s": 95.04999999999802,
+  "lane_end_stops_per_ep": 1.335,
+  "stop_time_mean_s": 35.41374999999916,
+  "aborts_per_ep": 0.725,
+  "accepts_per_ep": 3.165,
+  "min_gap_p05_m": 2.9146563182769283,
+  "min_ttc_p05_s": 1.6674686099532803,
+  "min_sep_p05_m": 1.3906407299480572,
+  "eps_sep_below_0.5m": 2,
+  "eps_side_by_side_below_0.5m": 1,
+  "offroad_%": 2.5
+ },
+ "final": {
+  "path": "/home/kuuve/github/smpc_lane_change/research/results/value_final_w/V_iter2.pt",
+  "lambda": 10.0
+ }
+}
