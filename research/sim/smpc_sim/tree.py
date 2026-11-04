@@ -368,7 +368,7 @@ class TreePlanner(BaselineSmpc):
                 feas, cost, combo, peak, br = self.evaluate_tree(traj, specs, t, v_e, R, vehicles, root_cost,
                                                                  candidate_mask=gate_ok)
             ok = feas & gate_ok & common
-            if ok[0] and self.cfg.monitor and self.monitor_core(t, v_e, mission) == "return":
+            if ok[0] and self.cfg.monitor and self.monitor_core(t, v_e, mission, connector=near_end) == "return":
                 # 같은 상태에서 실행 중 재계획이 곧바로 복귀를 고를 바꾸기는 승인하지 않는다(리뷰 #6)
                 ok[0] = False
             wait_wins = False
@@ -386,6 +386,7 @@ class TreePlanner(BaselineSmpc):
                 selected = spec.label + " " + ",".join(RESPONSE_NAMES[r] for r in combo[i][1:])
                 if spec.action == CHANGE_NOW:
                     change = True
+                    self.lc_connector = near_end      # 실행 방식: 실행 중 모니터가 같은 방식으로 본다
                 else:
                     t_sw = execution_start(spec, P)
                     if spec.action == HOLD:
@@ -431,8 +432,8 @@ class TreePlanner(BaselineSmpc):
         self.hist.update(t, now)
         return self.monitor_core(t, v_e, mission)
 
-    def monitor_core(self, t, v_e, mission):
-        """monitor 본체(이력 갱신 없음). decide 도 승인 전에 같은 상태로 불러 본다."""
+    def monitor_core(self, t, v_e, mission, connector=None):
+        """monitor 본체(이력 갱신 없음). decide 도 승인 전에 같은 상태로 불러 본다. connector 는 반응형만 쓴다."""
         P, c = self.P, self.cfg
         d_t = abs(t.ego_d_target)
         if d_t <= c.abort_before_abs_d:

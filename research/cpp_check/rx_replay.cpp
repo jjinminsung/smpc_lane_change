@@ -3,11 +3,13 @@
 //
 // 입력 (공백 구분, 틱마다):
 //   tick <t> ego <x> <y> <yaw> <v> mission <v> blend <T>
+//   conn <0|1>                          (waypoint 가 connector 를 따라가는 중인가 = 실행 방식)
 //   targets <cur> <tgt> <ego_s_current> <ego_d_current> <ego_d_target> <lane_len> <dist_end> <time_to_end>
 //   veh <slot> <uid> <lane> <x> <y> <s> <d> <delta_s> <yaw> <v_long> <v_lat> <length> <width>
 //       <half_s> <half_d> <front_delta_s> <rear_delta_s> <hits> <accel> <role>      (slot: cf tf tr nb)
 //   end
-// 출력: 틱마다 한 줄 JSON {t, go, back, ret, vehicles, branch_go, peak_k, ego, tvs}
+// 출력: 틱마다 한 줄 JSON {t, go, back, ret, vehicles, branch_go, peak_k, ego, tvs, acc_*, sel}
+//   sel = treeSelectReactive 의 판단 문자열(미리보기 요구는 끈다: bag 에 미리보기가 없다)
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -61,6 +63,7 @@ int main(int argc, char** argv) {
   std::string key;
   smpc_lane_change::TargetVehicleSet t;
   double tick_t = 0.0;
+  bool conn = false;
   std::cout << std::setprecision(6);
   while (in >> key) {
     if (key == "tick") {
@@ -76,6 +79,10 @@ int main(int argc, char** argv) {
       node.reference_preview_.mode = waypoint_system::PathSwitchPreview::BLEND;
       node.reference_preview_.blend_duration_sec = blend;
       node.have_reference_preview_ = true;
+    } else if (key == "conn") {
+      int c = 0;
+      in >> c;
+      conn = c != 0;
     } else if (key == "targets") {
       in >> t.current_lane_id >> t.target_lane_id >> t.ego_s_current >> t.ego_d_current >> t.ego_d_target >>
           t.current_lane_length >> t.distance_to_lane_end >> t.time_to_lane_end;
@@ -91,7 +98,7 @@ int main(int argc, char** argv) {
       else t.nearby_vehicles.push_back(v);
     } else if (key == "end") {
       std::string detail;
-      const bool ret = node.rxMonitorReturn(t, tick_t, &detail);
+      const bool ret = node.rxMonitorReturn(t, tick_t, &detail, conn);
       // 같은 모니터 롤아웃을 다시 굴려 가지별 위험과 자차·차량 경로를 낸다.
       const double W = node.lane_width_m_;
       const double d_t = std::abs(t.ego_d_target);
@@ -103,7 +110,7 @@ int main(int argc, char** argv) {
       go.t_sw = 0.0;
       go.dur = T_rem;
       go.action = SmpcDecisionNode::BehaviorAction::kChangeNow;
-      auto r = node.rxRollout(t, {go}, br, node.ego_speed_mps_, node.currentTargetSpeedMps(), node.rxConnectorNow(t), 20.0,
+      auto r = node.rxRollout(t, {go}, br, node.ego_speed_mps_, node.currentTargetSpeedMps(), conn, 20.0,
                               node.ego_speed_mps_, T_rem);
       const auto tvs = node.rxVehicles(t);
       int peak_k = 0;
@@ -175,7 +182,40 @@ int main(int argc, char** argv) {
         for (int k = 0; k < ar.K; k += 2) std::cout << (k ? "," : "") << ar.tv_s[i][static_cast<std::size_t>(k)];
         std::cout << "]";
       }
-      std::cout << "]}" << std::endl;
+      std::cout << "]";
+      // 판단 전체(모든 루트)
+      node.ego_reference_preview_required_for_change_ = false;
+      const double keep_intr = node.rx_intr_since_, keep_p = node.rx_p_rear_post_;
+      const bool keep_conn = node.rx_lc_connector_;
+      bool rc = false, hf = false;
+      SmpcDecisionNode::CandidateEval bf;
+      std::string sel;
+      node.treeSelectReactive(t, cn, true, 0.0, node.activeRiskEpsilon(t), &rc, &bf, &hf, &sel);
+      node.rx_intr_since_ = keep_intr;
+      node.rx_p_rear_post_ = keep_p;
+      node.rx_lc_connector_ = keep_conn;
+      std::cout << ",\"sel\":\"" << sel << "\"";
+      // 루트별: 이름, 유효, 실행 가능, 최대 위험, 지평선 끝 자차 [s, d, v]
+      if (std::getenv("RX_ROOTS")) {
+        std::vector<SmpcDecisionNode::ActionSpec> specs{cn};
+        for (const auto& c : node.buildBehaviorCandidates(t))
+          if (c.action != SmpcDecisionNode::BehaviorAction::kChangeNow && node.candidateFitsHorizon(c)) specs.push_back(c);
+        std::vector<SmpcDecisionNode::RxSpec> rs;
+        for (const auto& c : specs) rs.push_back(node.rxSpecOf(c));
+        auto rr = node.rxRollout(t, rs, abr, node.ego_speed_mps_, node.currentTargetSpeedMps(), node.rxConnectorForAccept(t),
+                                       20.0, node.ego_speed_mps_, -1.0);
+        std::cout << ",\"roots\":[";
+        for (std::size_t i = 0; i < specs.size(); ++i) {
+          const auto ts2 = node.rxSolveRoot(rr, abr, static_cast<int>(i), 0.0, node.activeRiskEpsilon(t));
+          const std::size_t m0 = (0 * 2 + 0) * rr.N + i;  // 가지 0, 계속
+          const std::size_t last = m0 * rr.K + rr.K - 1;
+          std::cout << (i ? "," : "") << "[\"" << specs[i].name << "\"," << static_cast<int>(rr.valid[i]) << "," << ts2.feasible << ","
+                    << ts2.peak_risk << "," << specs[i].lane_change_start_sec << "," << specs[i].prep_accel_mps2 << ",["
+                    << rr.ego_s[last] << "," << rr.ego_d[last] << "," << rr.ego_v[last] << "]]";
+        }
+        std::cout << "]";
+      }
+      std::cout << "}" << std::endl;
     }
   }
   return 0;

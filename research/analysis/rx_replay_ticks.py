@@ -4,8 +4,9 @@
     python3 rx_replay_ticks.py <bag> <t_from> <t_to> [--all <step>] > ticks.txt      (t = bag 시작 기준 초)
 
 틱 = /smpc/tree_debug 의 "tree_monitor" 메시지 시각. 그 직전의 /smpc/targets, /odom, 미션 속도를 쓴다.
+/path_switch_connector_active(waypoint 가 connector 를 따라가는 중)를 'conn' 줄로 넣는다.
 /path_switch_preview 는 bag 에 없어서 blend 시간은 waypoint_system base.yaml 의 속도 적응식으로 다시 구한다
-(차선 변경 시작 시점 속도, smpc_decision.yaml ego_reference_preview_duration_scale 1.04 곱).
+(waypoint 처럼 그 틱의 속도로. ego_reference_preview_duration_scale 1.04 는 노드가 곱하므로 여기서는 곱하지 않는다).
 """
 import bisect
 import math
@@ -17,7 +18,7 @@ import rosbag
 def blend_duration(v):
     r = min(max((v - 8.0) / 20.0, 0.0), 1.0)
     a = (1.0 - r) * 1.3 + r * 1.0
-    return min(max(math.sqrt(5.7735 * 3.5 / a), 2.6), 5.0) * 1.04
+    return min(max(math.sqrt(5.7735 * 3.5 / a), 2.6), 5.0)
 
 
 def last_before(ts, xs, t):
@@ -47,7 +48,8 @@ def main():
                 nxt = t + step
     tg, od, ms = rd("/smpc/targets"), rd("/odom"), rd("/control_feedback/mission_speed_target_mps")
     tgt, odt, mst = [x[0] for x in tg], [x[0] for x in od], [x[0] for x in ms]
-    lc_start_v = None
+    cn = rd("/path_switch_connector_active")
+    cnt = [x[0] for x in cn]
     for t, s in mon:
         if not (t_from <= t <= t_to):
             continue
@@ -55,12 +57,11 @@ def main():
         o = last_before(odt, [x[1] for x in od], t)
         mis = last_before(mst, [x[1] for x in ms], t).data
         v = math.hypot(o.twist.twist.linear.x, o.twist.twist.linear.y)
-        if lc_start_v is None:
-            lc_start_v = v
         q = o.pose.pose.orientation
         yaw = math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))
         print(f"tick {t:.3f} ego {o.pose.pose.position.x:.4f} {o.pose.pose.position.y:.4f} {yaw:.5f} {v:.4f} "
-              f"mission {mis:.4f} blend {blend_duration(lc_start_v):.4f}")
+              f"mission {mis:.4f} blend {blend_duration(v):.4f}")
+        print(f"conn {int(bool(cn) and last_before(cnt, [x[1] for x in cn], t).data)}")
         print(f"targets {m.current_lane_id} {m.target_lane_id} {m.ego_s_current:.4f} {m.ego_d_current:.4f} "
               f"{m.ego_d_target:.4f} {m.current_lane_length:.4f} {m.distance_to_lane_end:.4f} {min(m.time_to_lane_end, 1e9):.4f}")
         for slot, v_ in (("cf", m.current_front), ("tf", m.target_front), ("tr", m.target_rear)):

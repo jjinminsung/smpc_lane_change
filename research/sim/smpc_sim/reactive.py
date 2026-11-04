@@ -165,6 +165,7 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
     tau_m = np.where(mid & change, 0.0, np.nan)
     ret_t = np.full(M, np.inf)
     y_ret0 = np.zeros(M)
+    y_m = np.full(M, y0 if mid else np.nan)        # 횡이동 시작 때 자차 위치
     t_in = np.full(M, np.inf)
     L_rem = max(2.0, ctx.connector_join_arc * abs(ctx.ego_d_target) / W) if mid else max(1.0, ctx.connector_join_arc)
 
@@ -210,9 +211,10 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         else:
             T = mid_T_rem if mid else dur
             alpha = np.where(np.isnan(tau_m), 0.0, np.clip((tau0 - np.nan_to_num(tau_m)) / T, 0.0, 1.0))
-        y_start = y0 if mid else y_src
-        y_go = np.where(change, y_start + (y_tgt - y_start) * alpha,
-                        y_src + (y0 - y_src) * math.exp(-tau0 / max(0.1, P.lane_center_decay_tau_sec)))
+        # 횡이동은 그때의 실제 위치에서 시작한다(C++ rxRollout 과 같다; 복귀 뒤 비켜 선 채 다시 승인하는 경우).
+        y_keep = y_src + (y0 - y_src) * math.exp(-tau0 / max(0.1, P.lane_center_decay_tau_sec))
+        y_m = np.where(np.isnan(y_m) & ~np.isnan(tau_m), y_keep, y_m)
+        y_go = np.where(change & ~np.isnan(y_m), y_m + (y_tgt - y_m) * alpha, y_keep)
         y_go = np.where(change & (s > src_end), y_tgt, y_go)
         tb = np.where(tb_rule == "front", RP.front_detect_s,
              np.where(tb_rule == "rear", t_in + RP.rear_react_delay_s + RP.rear_detect_s, np.inf))
@@ -250,7 +252,7 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             elif x.role == "tf2":
                 acc = base
             else:
-                react = (rear_mode == "yield") & (tau0 >= t_in + RP.rear_react_delay_s) & (intr > 0.0) & (s > x.s)
+                react = (rear_mode == "yield") & (tau0 >= t_in + RP.rear_react_delay_s - 1e-9) & (intr > 0.0) & (s > x.s)
                 gap_e = (s - P.ego_rear_extent_m) - (x.s + 0.5 * x.len)
                 a_e = _idm(x.v, gap_e, v, max(x.v0, 0.5), RP.rear_idm_a, RP.rear_idm_b, RP.rear_idm_s0, RP.rear_idm_T)
                 acc = np.maximum(np.where(react, np.minimum(base, a_e), base), -RP.rear_max_brake)
@@ -393,7 +395,7 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
     risk = shp(risk) * mask[None, None]
     allowed = shp(np.where(resp == RETURN, np.isfinite(ret_t), True))
     return {"risk": risk, "allowed": allowed, "x": X, "y": Y, "v": shp(out_v), "valid": valid, "mask": mask,
-            "taus": taus}
+            "taus": taus, "tv_s": [(x.uid, shp(np.stack(x.out_s, axis=1))) for x in tvs]}
 
 
 def load_acc_params():

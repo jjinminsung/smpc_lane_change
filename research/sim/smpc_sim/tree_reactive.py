@@ -39,6 +39,7 @@ class ReactiveTreePlanner(TreePlanner):
         self.name += "_rx" + ("_single" if single else "") + ("" if drop_common else "_common")
         self.intr_since = None            # 실행 중 자차가 목표 차선에 들어간 시각
         self.p_rear_post = None
+        self.lc_connector = None          # 마지막 지금 바꾸기 승인의 실행 방식(connector 출발인가)
 
     # ------------------------------------------------------------ 훅
     def root_trajectories(self, ctx, specs, t):
@@ -129,7 +130,7 @@ class ReactiveTreePlanner(TreePlanner):
         self.mission = mission
         self.hist.update(t, now)
         self._update_rear_belief(now, t)
-        return self.monitor_core(t, v_e, mission)
+        return self.monitor_core(t, v_e, mission, connector=self.lc_connector)
 
     def _update_rear_belief(self, now, t):
         """뒤차 양보 여부 관측 갱신. 자차가 목표 차선에 기준 이상 들어간 뒤 반응 지연 + 알아채는 시간이 지났는데
@@ -153,14 +154,16 @@ class ReactiveTreePlanner(TreePlanner):
         elif a > -0.1 and rear.v_long > getattr(self, "_v_e", 0.0) + 0.5:
             self.p_rear_post = 0.9
 
-    def monitor_core(self, t, v_e, mission):
+    def monitor_core(self, t, v_e, mission, connector=None):
+        """connector = 이 차선 변경의 실행 방식(C++ rxMonitorReturn 과 같다). 실행 중에는 승인 때 고정한 값,
+        승인 전 일치 검사에서는 승인 평가의 값. 속도로 다시 추정하면 정지 출발 직후 blend 로 바뀌어 위험이 튄다."""
         P, c, rp = self.P, self.cfg, self.rp
         self._v_e = v_e
         d_t = abs(t.ego_d_target)
         if d_t <= c.abort_before_abs_d:
             return None
         T_rem = max(0.5, waypoint_blend_duration(v_e) * d_t / P.lane_width_m)
-        near_end = t.distance_to_lane_end <= 30.0 and v_e <= 1.0
+        near_end = connector if connector is not None else (t.distance_to_lane_end <= 30.0 and v_e <= 1.0)
         tf = t.target_front
         ctx = RolloutContext(v0=v_e, s0=t.ego_s_current, lane=t.current_lane_id, target_lane=t.target_lane_id,
                              ego_d_target=t.ego_d_target, pre_cap=mission, mission=mission,

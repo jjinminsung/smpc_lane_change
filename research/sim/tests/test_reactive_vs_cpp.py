@@ -47,6 +47,8 @@ def make_scene(rng, P):
     s0 = LANE_END[cur] - (rng.uniform(20.0, 30.0) if stopped else rng.uniform(40.0, 300.0))
     mid = rng.random() < 0.3
     d0 = -W if not mid else -rng.uniform(1.9, 3.4)
+    if not mid and rng.random() < 0.4:   # 복귀 뒤처럼 원 차선 중심에서 비켜 선 채 승인(MORAI H_s50_d60: 0.6–0.8 m)
+        d0 += rng.uniform(-0.3, 0.9)
     vehicles = []
     uid = 10
 
@@ -189,6 +191,14 @@ class ReactiveVsCpp(unittest.TestCase):
                     # 프로필은 40 스텝 동안 부동소수점 순서 차이가 쌓여 속도에서 최대 약 6e-6 m/s 난다(이산 판정은 같다)
                     np.testing.assert_allclose(arr, ref, atol=1e-7 if key == "risk" else 1e-5, err_msg=key)
                     worst[key] = max(worst[key], float(np.max(np.abs(arr - ref))))
+                # 타겟 차량 위치(C++ 은 자차 기준 delta_s 좌표, 파이썬은 차선 s). 순서는 둘 다 cf, tf, tf2…, 뒤차…
+                # (C++ 은 그 뒤에 리더 ctx 행을 붙인다)
+                vs = {v.unique_id: v for v in sc["vehicles"]}
+                self.assertGreaterEqual(len(cpp["tv_s"]), len(py["tv_s"]))
+                for (uid, arr), ref in zip(py["tv_s"], cpp["tv_s"]):
+                    ref = np.array(ref).reshape(B, 2, N, K) - vs[uid].delta_s + vs[uid].s
+                    np.testing.assert_allclose(arr, ref, atol=1e-5, err_msg=f"tv_s {uid}")
+                    worst["tv_s"] = max(worst["tv_s"], float(np.max(np.abs(arr - ref))))
             n += 1
         print(f"\n{n} scenes: max diff " + ", ".join(f"{k} {v:.2e}" for k, v in worst.items()))
 

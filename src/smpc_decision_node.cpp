@@ -4864,6 +4864,7 @@ class SmpcDecisionNode {
           double ds_sw = (mid && sp.change) ? 0.0 : std::numeric_limits<double>::quiet_NaN();
           double tau_m = (mid && sp.change) ? 0.0 : std::numeric_limits<double>::quiet_NaN();
           double ret_t = std::numeric_limits<double>::infinity(), y_ret0 = 0.0;
+          double y_m = mid ? d0 : std::numeric_limits<double>::quiet_NaN();   // 횡이동 시작 때 자차 위치
           double t_in = std::numeric_limits<double>::infinity();
           std::vector<double> xs(static_cast<std::size_t>(V)), xv(static_cast<std::size_t>(V));
           for (int i = 0; i < V; ++i) {
@@ -4889,9 +4890,12 @@ class SmpcDecisionNode {
                 alpha = std::clamp((tau0 - tau_m) / (mid ? mid_T_rem : sp.dur), 0.0, 1.0);
               }
             }
-            const double y_start = mid ? d0 : d_src;
-            double y_go = sp.change ? y_start + (0.0 - y_start) * alpha
-                                    : d_src + (d0 - d_src) * std::exp(-tau0 / std::max(0.1, lane_center_decay_tau_sec_));
+            // 횡이동은 그때의 실제 위치에서 시작한다(connector 는 현재 자세에서 만든다). 원 차선 중심에서 시작한다고
+            // 보면, 복귀 뒤 옆으로 비켜 선 채 다시 승인할 때(MORAI H_s50_d60: 0.6–0.8 m) 승인이 침범을 그만큼 적게
+            // 보고 실제 위치를 쓰는 모니터와 어긋난다.
+            const double y_keep = d_src + (d0 - d_src) * std::exp(-tau0 / std::max(0.1, lane_center_decay_tau_sec_));
+            if (std::isnan(y_m) && !std::isnan(tau_m)) y_m = y_keep;
+            double y_go = !sp.change ? y_keep : std::isnan(y_m) ? y_keep : y_m + (0.0 - y_m) * alpha;
             if (sp.change && s > src_end) y_go = 0.0;
             double tb = std::numeric_limits<double>::infinity();
             const std::string& rule = br[static_cast<std::size_t>(b)].tb;
@@ -4948,7 +4952,7 @@ class SmpcDecisionNode {
               } else if (x.role == "tf2") {
                 acc = base;
               } else {
-                const bool react = rear_mode == "yield" && tau0 >= t_in + rx_.rear_react_delay_s && intr > 0.0 && s > xs[ui];
+                const bool react = rear_mode == "yield" && tau0 >= t_in + rx_.rear_react_delay_s - 1e-9 && intr > 0.0 && s > xs[ui];
                 if (react) {
                   const double gap_e = (s - ego_rear_extent_m_) - (xs[ui] + 0.5 * len);
                   base = std::min(base, rxIdm(xv[ui], gap_e, v, std::max(v0x, 0.5), rx_.rear_idm_a, rx_.rear_idm_b, rx_.rear_idm_s0, rx_.rear_idm_T));
@@ -5244,8 +5248,17 @@ class SmpcDecisionNode {
     return t.distance_to_lane_end <= 30.0 && ego_speed_mps_ <= 1.0;
   }
 
+  // 지금 승인하면 waypoint 가 쓸 방식. 맞는 미리보기가 있으면 그 mode(waypoint 가 그대로 실행), 없으면 추정.
+  bool rxConnectorForAccept(const smpc_lane_change::TargetVehicleSet& t) const {
+    if (referencePreviewFreshFor(t)) return reference_preview_.mode == waypoint_system::PathSwitchPreview::CONNECTOR;
+    return rxConnectorNow(t);
+  }
+
   // 실행 중 모니터 (tree_reactive.py monitor_core + _update_rear_belief).
-  bool rxMonitorReturn(const smpc_lane_change::TargetVehicleSet& t, double now, std::string* detail) {
+  // connector = 이 차선 변경의 실행 방식. 실행 중에는 승인 때 고정한 값을 넘긴다: waypoint 는 connector 를 끝까지
+  // 따라가는데 속도(≤ 1 m/s)로 다시 추정하면 출발 직후 blend(시간 비례 횡이동, cap 없음)로 바뀌어 위험이 튄다
+  // (MORAI H_s50_d60 v7: 출발 0.6 s 뒤 0.05 → 0.43, 정지 출발–복귀 6 회).
+  bool rxMonitorReturn(const smpc_lane_change::TargetVehicleSet& t, double now, std::string* detail, bool connector) {
     const double W = lane_width_m_;
     const double d_t = std::abs(t.ego_d_target);
     // 뒤차 관측 갱신
@@ -5265,7 +5278,6 @@ class SmpcDecisionNode {
     }
     if (d_t <= tree_abort_before_abs_d_m_) return false;
     const double T_rem = std::max(0.5, egoChangeBlendDuration() * d_t / W);
-    const bool connector = rxConnectorNow(t);
     const double join = (have_reference_preview_ && reference_preview_.mode == waypoint_system::PathSwitchPreview::CONNECTOR &&
                          std::isfinite(reference_preview_.connector_join_arc_m)) ? reference_preview_.connector_join_arc_m : 20.0;
     auto br = rxBranches(t, rx_p_rear_post_);
@@ -5325,7 +5337,7 @@ class SmpcDecisionNode {
       rs.push_back(rxSpecOf(specs[i]));
       if (i > 0 && !preparationLongitudinalModelCompatible(t, specs[i], base_cap)) compat[i] = 0;
     }
-    const bool connector = rxConnectorNow(t);
+    const bool connector = rxConnectorForAccept(t);
     const double join = (have_reference_preview_ && reference_preview_.mode == waypoint_system::PathSwitchPreview::CONNECTOR &&
                          std::isfinite(reference_preview_.connector_join_arc_m)) ? reference_preview_.connector_join_arc_m : 20.0;
     const auto br = rxBranches(t, -1.0);
@@ -5334,7 +5346,7 @@ class SmpcDecisionNode {
     bool now_monitor_return = false;
     if (tree_monitor_enabled_) {
       const double keep_intr = rx_intr_since_, keep_p = rx_p_rear_post_;
-      now_monitor_return = rxMonitorReturn(t, ros::Time::now().toSec(), nullptr);
+      now_monitor_return = rxMonitorReturn(t, ros::Time::now().toSec(), nullptr, connector);
       rx_intr_since_ = keep_intr;
       rx_p_rear_post_ = keep_p;
     }
@@ -5384,6 +5396,7 @@ class SmpcDecisionNode {
     if (detail) *detail = os.str();
     if (best_index == 0) {
       *request_change = true;
+      rx_lc_connector_ = connector;
       return;
     }
     std::vector<smpc_lane_change::TargetVehicle> vehicles;
@@ -5447,7 +5460,7 @@ class SmpcDecisionNode {
           lc_status_.target_lane_id == t.target_lane_id) {
         std::string detail;
         abort_msg.data = reactive_tree_enabled_
-            ? rxMonitorReturn(t, ros::Time::now().toSec(), &detail)
+            ? rxMonitorReturn(t, ros::Time::now().toSec(), &detail, rx_lc_connector_)
             : treeMonitorReturn(t, vehicles, effective_target_rear, activeRiskEpsilon(t), &detail);
         std_msgs::String dm;
         dm.data = std::string("tree_monitor return=") + (abort_msg.data ? "1 " : "0 ") + detail;
@@ -5931,6 +5944,7 @@ class SmpcDecisionNode {
   } rx_acc_;
   double rx_intr_since_{-1.0};
   double rx_p_rear_post_{-1.0};
+  bool rx_lc_connector_{false};   // 마지막 지금 바꾸기 승인이 connector 출발이었나(실행 중 모니터가 같은 방식으로 본다)
   bool baseline_keep_gates_{true};
   bool baseline_tree_monitor_{false};
   std::vector<double> tree_onsets_sec_{0.0, 1.0, 2.0, 3.0};
