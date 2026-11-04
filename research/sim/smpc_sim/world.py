@@ -272,6 +272,7 @@ class World:
         self.sup = Supervisor(self.P_sup, self.track, initial_lane=0)
         self.acc = AccPlanner(self.P_acc, self.track)
         self.acc.f = v0
+        self.lc_connector = False
         self.t0 = self.t
 
     def run(self):
@@ -314,6 +315,8 @@ class World:
                                    round(e.v, 2), round(t.distance_to_lane_end, 1)))
                 if ev.kind == "accept":
                     res.accepts += 1
+                    # waypoint 는 정지(≤ 1 m/s)·원 차선 30 m 이내에서 승인되면 connector 로 간다(shouldUseEndpointConnector)
+                    self.lc_connector = t.distance_to_lane_end <= 30.0 and e.v <= 1.0
                 elif ev.kind == "abort":
                     res.aborts += 1
                 elif ev.kind == "complete":
@@ -321,8 +324,15 @@ class World:
             self.plant.set_path(now, self.sup.lane)
             intent = self.sup.active or now - last_change_left <= 0.5 or dec.request.active
             lc_elapsed = now - self.sup.change_start if self.sup.active else 0.0
+            # 정지 connector 차선 변경: 실제 ACC 처럼 차선 끝 상한 대신 목표 차선별 connector 상한
+            conn = self.sup.active and self.lc_connector
+            caps = self.P_acc.endpoint_connector_speed_cap_by_target_lane_mps
+            tgt = min(max(int(t.target_lane_id), 0), 3)
             v_cmd = self.acc.step(now, cfg.dt, t, e.v, e.y, cfg.mission_speed, dec.request,
-                                  self.sup.active, lc_elapsed, intent)
+                                  self.sup.active, lc_elapsed, intent,
+                                  connector_cap=(caps[tgt] if tgt < len(caps) else self.P_acc.endpoint_connector_speed_cap_mps)
+                                  if conn else None,
+                                  connector_active=conn)
             self.plant.step(now, cfg.dt, v_cmd)
             self.t += cfg.dt
 

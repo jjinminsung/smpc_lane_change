@@ -9,7 +9,8 @@
     "aborts_per_run": 0.0,
     "lane_end_stops_per_run": 1.75,
     "contacts_lc": 0,
-    "contacts_other": 0
+    "contacts_other": 0,
+    "direct_switches_per_run": 0
    },
    {
     "arm": "A. 게이트 정리",
@@ -19,7 +20,8 @@
     "aborts_per_run": 0.5416666666666666,
     "lane_end_stops_per_run": 1.6666666666666667,
     "contacts_lc": 0,
-    "contacts_other": 2
+    "contacts_other": 2,
+    "direct_switches_per_run": 0
    },
    {
     "arm": "현재 D",
@@ -29,411 +31,88 @@
     "aborts_per_run": 1.5,
     "lane_end_stops_per_run": 2.1666666666666665,
     "contacts_lc": 0,
-    "contacts_other": 0
+    "contacts_other": 0,
+    "direct_switches_per_run": 0.08333333333333333
    },
    {
-    "arm": "새 구조",
+    "arm": "새 구조(수정 전)",
     "n": 12,
     "success": 12,
     "t_merge_median": 24.07671308517456,
     "aborts_per_run": 0.5,
     "lane_end_stops_per_run": 0.4166666666666667,
     "contacts_lc": 0,
-    "contacts_other": 0
+    "contacts_other": 0,
+    "direct_switches_per_run": 0.8333333333333334
    },
    {
-    "arm": "새 구조-가지 없음",
+    "arm": "새 구조(1차 수정)",
     "n": 12,
     "success": 12,
-    "t_merge_median": 21.851557850837708,
+    "t_merge_median": 27.441569209098816,
+    "aborts_per_run": 0.25,
+    "lane_end_stops_per_run": 0.16666666666666666,
+    "contacts_lc": 1,
+    "contacts_other": 0,
+    "direct_switches_per_run": 1
+   },
+   {
+    "arm": "가지 없음(1차 수정)",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 23.360483646392822,
     "aborts_per_run": 0.0,
-    "lane_end_stops_per_run": 0.08333333333333333,
+    "lane_end_stops_per_run": 0,
     "contacts_lc": 0,
-    "contacts_other": 1
+    "contacts_other": 0,
+    "direct_switches_per_run": 1
+   },
+   {
+    "arm": "새 구조(2차 수정)",
+    "n": 12,
+    "success": 10,
+    "t_merge_median": 26.973942399024963,
+    "aborts_per_run": 0.75,
+    "lane_end_stops_per_run": 1.1666666666666667,
+    "contacts_lc": 0,
+    "contacts_other": 1,
+    "direct_switches_per_run": 0
+   },
+   {
+    "arm": "가지 없음(2차 수정)",
+    "n": 12,
+    "success": 10,
+    "t_merge_median": 37.80845236778259,
+    "aborts_per_run": 0.75,
+    "lane_end_stops_per_run": 0.9166666666666666,
+    "contacts_lc": 0,
+    "contacts_other": 1,
+    "direct_switches_per_run": 0.08333333333333333
+   },
+   {
+    "arm": "새 구조(3차 수정)",
+    "n": 12,
+    "success": 11,
+    "t_merge_median": 27.377166271209717,
+    "aborts_per_run": 0.25,
+    "lane_end_stops_per_run": 0.5833333333333334,
+    "contacts_lc": 0,
+    "contacts_other": 0,
+    "direct_switches_per_run": 0
+   },
+   {
+    "arm": "가지 없음(3차 수정)",
+    "n": 12,
+    "success": 11,
+    "t_merge_median": 28.003307342529297,
+    "aborts_per_run": 0.5833333333333334,
+    "lane_end_stops_per_run": 0.8333333333333334,
+    "contacts_lc": 0,
+    "contacts_other": 0,
+    "direct_switches_per_run": 0
    }
   ],
-  "effects": [
-   {
-    "vs": "기존 SMPC",
-    "n": 12,
-    "mean": -87.60629381736119,
-    "lo": -107.80472736457983,
-    "hi": -69.57349755565326,
-    "faster": 12,
-    "success_diff": 3,
-    "pairs": [
-     {
-      "key": [
-       "H_s30_d100",
-       0
-      ],
-      "diff": -86.10769009590149
-     },
-     {
-      "key": [
-       "H_s30_d40",
-       0
-      ],
-      "diff": -97.69173216819763
-     },
-     {
-      "key": [
-       "H_s30_d60",
-       0
-      ],
-      "diff": -83.9256157875061
-     },
-     {
-      "key": [
-       "H_s30_d80",
-       0
-      ],
-      "diff": -72.9360511302948
-     },
-     {
-      "key": [
-       "H_s50_d100",
-       0
-      ],
-      "diff": -48.306830644607544
-     },
-     {
-      "key": [
-       "H_s50_d40",
-       0
-      ],
-      "diff": -142.5322380065918
-     },
-     {
-      "key": [
-       "H_s50_d60",
-       0
-      ],
-      "diff": -44.475685596466064
-     },
-     {
-      "key": [
-       "H_s50_d80",
-       0
-      ],
-      "diff": -75.91411352157593
-     },
-     {
-      "key": [
-       "H_s70_d100",
-       0
-      ],
-      "diff": -47.355228424072266
-     },
-     {
-      "key": [
-       "H_s70_d40",
-       0
-      ],
-      "diff": -112.00880074501038
-     },
-     {
-      "key": [
-       "H_s70_d60",
-       0
-      ],
-      "diff": -157.9147379398346
-     },
-     {
-      "key": [
-       "H_s70_d80",
-       0
-      ],
-      "diff": -82.10680174827576
-     }
-    ]
-   },
-   {
-    "vs": "A. 게이트 정리",
-    "n": 12,
-    "mean": -36.58939677476883,
-    "lo": -52.94657456328471,
-    "hi": -21.06324450820685,
-    "faster": 11,
-    "success_diff": 0,
-    "pairs": [
-     {
-      "key": [
-       "H_s30_d100",
-       0
-      ],
-      "diff": -49.79591345787048
-     },
-     {
-      "key": [
-       "H_s30_d40",
-       0
-      ],
-      "diff": -36.1258761882782
-     },
-     {
-      "key": [
-       "H_s30_d60",
-       0
-      ],
-      "diff": -46.597824573516846
-     },
-     {
-      "key": [
-       "H_s30_d80",
-       0
-      ],
-      "diff": -15.257477521896362
-     },
-     {
-      "key": [
-       "H_s50_d100",
-       0
-      ],
-      "diff": -11.710052013397217
-     },
-     {
-      "key": [
-       "H_s50_d40",
-       0
-      ],
-      "diff": -61.969995737075806
-     },
-     {
-      "key": [
-       "H_s50_d60",
-       0
-      ],
-      "diff": 8.932214498519897
-     },
-     {
-      "key": [
-       "H_s50_d80",
-       0
-      ],
-      "diff": -17.509735107421875
-     },
-     {
-      "key": [
-       "H_s70_d100",
-       0
-      ],
-      "diff": -4.427227735519409
-     },
-     {
-      "key": [
-       "H_s70_d40",
-       0
-      ],
-      "diff": -39.204524993896484
-     },
-     {
-      "key": [
-       "H_s70_d60",
-       0
-      ],
-      "diff": -88.10377550125122
-     },
-     {
-      "key": [
-       "H_s70_d80",
-       0
-      ],
-      "diff": -77.30257296562195
-     }
-    ]
-   },
-   {
-    "vs": "현재 D",
-    "n": 12,
-    "mean": -66.66288169225056,
-    "lo": -100.73874264409145,
-    "hi": -34.01231205761433,
-    "faster": 10,
-    "success_diff": 4,
-    "pairs": [
-     {
-      "key": [
-       "H_s30_d100",
-       0
-      ],
-      "diff": -158.9537136554718
-     },
-     {
-      "key": [
-       "H_s30_d40",
-       0
-      ],
-      "diff": -139.1853437423706
-     },
-     {
-      "key": [
-       "H_s30_d60",
-       0
-      ],
-      "diff": 0.3697926998138428
-     },
-     {
-      "key": [
-       "H_s30_d80",
-       0
-      ],
-      "diff": -63.28783941268921
-     },
-     {
-      "key": [
-       "H_s50_d100",
-       0
-      ],
-      "diff": -1.92679762840271
-     },
-     {
-      "key": [
-       "H_s50_d40",
-       0
-      ],
-      "diff": 4.166244745254517
-     },
-     {
-      "key": [
-       "H_s50_d60",
-       0
-      ],
-      "diff": -46.82515001296997
-     },
-     {
-      "key": [
-       "H_s50_d80",
-       0
-      ],
-      "diff": -60.04905295372009
-     },
-     {
-      "key": [
-       "H_s70_d100",
-       0
-      ],
-      "diff": -49.617871046066284
-     },
-     {
-      "key": [
-       "H_s70_d40",
-       0
-      ],
-      "diff": -112.00880074501038
-     },
-     {
-      "key": [
-       "H_s70_d60",
-       0
-      ],
-      "diff": -157.9147379398346
-     },
-     {
-      "key": [
-       "H_s70_d80",
-       0
-      ],
-      "diff": -14.72131061553955
-     }
-    ]
-   },
-   {
-    "vs": "새 구조-가지 없음",
-    "n": 12,
-    "mean": 4.742572565873464,
-    "lo": 0.16988265663385396,
-    "hi": 9.581618075072761,
-    "faster": 4,
-    "success_diff": 0,
-    "pairs": [
-     {
-      "key": [
-       "H_s30_d100",
-       0
-      ],
-      "diff": -0.8357083797454834
-     },
-     {
-      "key": [
-       "H_s30_d40",
-       0
-      ],
-      "diff": 20.084595203399658
-     },
-     {
-      "key": [
-       "H_s30_d60",
-       0
-      ],
-      "diff": 6.5837297439575195
-     },
-     {
-      "key": [
-       "H_s30_d80",
-       0
-      ],
-      "diff": 2.014253616333008
-     },
-     {
-      "key": [
-       "H_s50_d100",
-       0
-      ],
-      "diff": -8.880375862121582
-     },
-     {
-      "key": [
-       "H_s50_d40",
-       0
-      ],
-      "diff": 15.780486583709717
-     },
-     {
-      "key": [
-       "H_s50_d60",
-       0
-      ],
-      "diff": 9.812775373458862
-     },
-     {
-      "key": [
-       "H_s50_d80",
-       0
-      ],
-      "diff": -2.968655824661255
-     },
-     {
-      "key": [
-       "H_s70_d100",
-       0
-      ],
-      "diff": -1.747345209121704
-     },
-     {
-      "key": [
-       "H_s70_d40",
-       0
-      ],
-      "diff": 14.32437801361084
-     },
-     {
-      "key": [
-       "H_s70_d60",
-       0
-      ],
-      "diff": 2.6336216926574707
-     },
-     {
-      "key": [
-       "H_s70_d80",
-       0
-      ],
-      "diff": 0.1091158390045166
-     }
-    ]
-   }
-  ],
+  "effects": [],
   "runs": {
    "기존 SMPC": {
     "H_s30_d100_r0": {
@@ -661,7 +340,7 @@
      "contacts": []
     }
    },
-   "새 구조": {
+   "새 구조(수정 전)": {
     "H_s30_d100_r0": {
      "success": true,
      "t_merge": 21.0462863445282,
@@ -735,80 +414,454 @@
      "contacts": []
     }
    },
-   "새 구조-가지 없음": {
+   "새 구조(1차 수정)": {
     "H_s30_d100_r0": {
      "success": true,
-     "t_merge": 21.88199472427368,
+     "t_merge": 31.275606393814087,
      "aborts": 0,
-     "contacts": []
+     "contacts": [
+      "during_ego_lane_change"
+     ]
     },
     "H_s30_d40_r0": {
      "success": true,
-     "t_merge": 20.730061054229736,
+     "t_merge": 31.936213970184326,
      "aborts": 0,
      "contacts": []
     },
     "H_s30_d60_r0": {
      "success": true,
-     "t_merge": 20.95386290550232,
+     "t_merge": 28.261909246444702,
      "aborts": 0,
      "contacts": []
     },
     "H_s30_d80_r0": {
      "success": true,
-     "t_merge": 23.595604181289673,
+     "t_merge": 23.18710994720459,
      "aborts": 0,
      "contacts": []
     },
     "H_s50_d100_r0": {
      "success": true,
-     "t_merge": 29.462393283843994,
+     "t_merge": 33.899253368377686,
      "aborts": 0,
      "contacts": []
     },
     "H_s50_d40_r0": {
      "success": true,
-     "t_merge": 21.687275409698486,
+     "t_merge": 26.62122917175293,
      "aborts": 0,
      "contacts": []
     },
     "H_s50_d60_r0": {
      "success": true,
-     "t_merge": 21.814465284347534,
+     "t_merge": 23.58607792854309,
      "aborts": 0,
      "contacts": []
     },
     "H_s50_d80_r0": {
      "success": true,
-     "t_merge": 24.547162532806396,
+     "t_merge": 24.267120838165283,
      "aborts": 0,
      "contacts": []
     },
     "H_s70_d100_r0": {
      "success": true,
-     "t_merge": 21.821120977401733,
+     "t_merge": 20.552835702896118,
      "aborts": 0,
      "contacts": []
     },
     "H_s70_d40_r0": {
      "success": true,
-     "t_merge": 53.666821241378784,
+     "t_merge": 34.402034759521484,
+     "aborts": 2,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 85.3647129535675,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 23.162245750427246,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "가지 없음(1차 수정)": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 22.536282777786255,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 29.440587997436523,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 23.34410047531128,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 28.033920288085938,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 20.804054260253906,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 26.449669122695923,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 20.286107063293457,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 23.376866817474365,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 23.979182958602905,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 24.92364501953125,
      "aborts": 0,
      "contacts": []
     },
     "H_s70_d60_r0": {
      "success": true,
-     "t_merge": 19.451640367507935,
+     "t_merge": 20.536775827407837,
      "aborts": 0,
      "contacts": []
     },
     "H_s70_d80_r0": {
      "success": true,
-     "t_merge": 22.434452533721924,
+     "t_merge": 22.476489543914795,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "새 구조(2차 수정)": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 120.61868333816528,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 32.97018313407898,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": false,
+     "t_merge": null,
      "aborts": 0,
      "contacts": [
-      "ego_lane_keeping"
+      "npc_contact_ego_stationary"
      ]
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 24.53099536895752,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 28.266125679016113,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 91.05442452430725,
+     "aborts": 7,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 25.44574761390686,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 22.214388608932495,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 25.16972541809082,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 25.681759119033813,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 70.39076662063599,
+     "aborts": 1,
+     "contacts": []
+    }
+   },
+   "가지 없음(2차 수정)": {
+    "H_s30_d100_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 82.7862823009491,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 43.850260496139526,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 123.96595859527588,
+     "aborts": 3,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 23.752886056900024,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 101.50009274482727,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 28.428037881851196,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 25.58902359008789,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 31.76664423942566,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 82.64974737167358,
+     "aborts": 3,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 23.926765203475952,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "새 구조(3차 수정)": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 26.747479677200317,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 113.99502873420715,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 33.099156618118286,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 2,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 26.924001693725586,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 96.28312635421753,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 30.48986792564392,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 24.282553911209106,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 27.377166271209717,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 60.77991533279419,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 23.719603776931763,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 24.55662751197815,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "가지 없음(3차 수정)": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 28.46535348892212,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 4,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 26.206339597702026,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 116.54463624954224,
+     "aborts": 3,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 25.21823525428772,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 108.95186448097229,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 30.86771011352539,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 24.524659156799316,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 24.749585151672363,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 30.72101330757141,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 28.003307342529297,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 23.92546319961548,
+     "aborts": 0,
+     "contacts": []
     }
    }
   }
@@ -823,7 +876,8 @@
     "aborts_per_run": 0.16666666666666666,
     "lane_end_stops_per_run": 1.5833333333333333,
     "contacts_lc": 0,
-    "contacts_other": 2
+    "contacts_other": 2,
+    "direct_switches_per_run": 0
    },
    {
     "arm": "현재 D",
@@ -833,316 +887,88 @@
     "aborts_per_run": 1.6666666666666667,
     "lane_end_stops_per_run": 2.3333333333333335,
     "contacts_lc": 0,
-    "contacts_other": 1
+    "contacts_other": 1,
+    "direct_switches_per_run": 0
    },
    {
-    "arm": "새 구조",
+    "arm": "새 구조(수정 전)",
     "n": 12,
     "success": 12,
     "t_merge_median": 23.563037395477295,
     "aborts_per_run": 0.08333333333333333,
     "lane_end_stops_per_run": 0.08333333333333333,
     "contacts_lc": 0,
-    "contacts_other": 1
+    "contacts_other": 1,
+    "direct_switches_per_run": 1
    },
    {
-    "arm": "새 구조-가지 없음",
+    "arm": "새 구조(1차 수정)",
     "n": 12,
     "success": 12,
-    "t_merge_median": 24.156081080436707,
-    "aborts_per_run": 0.08333333333333333,
-    "lane_end_stops_per_run": 0.16666666666666666,
+    "t_merge_median": 23.315393090248108,
+    "aborts_per_run": 0.3333333333333333,
+    "lane_end_stops_per_run": 0.08333333333333333,
     "contacts_lc": 0,
-    "contacts_other": 0
-   }
-  ],
-  "effects": [
-   {
-    "vs": "기존 SMPC",
-    "n": 12,
-    "mean": -104.71002276738484,
-    "lo": -127.95032986799876,
-    "hi": -81.88986269235612,
-    "faster": 12,
-    "success_diff": 6,
-    "pairs": [
-     {
-      "key": [
-       "S1_normal",
-       0
-      ],
-      "diff": -66.0978217124939
-     },
-     {
-      "key": [
-       "S1_normal",
-       1
-      ],
-      "diff": -75.587411403656
-     },
-     {
-      "key": [
-       "S1_normal",
-       2
-      ],
-      "diff": -58.59647798538208
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       0
-      ],
-      "diff": -68.08536386489868
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       1
-      ],
-      "diff": -66.28457236289978
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       2
-      ],
-      "diff": -58.43938755989075
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       0
-      ],
-      "diff": -160.9786093235016
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       1
-      ],
-      "diff": -155.68851256370544
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       2
-      ],
-      "diff": -143.93946051597595
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       0
-      ],
-      "diff": -157.18541264533997
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       1
-      ],
-      "diff": -115.33053469657898
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       2
-      ],
-      "diff": -130.30670857429504
-     }
-    ]
+    "contacts_other": 0,
+    "direct_switches_per_run": 1.0833333333333333
    },
    {
-    "vs": "현재 D",
+    "arm": "가지 없음(1차 수정)",
     "n": 12,
-    "mean": -21.192367672920227,
-    "lo": -36.926433710257214,
-    "hi": -6.580277045567837,
-    "faster": 9,
-    "success_diff": 0,
-    "pairs": [
-     {
-      "key": [
-       "S1_normal",
-       0
-      ],
-      "diff": 1.8938236236572266
-     },
-     {
-      "key": [
-       "S1_normal",
-       1
-      ],
-      "diff": -3.7979390621185303
-     },
-     {
-      "key": [
-       "S1_normal",
-       2
-      ],
-      "diff": 4.480084657669067
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       0
-      ],
-      "diff": -9.61095643043518
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       1
-      ],
-      "diff": -60.83421730995178
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       2
-      ],
-      "diff": -2.933647871017456
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       0
-      ],
-      "diff": -32.36286163330078
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       1
-      ],
-      "diff": -28.256526947021484
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       2
-      ],
-      "diff": -17.22012758255005
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       0
-      ],
-      "diff": -45.159852027893066
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       1
-      ],
-      "diff": -76.29597568511963
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       2
-      ],
-      "diff": 15.78978419303894
-     }
-    ]
+    "success": 12,
+    "t_merge_median": 23.366263508796692,
+    "aborts_per_run": 0.08333333333333333,
+    "lane_end_stops_per_run": 0,
+    "contacts_lc": 0,
+    "contacts_other": 0,
+    "direct_switches_per_run": 1.0833333333333333
    },
    {
-    "vs": "새 구조-가지 없음",
+    "arm": "새 구조(2차 수정)",
     "n": 12,
-    "mean": 2.32044525941213,
-    "lo": -4.094769760966301,
-    "hi": 10.659269713858762,
-    "faster": 5,
-    "success_diff": 0,
-    "pairs": [
-     {
-      "key": [
-       "S1_normal",
-       0
-      ],
-      "diff": 3.4849131107330322
-     },
-     {
-      "key": [
-       "S1_normal",
-       1
-      ],
-      "diff": -0.3220055103302002
-     },
-     {
-      "key": [
-       "S1_normal",
-       2
-      ],
-      "diff": 1.4400041103363037
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       0
-      ],
-      "diff": 0.009214162826538086
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       1
-      ],
-      "diff": 0.09219598770141602
-     },
-     {
-      "key": [
-       "S2_rear_accel",
-       2
-      ],
-      "diff": -9.925265073776245
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       0
-      ],
-      "diff": -1.5516247749328613
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       1
-      ],
-      "diff": -10.128484725952148
-     },
-     {
-      "key": [
-       "S3_rear_decel",
-       2
-      ],
-      "diff": 14.020171403884888
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       0
-      ],
-      "diff": -11.61348843574524
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       1
-      ],
-      "diff": 40.00549817085266
-     },
-     {
-      "key": [
-       "S4_front_decel",
-       2
-      ],
-      "diff": 2.334214687347412
-     }
-    ]
+    "success": 12,
+    "t_merge_median": 26.45007824897766,
+    "aborts_per_run": 0.3333333333333333,
+    "lane_end_stops_per_run": 0.25,
+    "contacts_lc": 0,
+    "contacts_other": 0,
+    "direct_switches_per_run": 0
+   },
+   {
+    "arm": "가지 없음(2차 수정)",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 24.949579000473022,
+    "aborts_per_run": 0.3333333333333333,
+    "lane_end_stops_per_run": 0.08333333333333333,
+    "contacts_lc": 0,
+    "contacts_other": 0,
+    "direct_switches_per_run": 0
+   },
+   {
+    "arm": "새 구조(3차 수정)",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 27.470455765724182,
+    "aborts_per_run": 0.0,
+    "lane_end_stops_per_run": 0,
+    "contacts_lc": 0,
+    "contacts_other": 1,
+    "direct_switches_per_run": 0
+   },
+   {
+    "arm": "가지 없음(3차 수정)",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 25.17372441291809,
+    "aborts_per_run": 0.08333333333333333,
+    "lane_end_stops_per_run": 0,
+    "contacts_lc": 0,
+    "contacts_other": 0,
+    "direct_switches_per_run": 0
    }
   ],
+  "effects": [],
   "runs": {
    "기존 SMPC": {
     "S1_normal_r0": {
@@ -1298,7 +1124,7 @@
      "contacts": []
     }
    },
-   "새 구조": {
+   "새 구조(수정 전)": {
     "S1_normal_r0": {
      "success": true,
      "t_merge": 27.133108139038086,
@@ -1374,76 +1200,448 @@
      ]
     }
    },
-   "새 구조-가지 없음": {
+   "새 구조(1차 수정)": {
     "S1_normal_r0": {
      "success": true,
-     "t_merge": 23.648195028305054,
+     "t_merge": 19.766929149627686,
      "aborts": 0,
      "contacts": []
     },
     "S1_normal_r1": {
      "success": true,
-     "t_merge": 19.557220458984375,
+     "t_merge": 20.13579559326172,
      "aborts": 0,
      "contacts": []
     },
     "S1_normal_r2": {
      "success": true,
-     "t_merge": 26.569525480270386,
+     "t_merge": 19.932298183441162,
      "aborts": 0,
      "contacts": []
     },
     "S2_rear_accel_r0": {
      "success": true,
-     "t_merge": 19.61500382423401,
+     "t_merge": 19.765866994857788,
      "aborts": 0,
      "contacts": []
     },
     "S2_rear_accel_r1": {
      "success": true,
-     "t_merge": 19.652219533920288,
+     "t_merge": 22.142176866531372,
      "aborts": 0,
      "contacts": []
     },
     "S2_rear_accel_r2": {
      "success": true,
-     "t_merge": 30.972166061401367,
+     "t_merge": 21.710094451904297,
      "aborts": 0,
      "contacts": []
     },
     "S3_rear_decel_r0": {
      "success": true,
-     "t_merge": 20.573015451431274,
+     "t_merge": 26.465710878372192,
      "aborts": 0,
      "contacts": []
     },
     "S3_rear_decel_r1": {
      "success": true,
-     "t_merge": 34.439972162246704,
-     "aborts": 1,
+     "t_merge": 24.488609313964844,
+     "aborts": 0,
      "contacts": []
     },
     "S3_rear_decel_r2": {
      "success": true,
-     "t_merge": 22.04036808013916,
-     "aborts": 0,
+     "t_merge": 29.5468430519104,
+     "aborts": 2,
      "contacts": []
     },
     "S4_front_decel_r0": {
      "success": true,
-     "t_merge": 34.42807579040527,
+     "t_merge": 30.32554292678833,
      "aborts": 0,
      "contacts": []
     },
     "S4_front_decel_r1": {
      "success": true,
-     "t_merge": 24.66396713256836,
+     "t_merge": 64.23354530334473,
      "aborts": 0,
      "contacts": []
     },
     "S4_front_decel_r2": {
      "success": true,
-     "t_merge": 47.359076738357544,
+     "t_merge": 30.229674339294434,
+     "aborts": 2,
+     "contacts": []
+    }
+   },
+   "가지 없음(1차 수정)": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 23.406395435333252,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 24.424721240997314,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 23.326131582260132,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 20.41821789741516,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 20.109042167663574,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 21.29257822036743,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 48.01861381530762,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 21.70549464225769,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 20.224897146224976,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 28.426589488983154,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 30.406911611557007,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 27.370218992233276,
+     "aborts": 1,
+     "contacts": []
+    }
+   },
+   "새 구조(2차 수정)": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 26.57040023803711,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 25.29095697402954,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 22.905672788619995,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 22.8918137550354,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 49.844855308532715,
+     "aborts": 3,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 26.329756259918213,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 25.001325845718384,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 23.61344313621521,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 27.752610445022583,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 29.998032569885254,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 28.643951416015625,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 30.04017996788025,
+     "aborts": 1,
+     "contacts": []
+    }
+   },
+   "가지 없음(2차 수정)": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 24.520076990127563,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 22.698679208755493,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 23.899375438690186,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 23.03799819946289,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 23.15752410888672,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 26.759977340698242,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 31.505985021591187,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 25.37908101081848,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 24.349318027496338,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 58.39950704574585,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 31.824227571487427,
+     "aborts": 2,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 29.713173389434814,
+     "aborts": 1,
+     "contacts": []
+    }
+   },
+   "새 구조(3차 수정)": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 23.11311984062195,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 22.910394191741943,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 27.450003147125244,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 22.87692642211914,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 24.123698949813843,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 24.686086654663086,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 30.768413305282593,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 27.49090838432312,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 29.90145707130432,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 31.025914192199707,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 56.266889572143555,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 30.22434639930725,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "가지 없음(3차 수정)": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 23.35793662071228,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 23.18704342842102,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 24.2391095161438,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 22.678879737854004,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 25.439244031906128,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 23.739079236984253,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 32.999637842178345,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 34.31172847747803,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 24.908204793930054,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 28.27542018890381,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 53.85238003730774,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 58.977558851242065,
      "aborts": 0,
      "contacts": []
     }

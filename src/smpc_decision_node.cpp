@@ -4934,10 +4934,10 @@ class SmpcDecisionNode {
               }
               const double v0x = std::max(0.0, x.v.v_long);
               const double len = std::max(0.1, x.v.length);
-              double base;
+              double base, gap_l = 0.0;
               if (x.lead >= 0) {
                 const auto& L = tvs[static_cast<std::size_t>(x.lead)];
-                const double gap_l = xs[static_cast<std::size_t>(x.lead)] - 0.5 * std::max(0.1, L.v.length) - xs[ui] - 0.5 * len;
+                gap_l = xs[static_cast<std::size_t>(x.lead)] - 0.5 * std::max(0.1, L.v.length) - xs[ui] - 0.5 * len;
                 base = x.role == "rear"
                     ? rxIdm(xv[ui], gap_l, xv[static_cast<std::size_t>(x.lead)], std::max(v0x, 0.5), rx_.rear_idm_a, rx_.rear_idm_b, rx_.rear_idm_s0, rx_.rear_idm_T)
                     : rxIdm(xv[ui], gap_l, xv[static_cast<std::size_t>(x.lead)], std::max(v0x, 0.5), rx_.front_idm_a, rx_.front_idm_b, rx_.front_idm_s0, rx_.front_idm_T);
@@ -4946,9 +4946,20 @@ class SmpcDecisionNode {
               }
               double acc;
               if (x.role == "cf" || x.role == "tf") {
-                if (front_mode == "brake") acc = rx_.front_brake;
-                else if (front_mode == "accel") acc = xv[ui] < v0x + 5.0 ? rx_.front_accel : 0.0;
-                else acc = base;
+                if (front_mode == "brake") {
+                  acc = rx_.front_brake;
+                } else if (front_mode == "accel") {
+                  acc = xv[ui] < v0x + 5.0 ? rx_.front_accel : 0.0;
+                  // 가속 예외도 자기 앞차는 뚫고 지나가지 않는다(IDM 으로 따른다). 없으면 앞차가 tf2 를 통과하고 자차 ACC 는
+                  // tf 만 따라 느린 tf2 에 들이받는 가짜 충돌이 지평선 끝에 생긴다. 승인(출발 지연 포함)에는 지평선 밖, 출발 직후
+                  // 모니터에는 안이라 위험이 0.05 → 0.094 로 넘어가 복귀했다(MORAI H_s30_d40 v8).
+                  if (x.lead >= 0) {
+                    acc = std::min(acc, rxIdm(xv[ui], gap_l, xv[static_cast<std::size_t>(x.lead)], v0x + 5.0, rx_.front_idm_a,
+                                              rx_.front_idm_b, rx_.front_idm_s0, rx_.front_idm_T));
+                  }
+                } else {
+                  acc = base;
+                }
               } else if (x.role == "tf2") {
                 acc = base;
               } else {
@@ -5015,7 +5026,10 @@ class SmpcDecisionNode {
                 bind_c = std::numeric_limits<double>::quiet_NaN();
               }
             }
-            if (lc_active && d_t > rx_acc_.lane_change_lane_end_cap_release_abs_d_m) {
+            // 실제 ACC 처럼 connector 실행 중에는 이 상한을 걸지 않는다(connector 상한만, acc_speed_planner
+            // !endpoint_connector_active). 걸면 차선 끝이 가까울수록 자차가 느려진다고 예측해 승인이 위험을 낮게 보고,
+            // 실제로 7 m/s 로 달리는 자차를 보는 모니터와 어긋난다(MORAI H_s30_d80 v8: 승인 뒤 3.4 s 에 복귀).
+            if (lc_active && !connector && d_t > rx_acc_.lane_change_lane_end_cap_release_abs_d_m) {
               const double elapsed = std::max(0.0, tau0 - t_sw);
               const double lim = std::min(std::max((dist - rx_acc_.lane_change_lane_end_margin_m) / std::max(0.5, 4.2 - elapsed),
                                                    std::min(rx_acc_.lane_change_lane_end_min_cap_mps, cruise_k)), cruise_k);
@@ -5928,7 +5942,7 @@ class SmpcDecisionNode {
     double front_brake{-2.5}, front_accel{1.0}, front_detect_s{0.3}, accel_decay_s{1.5};
     double front_idm_s0{3.0}, front_idm_T{1.0}, front_idm_a{1.0}, front_idm_b{2.0};
     double p_exc_floor{0.05}, follow_sigma_cap_s{1.0}, abort_before_abs_d{1.75};
-    bool connector_cap{false};   // ACC 의 정지 connector 속도 상한(MORAI 대회 스택). 파이썬 시뮬에는 없다
+    bool connector_cap{false};   // ACC 의 정지 connector 속도 상한(MORAI 대회 스택, 파이썬 시뮬 world 도 같다)
   } rx_;
   // acc_planner.yaml 의 같은 키(이 노드에는 ns 'acc' 로 올린다)
   struct RxAcc {

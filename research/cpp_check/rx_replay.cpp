@@ -215,6 +215,25 @@ int main(int argc, char** argv) {
         }
         std::cout << "]";
       }
+      // 가지 하나의 매 스텝(계속): 모니터·승인 롤아웃 각각 [k, 위험, 자차 s, d, v, 차량별 s...]
+      if (const char* bs = std::getenv("RX_BRANCH")) {
+        const int b = std::atoi(bs);
+        auto dump = [&](const char* name, SmpcDecisionNode::RxResult& rr) {
+          if (b >= rr.B) return;
+          const std::size_t row = static_cast<std::size_t>((b * 2 + 0) * rr.N + 0);
+          std::cout << ",\"" << name << "\":[";
+          for (int k = 0; k < rr.K; ++k) {
+            const std::size_t i = row * rr.K + k;
+            std::cout << (k ? "," : "") << "[" << k << "," << rr.at(b, 0, 0, k) << "," << rr.ego_s[i] << "," << rr.ego_d[i] << ","
+                      << rr.ego_v[i];
+            for (const auto& s : rr.tv_s) std::cout << "," << s[i];
+            std::cout << "]";
+          }
+          std::cout << "]";
+        };
+        dump("mon_b", r);
+        dump("acc_b", ar);
+      }
       std::cout << "}" << std::endl;
     }
   }

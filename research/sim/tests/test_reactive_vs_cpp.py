@@ -147,6 +147,8 @@ class ReactiveVsCpp(unittest.TestCase):
         subprocess.run(["rosparam", "load", str(CONFIG_DIR / "smpc_decision.yaml"), NODE], env=ros_env(), check=True)
         subprocess.run(["rosparam", "load", str(CONFIG_DIR / "acc_planner.yaml"), NODE + "/acc"], env=ros_env(), check=True)
         subprocess.run(["rosparam", "set", f"{NODE}/waypoint_directory", cls.tmp.name], env=ros_env(), check=True)
+        subprocess.run(["rosparam", "set", f"{NODE}/reactive/connector_cap", "true" if cls.RP.connector_cap else "false"],
+                       env=ros_env(), check=True)
 
     @classmethod
     def tearDownClass(cls):

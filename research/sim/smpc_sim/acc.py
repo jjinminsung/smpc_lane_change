@@ -64,7 +64,8 @@ class AccPlanner:
         return L.valid and front_edge_delta_s(L) > -self.P.ego_rear_extent_m and L.delta_s > 0.0
 
     # ----------------------------------------------------------- step
-    def step(self, now, dt, t, v_e, ego_y, cruise, request, lc_active, lc_elapsed, intent, connector_cap=None):
+    def step(self, now, dt, t, v_e, ego_y, cruise, request, lc_active, lc_elapsed, intent, connector_cap=None,
+             connector_active=False):
         P = self.P
         if self.f is None:
             self.f = v_e
@@ -150,7 +151,9 @@ class AccPlanner:
                 lead_bind, soft_binding = None, False
                 if not hard_any and not external and request.action == "yield" and request.accel < 0:
                     yield_slew = abs(request.accel)
-        if lc_active and P.lane_change_lane_end_cap_enabled and d_t > P.lane_change_lane_end_cap_release_abs_d_m:
+        # 정지 출발 connector 중에는 걸지 않는다(acc_speed_planner !endpoint_connector_active)
+        if (lc_active and P.lane_change_lane_end_cap_enabled and not connector_active
+                and d_t > P.lane_change_lane_end_cap_release_abs_d_m):
             lim = (dist - P.lane_change_lane_end_margin_m) / max(0.5, 4.2 - lc_elapsed)
             lim = min(max(lim, min(P.lane_change_lane_end_min_cap_mps, cruise)), cruise)
             if lim < raw:

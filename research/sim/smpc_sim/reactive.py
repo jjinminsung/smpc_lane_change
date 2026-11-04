@@ -9,7 +9,8 @@
                    자차를 앞차로 보고 IDM 으로 따라간다(감속 한계 rear_max_brake). 그 전에는 자기 앞차/등속.
         nonyield : 자차를 무시한다(자기 앞차/등속).
   앞차  base     : 자기 앞차가 보이면 IDM, 아니면 현재 가속도가 accel_decay_s 로 사라지는 등가속.
-        brake    : front_brake m/s² 로 정지까지.     accel : front_accel m/s² (현재 속도 + 5 m/s 까지).
+        brake    : front_brake m/s² 로 정지까지.     accel : front_accel m/s² (현재 속도 + 5 m/s 까지, 자기 앞차가
+                   있으면 그 차를 IDM 으로 따르는 가속을 넘지 않는다).
 예측용 반응 파라미터는 시뮬 NPC(npc.py) 값과 일부러 다르게 둔다(예측 모델을 자기 자신으로 시험하지 않기).
 단계 5 의 MORAI 측정으로 바꾼다.
 
@@ -42,6 +43,7 @@ class ReactiveParams:
     mission_ramp: float = 0.0            # 시뮬은 미션 속도 일정. MORAI 는 차선 전환 뒤 약 2.5 m/s² 로 회복
     cruise_max: float = 0.0              # 회복 상한(0 이면 지금 미션 속도). MORAI: 차선 끝 서행 3.15 m/s → 순항
     lane_end_decel: float = 2.5          # acc.py 차선 끝 정지 한계 감속
+    connector_cap: bool = True           # 정지 connector 중 ACC 속도 상한(시뮬 world 도 같은 상한을 건다)
     # 뒤차 반응 (임시값, 단계 5 측정 전)
     rear_react_intrusion_m: float = 0.3
     rear_react_delay_s: float = 1.0
@@ -247,8 +249,11 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             else:
                 base = np.full(M, x.a0 * math.exp(-tau0 / RP.accel_decay_s))
             if x.role in ("cf", "tf"):
-                acc = np.where(front_mode == "brake", RP.front_brake,
-                      np.where(front_mode == "accel", np.where(x.v < x.v0 + 5.0, RP.front_accel, 0.0), base))
+                a_acc = np.where(x.v < x.v0 + 5.0, RP.front_accel, 0.0)
+                if x.lead is not None:      # 가속 예외도 자기 앞차는 뚫고 지나가지 않는다(C++ rxRollout 과 같다)
+                    a_acc = np.minimum(a_acc, _idm(x.v, gap_l, x.lead.v, x.v0 + 5.0, RP.front_idm_a, RP.front_idm_b,
+                                                   RP.front_idm_s0, RP.front_idm_T))
+                acc = np.where(front_mode == "brake", RP.front_brake, np.where(front_mode == "accel", a_acc, base))
             elif x.role == "tf2":
                 acc = base
             else:
@@ -313,7 +318,8 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         elapsed = np.maximum(0.0, tau0 - t_sw)
         lim_lc = np.minimum(np.maximum((dist - A.lane_change_lane_end_margin_m) / np.maximum(0.5, 4.2 - elapsed),
                                        np.minimum(A.lane_change_lane_end_min_cap_mps, cruise_k)), cruise_k)
-        lim = lc_active & (d_t > A.lane_change_lane_end_cap_release_abs_d_m) & (lim_lc < raw)
+        # 실제 ACC 처럼 connector 실행 중에는 걸지 않는다(C++ rxRollout, acc_speed_planner !endpoint_connector_active)
+        lim = lc_active & (not connector) & (d_t > A.lane_change_lane_end_cap_release_abs_d_m) & (lim_lc < raw)
         raw = np.where(lim, lim_lc, raw)
         soft_bind &= ~lim
         bind_c = np.where(lim, np.nan, bind_c)
@@ -325,6 +331,11 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         raw = np.where(lim, cap, raw)
         soft_bind &= ~lim
         bind_c = np.where(lim, np.nan, bind_c)
+        if connector and RP.connector_cap:     # ACC 정지 connector 속도 상한(목표 차선별, C++ rxRollout 과 같다)
+            by_lane = P.stopped_launch_connector_speed_cap_by_target_lane_mps
+            tgt = min(max(int(ctx.target_lane), 0), 3)
+            cap_conn = by_lane[tgt] if tgt < len(by_lane) else P.stopped_launch_connector_speed_cap_mps
+            raw = np.where(lc_active, np.minimum(raw, cap_conn), raw)
         # 필터: 감속 한계 = hard 12 / 기본 7 + 접근 속도 가산(최대 11), 약한 추종 1.5, 앞차 요구 감속 한계
         boost = np.clip((c_max - A.closing_decel_boost_start_mps) /
                         (A.closing_decel_boost_full_mps - A.closing_decel_boost_start_mps), 0.0, 1.0)
