@@ -7,8 +7,10 @@
 #include <limits>
 #include <map>
 #include <numeric>
+#include <set>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -394,6 +396,65 @@ class SmpcDecisionNode {
     pnh_.param("tree_abort_before_abs_d_m", tree_abort_before_abs_d_m_, 1.75);
     pnh_.getParam("tree_response_cost", tree_response_cost_);
     if (tree_response_cost_.size() != 5) tree_response_cost_ = {0.0, 1.0, 30.0, 35.0, 5.0};
+    // research/docs/plan_v2.md 반응형 트리
+    pnh_.param("reactive_tree_enabled", reactive_tree_enabled_, false);
+    pnh_.param("reactive_drop_common", reactive_drop_common_, true);
+    pnh_.param("reactive_single", reactive_single_, false);
+    pnh_.param("reactive/connector_cap", rx_.connector_cap, rx_.connector_cap);
+    pnh_.param("reactive/plant_tau", rx_.plant_tau, rx_.plant_tau);
+    pnh_.param("reactive/plant_a_max", rx_.plant_a_max, rx_.plant_a_max);
+    pnh_.param("reactive/plant_a_min", rx_.plant_a_min, rx_.plant_a_min);
+    pnh_.param("reactive/plant_a_stop", rx_.plant_a_stop, rx_.plant_a_stop);
+    pnh_.param("reactive/plant_jerk", rx_.plant_jerk, rx_.plant_jerk);
+    pnh_.param("reactive/acc_up", rx_.acc_up, rx_.acc_up);
+    pnh_.param("reactive/acc_dn", rx_.acc_dn, rx_.acc_dn);
+    pnh_.param("reactive/mission_ramp", rx_.mission_ramp, rx_.mission_ramp);
+    pnh_.param("reactive/cruise_max", rx_.cruise_max, rx_.cruise_max);
+    pnh_.param("reactive/lane_end_decel", rx_.lane_end_decel, rx_.lane_end_decel);
+    pnh_.param("reactive/rear_react_intrusion_m", rx_.rear_react_intrusion_m, rx_.rear_react_intrusion_m);
+    pnh_.param("reactive/rear_react_delay_s", rx_.rear_react_delay_s, rx_.rear_react_delay_s);
+    pnh_.param("reactive/rear_detect_s", rx_.rear_detect_s, rx_.rear_detect_s);
+    pnh_.param("reactive/rear_idm_s0", rx_.rear_idm_s0, rx_.rear_idm_s0);
+    pnh_.param("reactive/rear_idm_T", rx_.rear_idm_T, rx_.rear_idm_T);
+    pnh_.param("reactive/rear_idm_a", rx_.rear_idm_a, rx_.rear_idm_a);
+    pnh_.param("reactive/rear_idm_b", rx_.rear_idm_b, rx_.rear_idm_b);
+    pnh_.param("reactive/rear_max_brake", rx_.rear_max_brake, rx_.rear_max_brake);
+    pnh_.param("reactive/front_brake", rx_.front_brake, rx_.front_brake);
+    pnh_.param("reactive/front_accel", rx_.front_accel, rx_.front_accel);
+    pnh_.param("reactive/front_detect_s", rx_.front_detect_s, rx_.front_detect_s);
+    pnh_.param("reactive/accel_decay_s", rx_.accel_decay_s, rx_.accel_decay_s);
+    pnh_.param("reactive/front_idm_s0", rx_.front_idm_s0, rx_.front_idm_s0);
+    pnh_.param("reactive/front_idm_T", rx_.front_idm_T, rx_.front_idm_T);
+    pnh_.param("reactive/front_idm_a", rx_.front_idm_a, rx_.front_idm_a);
+    pnh_.param("reactive/front_idm_b", rx_.front_idm_b, rx_.front_idm_b);
+    pnh_.param("reactive/p_exc_floor", rx_.p_exc_floor, rx_.p_exc_floor);
+    pnh_.param("reactive/follow_sigma_cap_s", rx_.follow_sigma_cap_s, rx_.follow_sigma_cap_s);
+    pnh_.param("reactive/abort_before_abs_d", rx_.abort_before_abs_d, rx_.abort_before_abs_d);
+    pnh_.param("acc/standstill_gap_m", rx_acc_.standstill_gap_m, rx_acc_.standstill_gap_m);
+    pnh_.param("acc/time_headway_sec", rx_acc_.time_headway_sec, rx_acc_.time_headway_sec);
+    pnh_.param("acc/closing_speed_gap_time_sec", rx_acc_.closing_speed_gap_time_sec, rx_acc_.closing_speed_gap_time_sec);
+    pnh_.param("acc/gap_gain", rx_acc_.gap_gain, rx_acc_.gap_gain);
+    pnh_.param("acc/max_follow_speed_drop_mps", rx_acc_.max_follow_speed_drop_mps, rx_acc_.max_follow_speed_drop_mps);
+    pnh_.param("acc/emergency_gap_m", rx_acc_.emergency_gap_m, rx_acc_.emergency_gap_m);
+    pnh_.param("acc/critical_gap_m", rx_acc_.critical_gap_m, rx_acc_.critical_gap_m);
+    pnh_.param("acc/critical_ttc_sec", rx_acc_.critical_ttc_sec, rx_acc_.critical_ttc_sec);
+    pnh_.param("acc/soft_ttc_sec", rx_acc_.soft_ttc_sec, rx_acc_.soft_ttc_sec);
+    pnh_.param("acc/hard_ttc_sec", rx_acc_.hard_ttc_sec, rx_acc_.hard_ttc_sec);
+    pnh_.param("acc/target_front_acc_entry_abs_d_m", rx_acc_.target_front_acc_entry_abs_d_m, rx_acc_.target_front_acc_entry_abs_d_m);
+    pnh_.param("acc/target_front_overlap_soft_acc_start_abs_d_m", rx_acc_.target_front_overlap_soft_acc_start_abs_d_m, rx_acc_.target_front_overlap_soft_acc_start_abs_d_m);
+    pnh_.param("acc/lane_end_merge_wait_stop_distance_m", rx_acc_.lane_end_merge_wait_stop_distance_m, rx_acc_.lane_end_merge_wait_stop_distance_m);
+    pnh_.param("acc/lane_change_lane_end_margin_m", rx_acc_.lane_change_lane_end_margin_m, rx_acc_.lane_change_lane_end_margin_m);
+    pnh_.param("acc/lane_change_lane_end_min_cap_mps", rx_acc_.lane_change_lane_end_min_cap_mps, rx_acc_.lane_change_lane_end_min_cap_mps);
+    pnh_.param("acc/lane_change_lane_end_cap_release_abs_d_m", rx_acc_.lane_change_lane_end_cap_release_abs_d_m, rx_acc_.lane_change_lane_end_cap_release_abs_d_m);
+    pnh_.param("acc/closing_decel_boost_start_mps", rx_acc_.closing_decel_boost_start_mps, rx_acc_.closing_decel_boost_start_mps);
+    pnh_.param("acc/closing_decel_boost_full_mps", rx_acc_.closing_decel_boost_full_mps, rx_acc_.closing_decel_boost_full_mps);
+    pnh_.param("acc/lead_required_decel_limit_gain", rx_acc_.lead_required_decel_limit_gain, rx_acc_.lead_required_decel_limit_gain);
+    pnh_.param("acc/lead_required_decel_limit_headway_sec", rx_acc_.lead_required_decel_limit_headway_sec, rx_acc_.lead_required_decel_limit_headway_sec);
+    pnh_.param("acc/rapid_lead_ttc_sec", rx_acc_.rapid_lead_ttc_sec, rx_acc_.rapid_lead_ttc_sec);
+    pnh_.param("acc/rapid_lead_min_closing_speed_mps", rx_acc_.rapid_lead_min_closing_speed_mps, rx_acc_.rapid_lead_min_closing_speed_mps);
+    pnh_.param("acc/lead_required_decel_limit_enabled", rx_acc_.lead_required_decel_limit_enabled, rx_acc_.lead_required_decel_limit_enabled);
+    pnh_.param("acc/hard_brake_bypass_filter", rx_acc_.hard_brake_bypass_filter, rx_acc_.hard_brake_bypass_filter);
+    pnh_.param("acc/rapid_lead_brake_enabled", rx_acc_.rapid_lead_brake_enabled, rx_acc_.rapid_lead_brake_enabled);
     pnh_.param("tree_risk_weight", tree_risk_weight_, 80.0);
     pnh_.param("tree_abort_risk_factor", tree_abort_risk_factor_, 2.0);
     // 실행 계층이 실제로 하는 대응만(계속·복귀·제동). 계속+가속, 복귀+감속은 아무도 명령하지 않는다.
@@ -4620,6 +4681,684 @@ class SmpcDecisionNode {
     *have_future = true;
   }
 
+  // ===== 반응형 예측 + 트리 단독 판단 (research/docs/plan_v2.md 단계 6) ==========================
+  // 파이썬 기준 구현 research/sim/smpc_sim/reactive.py (joint_rollout), tree_reactive.py 와 같은 식이다.
+  // 종방향은 자차 출발점 기준 상대 좌표(자차 s = 0, 타겟 차량 s = delta_s), 횡방향은 목표 차선 중심 기준 d 로
+  // 굴리고, 위험은 차선 polyline 으로 지도 좌표에 옮겨 collisionProbability 로 구한다.
+  struct RxBranch {
+    std::string rear;    // "yield" | "nonyield"
+    std::string front;   // "base" | "brake" | "accel"
+    std::string tb;      // "" | "rear" | "front" | "now"  (복귀 대응의 분기 시점 규칙)
+    double p{1.0};
+  };
+  struct RxSpec {
+    bool change{false};
+    double t_sw{0.0};
+    double dur{4.0};
+    BehaviorAction action{BehaviorAction::kKeep};
+    double prep_a{0.0};
+  };
+  struct RxTv {
+    smpc_lane_change::TargetVehicle v;
+    std::string role;    // "cf" | "tf" | "rear" | "ctx"
+    int lead{-1};
+  };
+  struct RxResult {
+    int B{0}, N{0}, K{0};
+    std::vector<double> risk;       // ((b*2 + q)*N + n)*K + k
+    std::vector<uint8_t> allowed;   // (b*2 + q)*N + n
+    std::vector<uint8_t> valid;     // n
+    std::vector<double> ego_s, ego_d, ego_v;               // 행 × K (단위 시험용)
+    std::vector<std::vector<double>> tv_s;                 // 차량별, 행 × K
+    double& at(int b, int q, int n, int k) { return risk[((b * 2 + q) * N + n) * K + k]; }
+  };
+
+  static double rxIdm(double v, double gap, double v_lead, double v0, double a, double b, double s0, double T) {
+    gap = std::max(gap, 0.1);
+    const double s_star = s0 + std::max(0.0, v * T + v * (v - v_lead) / (2.0 * std::sqrt(a * b)));
+    return a * (1.0 - std::pow(v / std::max(v0, 0.5), 4.0) - (s_star / gap) * (s_star / gap));
+  }
+
+  // acc.py speed_for_lead / acc_speed_planner speedForLead 와 같은 앞차 추종 목표 속도. hard(또는 0) 여부도 낸다.
+  void rxSpeedForLead(double gap, double v_lead, double v_e, double cruise, double* cmd_out, bool* hard_out) const {
+    const double vL = std::min(std::max(v_lead, 0.0), cruise);
+    const double c = std::max(0.0, v_e - vL);
+    const double g_star = rx_acc_.standstill_gap_m + rx_acc_.time_headway_sec * v_e +
+        rx_acc_.closing_speed_gap_time_sec * c + c * c / (2.0 * 3.8);
+    double cmd = std::max(vL + rx_acc_.gap_gain * (gap - g_star), vL - rx_acc_.max_follow_speed_drop_mps);
+    cmd = std::min(cmd, std::sqrt(vL * vL + 2.0 * 3.8 * std::max(0.0, gap - rx_acc_.emergency_gap_m)));
+    const double closing = v_e - std::max(0.0, v_lead);
+    const double ttc = closing > 0.1 ? gap / std::max(closing, 1e-6) : std::numeric_limits<double>::infinity();
+    if (closing > 0.1) cmd = std::min(cmd, vL + std::max(0.0, gap - rx_acc_.emergency_gap_m) / rx_acc_.soft_ttc_sec);
+    bool hard = closing > 0.1 && ttc <= rx_acc_.hard_ttc_sec;
+    if (hard) cmd = std::min(cmd, vL);
+    if (gap <= rx_acc_.critical_gap_m || (closing > 0.1 && ttc <= rx_acc_.critical_ttc_sec)) {
+      cmd = 0.0;
+      hard = true;
+    }
+    *cmd_out = std::clamp(cmd, 0.0, cruise);
+    *hard_out = hard;
+  }
+
+  // (현재 차선 앞차, 목표 차선 앞차, 목표 차선 뒤·옆 차량들, 앞차의 앞차). tree_reactive.py _vehicles + target_lane_vehicles.
+  std::vector<RxTv> rxVehicles(const smpc_lane_change::TargetVehicleSet& t) const {
+    std::vector<smpc_lane_change::TargetVehicle> all;
+    std::set<int> seen;
+    auto add = [&](const smpc_lane_change::TargetVehicle& v) {
+      if (v.valid && !seen.count(v.unique_id)) {
+        seen.insert(v.unique_id);
+        all.push_back(v);
+      }
+    };
+    add(t.current_front);
+    add(t.target_front);
+    add(t.target_rear);
+    for (const auto& v : t.nearby_vehicles) add(v);
+    std::vector<RxTv> out;
+    if (t.current_front.valid) out.push_back({t.current_front, "cf", -1});
+    if (t.target_front.valid) out.push_back({t.target_front, "tf", -1});
+    std::vector<smpc_lane_change::TargetVehicle> rears;
+    for (const auto& v : all) {
+      if (v.lane_id != t.target_lane_id || v.rear_delta_s > 0.0) continue;
+      if (t.target_front.valid && (v.unique_id == t.target_front.unique_id || v.delta_s >= t.target_front.delta_s)) continue;
+      rears.push_back(v);
+    }
+    std::sort(rears.begin(), rears.end(), [](const auto& a, const auto& b) { return a.delta_s > b.delta_s; });
+    for (const auto& r : rears) out.push_back({r, "rear", -1});
+    const std::size_t n_main = out.size();
+    for (std::size_t i = 0; i < n_main; ++i) {
+      if (out[i].role != "cf" && out[i].role != "tf") continue;
+      const smpc_lane_change::TargetVehicle* best = nullptr;
+      for (const auto& w : all) {
+        if (w.lane_id != out[i].v.lane_id || w.unique_id == out[i].v.unique_id) continue;
+        if (w.delta_s <= out[i].v.delta_s + 1e-3) continue;
+        if (!best || w.delta_s < best->delta_s) best = &w;
+      }
+      if (best) {
+        out.push_back({*best, "ctx", -1});
+        out[i].lead = static_cast<int>(out.size()) - 1;
+      }
+    }
+    for (std::size_t i = 0; i < n_main; ++i) {
+      if (out[i].role != "rear") continue;
+      int best = -1;
+      for (std::size_t j = 0; j < n_main; ++j) {
+        if (j == i || out[j].v.lane_id != out[i].v.lane_id || out[j].v.delta_s <= out[i].v.delta_s) continue;
+        if (best < 0 || out[j].v.delta_s < out[best].v.delta_s) best = static_cast<int>(j);
+      }
+      out[i].lead = best;
+    }
+    return out;
+  }
+
+  // reactive.py joint_rollout. mid_T_rem >= 0 이면 차선 변경 도중(모니터): 루트 = 지금부터 계속, 대응 1 = 지금 복귀.
+  RxResult rxRollout(const smpc_lane_change::TargetVehicleSet& t, const std::vector<RxSpec>& specs,
+                     const std::vector<RxBranch>& br, double v_e0, double mission, bool connector,
+                     double join_arc, double yield_ref, double mid_T_rem) const {
+    RxResult res;
+    const int K = std::max(1, horizon_steps_);
+    const double dt = prediction_dt_sec_;
+    const double W = lane_width_m_;
+    const int N = static_cast<int>(specs.size());
+    const int B = static_cast<int>(br.size());
+    res.B = B;
+    res.N = N;
+    res.K = K;
+    res.risk.assign(static_cast<std::size_t>(B * 2 * N * K), 0.0);
+    res.allowed.assign(static_cast<std::size_t>(B * 2 * N), 1);
+    res.valid.assign(static_cast<std::size_t>(N), 1);
+    const bool mid = mid_T_rem >= 0.0;
+    const double d0 = std::isfinite(t.ego_d_target) ? t.ego_d_target : -W;
+    const double d_src = d0 >= 0.0 ? W : -W;           // 원 차선 중심(목표 차선 기준)
+    const double src_end = std::max(0.0, t.distance_to_lane_end);
+    const auto* target_lane = laneFor(t.target_lane_id);
+    if (!target_lane) {
+      std::fill(res.valid.begin(), res.valid.end(), 0);
+      return res;
+    }
+    const auto ego_proj = target_lane->projectExtended(ego_x_, ego_y_, 400.0, 400.0);
+    const double tgt_end = target_lane->length() - ego_proj.s;
+    const double half_w = 0.5 * ego_width_m_;
+    const auto tvs = rxVehicles(t);
+    const int V = static_cast<int>(tvs.size());
+    const double L_rem = mid ? std::max(2.0, join_arc * std::abs(d0) / W) : std::max(1.0, join_arc);
+    const double yield_floor = std::max(0.0, yield_ref - behavior_yield_max_speed_drop_mps_);
+    const int M = B * 2 * N;
+    res.ego_s.assign(static_cast<std::size_t>(M * K), 0.0);
+    res.ego_d.assign(static_cast<std::size_t>(M * K), 0.0);
+    res.ego_v.assign(static_cast<std::size_t>(M * K), 0.0);
+    res.tv_s.assign(static_cast<std::size_t>(V), std::vector<double>(static_cast<std::size_t>(M * K), 0.0));
+    std::vector<uint8_t> tf_hard(static_cast<std::size_t>(M * K), 0);
+    std::vector<double> tau_m_row(static_cast<std::size_t>(M), std::numeric_limits<double>::quiet_NaN());
+    std::vector<double> ds_sw_row(static_cast<std::size_t>(M), std::numeric_limits<double>::quiet_NaN());
+    std::vector<double> ret_row(static_cast<std::size_t>(M), std::numeric_limits<double>::infinity());
+
+    for (int b = 0; b < B; ++b) {
+      for (int q = 0; q < 2; ++q) {
+        for (int n = 0; n < N; ++n) {
+          const int m = (b * 2 + q) * N + n;
+          const RxSpec& sp = specs[static_cast<std::size_t>(n)];
+          const double t_sw = mid ? 0.0 : sp.t_sw;
+          double s = 0.0, v = std::max(0.0, v_e0), a = 0.0, f = v, ref_prev = f, y = d0;
+          double ds_sw = (mid && sp.change) ? 0.0 : std::numeric_limits<double>::quiet_NaN();
+          double tau_m = (mid && sp.change) ? 0.0 : std::numeric_limits<double>::quiet_NaN();
+          double ret_t = std::numeric_limits<double>::infinity(), y_ret0 = 0.0;
+          double t_in = std::numeric_limits<double>::infinity();
+          std::vector<double> xs(static_cast<std::size_t>(V)), xv(static_cast<std::size_t>(V));
+          for (int i = 0; i < V; ++i) {
+            xs[static_cast<std::size_t>(i)] = tvs[static_cast<std::size_t>(i)].v.delta_s;
+            xv[static_cast<std::size_t>(i)] = std::max(0.0, tvs[static_cast<std::size_t>(i)].v.v_long);
+          }
+          for (int k = 0; k < K; ++k) {
+            const double tau0 = dt * k;
+            // ---- 횡 위치 ----
+            const double moved = s;
+            if (!mid && sp.change && std::isnan(ds_sw) && tau0 >= t_sw - 1e-6) ds_sw = moved;
+            if (!mid && sp.change && !std::isnan(ds_sw) && std::isnan(tau_m) &&
+                (v >= ego_reference_preview_motion_start_speed_mps_ ||
+                 moved - ds_sw >= ego_reference_preview_motion_start_distance_m_)) {
+              tau_m = tau0;
+            }
+            double alpha = 0.0;
+            if (!std::isnan(tau_m)) {
+              if (connector) {
+                const double u = std::clamp((moved - (std::isnan(ds_sw) ? 0.0 : ds_sw)) / L_rem, 0.0, 1.0);
+                alpha = u * u * u * (10.0 - 15.0 * u + 6.0 * u * u);
+              } else {
+                alpha = std::clamp((tau0 - tau_m) / (mid ? mid_T_rem : sp.dur), 0.0, 1.0);
+              }
+            }
+            const double y_start = mid ? d0 : d_src;
+            double y_go = sp.change ? y_start + (0.0 - y_start) * alpha
+                                    : d_src + (d0 - d_src) * std::exp(-tau0 / std::max(0.1, lane_center_decay_tau_sec_));
+            if (sp.change && s > src_end) y_go = 0.0;
+            double tb = std::numeric_limits<double>::infinity();
+            const std::string& rule = br[static_cast<std::size_t>(b)].tb;
+            if (mid && !rule.empty()) tb = 0.0;
+            else if (rule == "front") tb = rx_.front_detect_s;
+            else if (rule == "rear") tb = t_in + rx_.rear_react_delay_s + rx_.rear_detect_s;
+            const double y_now = k == 0 ? d0 : y;
+            if (q == 1 && sp.change && std::isinf(ret_t) && tau0 >= tb - 1e-9 && std::abs(y_now) > rx_.abort_before_abs_d) {
+              ret_t = tau0;
+              y_ret0 = y_now;
+            }
+            if (std::isfinite(ret_t)) {
+              const double scale = std::max(0.35, std::sqrt(std::min(1.0, std::abs(y_ret0 - d_src) / W)));
+              const double fr = interpReturnProgress(std::max(0.0, tau0 - ret_t) / scale);
+              y = y_ret0 + (d_src - y_ret0) * fr;
+            } else {
+              y = y_go;
+            }
+            const double d_t = std::abs(y);
+            const double intr = 0.5 * W + half_w - d_t;
+            if (std::isinf(t_in) && intr >= rx_.rear_react_intrusion_m) t_in = tau0;
+            const bool in_target = d_t < 0.5 * W;
+            const bool returning = std::isfinite(ret_t);
+            const bool lc_active = sp.change && tau0 >= t_sw && !returning;
+            const std::string& rear_mode = br[static_cast<std::size_t>(b)].rear;
+            const std::string& front_mode = br[static_cast<std::size_t>(b)].front;
+            // ---- 타겟 차량 ----
+            std::vector<double> ns(static_cast<std::size_t>(V)), nv(static_cast<std::size_t>(V));
+            for (int i = 0; i < V; ++i) {
+              const auto& x = tvs[static_cast<std::size_t>(i)];
+              const std::size_t ui = static_cast<std::size_t>(i);
+              if (x.role == "ctx") {
+                ns[ui] = xs[ui];
+                nv[ui] = xv[ui];
+                continue;
+              }
+              const double v0x = std::max(0.0, x.v.v_long);
+              const double len = std::max(0.1, x.v.length);
+              double base;
+              if (x.lead >= 0) {
+                const auto& L = tvs[static_cast<std::size_t>(x.lead)];
+                const double gap_l = xs[static_cast<std::size_t>(x.lead)] - 0.5 * std::max(0.1, L.v.length) - xs[ui] - 0.5 * len;
+                base = x.role == "rear"
+                    ? rxIdm(xv[ui], gap_l, xv[static_cast<std::size_t>(x.lead)], std::max(v0x, 0.5), rx_.rear_idm_a, rx_.rear_idm_b, rx_.rear_idm_s0, rx_.rear_idm_T)
+                    : rxIdm(xv[ui], gap_l, xv[static_cast<std::size_t>(x.lead)], std::max(v0x, 0.5), rx_.front_idm_a, rx_.front_idm_b, rx_.front_idm_s0, rx_.front_idm_T);
+              } else {
+                base = x.v.accel * std::exp(-tau0 / rx_.accel_decay_s);
+              }
+              double acc;
+              if (x.role == "cf" || x.role == "tf") {
+                if (front_mode == "brake") acc = rx_.front_brake;
+                else if (front_mode == "accel") acc = xv[ui] < v0x + 5.0 ? rx_.front_accel : 0.0;
+                else acc = base;
+              } else {
+                const bool react = rear_mode == "yield" && tau0 >= t_in + rx_.rear_react_delay_s && intr > 0.0 && s > xs[ui];
+                if (react) {
+                  const double gap_e = (s - ego_rear_extent_m_) - (xs[ui] + 0.5 * len);
+                  base = std::min(base, rxIdm(xv[ui], gap_e, v, std::max(v0x, 0.5), rx_.rear_idm_a, rx_.rear_idm_b, rx_.rear_idm_s0, rx_.rear_idm_T));
+                }
+                acc = std::max(base, -rx_.rear_max_brake);
+              }
+              nv[ui] = std::max(0.0, xv[ui] + acc * dt);
+              ns[ui] = xs[ui] + 0.5 * (xv[ui] + nv[ui]) * dt;
+            }
+            // ---- 자차 ACC ----
+            double cruise_k = mission;
+            if (rx_.mission_ramp > 0.0 && rx_.cruise_max > 0.0) {
+              cruise_k = std::min(rx_.cruise_max, mission + rx_.mission_ramp * std::max(0.0, sp.change ? tau0 - t_sw : -1.0));
+            }
+            double raw = cruise_k, c_max = 0.0, bind_c = std::numeric_limits<double>::quiet_NaN(), bind_g = 0.0;
+            bool hard = false, soft_bind = false;
+            const bool entry = d_t <= rx_acc_.target_front_acc_entry_abs_d_m;
+            for (int i = 0; i < V; ++i) {
+              const auto& x = tvs[static_cast<std::size_t>(i)];
+              bool use = false, allow_hard = true;
+              if (x.role == "cf") {
+                use = !in_target || returning;
+              } else if (x.role == "tf") {
+                use = entry || (lc_active && d_t <= rx_acc_.target_front_overlap_soft_acc_start_abs_d_m);
+                allow_hard = entry;
+              } else {
+                continue;
+              }
+              const double len = std::max(0.1, x.v.length);
+              const double gap = (xs[static_cast<std::size_t>(i)] - 0.5 * len) - (s + ego_front_extent_m_);
+              if (!use || gap <= -len) continue;
+              double cmd;
+              bool hd;
+              const double xvv = xv[static_cast<std::size_t>(i)];
+              rxSpeedForLead(gap, xvv, v, cruise_k, &cmd, &hd);
+              const double c = std::max(0.0, v - std::min(std::max(xvv, 0.0), cruise_k));
+              const double closing = v - std::max(0.0, xvv);
+              const bool rapid = rx_acc_.rapid_lead_brake_enabled && c >= rx_acc_.rapid_lead_min_closing_speed_mps &&
+                  (gap / std::max(closing, 1e-6) <= rx_acc_.rapid_lead_ttc_sec ||
+                   (gap > rx_acc_.emergency_gap_m && c * c / (2.0 * std::max(gap - rx_acc_.emergency_gap_m, 1e-6)) >= 5.0));
+              c_max = std::max(c_max, c);
+              if (cmd < raw) {
+                raw = cmd;
+                soft_bind = !allow_hard;
+                bind_c = c;
+                bind_g = gap;
+              }
+              if ((hd || rapid) && allow_hard) hard = true;
+            }
+            const double dist = src_end - s;
+            if (!lc_active && !in_target && dist < 200.0) {
+              const double lim = std::sqrt(2.0 * rx_.lane_end_decel * std::max(0.0, dist - rx_acc_.lane_end_merge_wait_stop_distance_m));
+              if (lim < raw) {
+                raw = lim;
+                soft_bind = false;
+                bind_c = std::numeric_limits<double>::quiet_NaN();
+              }
+            }
+            if (lc_active && d_t > rx_acc_.lane_change_lane_end_cap_release_abs_d_m) {
+              const double elapsed = std::max(0.0, tau0 - t_sw);
+              const double lim = std::min(std::max((dist - rx_acc_.lane_change_lane_end_margin_m) / std::max(0.5, 4.2 - elapsed),
+                                                   std::min(rx_acc_.lane_change_lane_end_min_cap_mps, cruise_k)), cruise_k);
+              if (lim < raw) {
+                raw = lim;
+                soft_bind = false;
+                bind_c = std::numeric_limits<double>::quiet_NaN();
+              }
+            }
+            if (!(sp.change && tau0 >= t_sw)) {
+              double cap = std::numeric_limits<double>::infinity();
+              if (sp.action == BehaviorAction::kHoldThenChange) cap = v_e0;
+              else if (sp.action == BehaviorAction::kYieldDecelThenChange) cap = std::max(yield_floor, v_e0 + sp.prep_a * tau0);
+              else if (sp.action == BehaviorAction::kAccelThenChange) cap = std::min(cruise_k, v_e0 + sp.prep_a * tau0);
+              if (cap < raw) {
+                raw = cap;
+                soft_bind = false;
+                bind_c = std::numeric_limits<double>::quiet_NaN();
+              }
+            }
+            if (connector && lc_active) {
+              const int tgt = std::clamp(t.target_lane_id, 0, 3);
+              const double cap_conn = tgt < static_cast<int>(stopped_launch_connector_speed_cap_by_target_lane_mps_.size())
+                  ? stopped_launch_connector_speed_cap_by_target_lane_mps_[static_cast<std::size_t>(tgt)]
+                  : stopped_launch_connector_speed_cap_mps_;
+              if (rx_.connector_cap && cap_conn < raw) raw = cap_conn;
+            }
+            const double boost = std::clamp((c_max - rx_acc_.closing_decel_boost_start_mps) /
+                                                 (rx_acc_.closing_decel_boost_full_mps - rx_acc_.closing_decel_boost_start_mps), 0.0, 1.0);
+            double dec = hard ? 12.0 : rx_.acc_dn + boost * (11.0 - rx_.acc_dn);
+            if (soft_bind) dec = std::min(dec, 1.5);
+            if (rx_acc_.lead_required_decel_limit_enabled && !std::isnan(bind_c) && !hard) {
+              const double margin = bind_g - rx_acc_.emergency_gap_m - rx_acc_.lead_required_decel_limit_headway_sec * v;
+              if (margin > 0.5) dec = std::min(dec, std::max(1.5, rx_acc_.lead_required_decel_limit_gain * bind_c * bind_c / (2.0 * margin)));
+            }
+            if (hard && rx_acc_.hard_brake_bypass_filter) f = raw;
+            else f = std::clamp(raw, f - dec * dt, f + rx_.acc_up * dt);
+            f = std::min(std::max(f, 0.0), cruise_k);
+            tf_hard[static_cast<std::size_t>(m * K + k)] = entry ? 1 : 0;
+            // ---- 자차 응답 ----
+            const double ff = (f - ref_prev) / dt;
+            ref_prev = f;
+            const double a_des = std::clamp((f - v) / rx_.plant_tau + ff, f < 0.01 ? rx_.plant_a_stop : rx_.plant_a_min, rx_.plant_a_max);
+            a += std::clamp(a_des - a, -rx_.plant_jerk * dt, rx_.plant_jerk * dt);
+            if (v <= 0.0 && a < 0.0) a = 0.0;
+            const double vn = std::max(0.0, v + a * dt);
+            s += 0.5 * (v + vn) * dt;
+            v = vn;
+            for (int i = 0; i < V; ++i) {
+              const std::size_t ui = static_cast<std::size_t>(i);
+              if (tvs[ui].role == "ctx") {
+                xs[ui] += xv[ui] * dt;
+              } else {
+                xs[ui] = ns[ui];
+                xv[ui] = nv[ui];
+              }
+              res.tv_s[ui][static_cast<std::size_t>(m * K + k)] = xs[ui];
+            }
+            res.ego_s[static_cast<std::size_t>(m * K + k)] = s;
+            res.ego_d[static_cast<std::size_t>(m * K + k)] = y;
+            res.ego_v[static_cast<std::size_t>(m * K + k)] = v;
+          }
+          tau_m_row[static_cast<std::size_t>(m)] = tau_m;
+          ds_sw_row[static_cast<std::size_t>(m)] = ds_sw;
+          ret_row[static_cast<std::size_t>(m)] = ret_t;
+          if (q == 1) res.allowed[static_cast<std::size_t>(m)] = std::isfinite(ret_t) ? 1 : 0;
+        }
+      }
+    }
+
+    // ---- 유효성(계속 대응·첫 가지 기준) ----
+    for (int n = 0; n < N; ++n) {
+      const RxSpec& sp = specs[static_cast<std::size_t>(n)];
+      const std::size_t last = static_cast<std::size_t>(n * K + K - 1);
+      bool ok = true;
+      if (sp.change) {
+        if (!mid && std::isnan(tau_m_row[static_cast<std::size_t>(n)])) ok = false;
+        if (!mid && connector && !std::isnan(ds_sw_row[static_cast<std::size_t>(n)]) &&
+            ds_sw_row[static_cast<std::size_t>(n)] > stopped_launch_connector_max_preswitch_distance_m_) ok = false;
+        if (std::abs(res.ego_d[last]) > ego_reference_preview_target_completion_max_abs_d_m_ && res.ego_s[last] <= tgt_end) ok = false;
+      } else if (res.ego_s[last] > src_end + 1e-6) {
+        ok = false;
+      }
+      res.valid[static_cast<std::size_t>(n)] = ok ? 1 : 0;
+    }
+
+    // ---- 위험: 지도 좌표로 옮겨 collisionProbability ----
+    const double sig_cap = rx_.follow_sigma_cap_s;
+    for (int m = 0; m < M; ++m) {
+      const int b = m / (2 * N);
+      const int n = m % N;
+      const bool brake_row = br[static_cast<std::size_t>(b)].front == "brake";
+      for (int k = 0; k < K; ++k) {
+        const std::size_t mk = static_cast<std::size_t>(m * K + k);
+        const double tau = dt * (k + 1);
+        if (res.ego_s[static_cast<std::size_t>(n * K + k)] > tgt_end + 1e-6) continue;   // 목표 차선 CSV 끝 뒤는 보지 않음
+        const auto es = target_lane->sampleExtended(ego_proj.s + res.ego_s[mk], res.ego_d[mk], tv_lane_projection_extension_before_m_);
+        if (!es.valid) continue;
+        PredPose ego;
+        ego.valid = true;
+        ego.x = es.x;
+        ego.y = es.y;
+        ego.yaw = es.yaw;
+        double no_coll = 1.0;
+        for (int i = 0; i < V; ++i) {
+          const auto& x = tvs[static_cast<std::size_t>(i)];
+          if (x.role == "ctx") continue;
+          const auto* lane = laneFor(x.v.lane_id);
+          if (!lane) continue;
+          const double sv = x.v.s + (res.tv_s[static_cast<std::size_t>(i)][mk] - x.v.delta_s);
+          if (sv > lane->length() + 1e-6) continue;
+          const double dv = x.v.d * std::exp(-tau / std::max(0.1, lane_center_decay_tau_sec_));
+          const auto ts = lane->sampleExtended(sv, dv, tv_lane_projection_extension_before_m_);
+          if (!ts.valid) continue;
+          PredPose tv;
+          tv.valid = true;
+          tv.x = ts.x;
+          tv.y = ts.y;
+          tv.yaw = ts.yaw;
+          const bool front = x.role == "cf" || x.role == "tf";
+          ego.t = (x.role == "cf" || (x.role == "tf" && tf_hard[mk])) ? std::min(tau, sig_cap) : tau;
+          TvMode mode{front && brake_row ? "front_brake" : "nominal", 1.0, 0.0, 0.0};
+          const auto c = collisionProbability(ego, tv, x.v, mode);
+          no_coll *= 1.0 - c.probability;
+        }
+        res.risk[mk] = 1.0 - no_coll;
+      }
+    }
+    return res;
+  }
+
+  double interpReturnProgress(double tau_scaled) const {
+    // tree.py RETURN_PROGRESS (0.1 s 표) 와 같은 표를 쓴다.
+    static const std::vector<double> kP{
+        0.0000, 0.0005, 0.0019, 0.0041, 0.0068, 0.0100, 0.0151, 0.0233, 0.0339, 0.0464, 0.0600, 0.0770, 0.0992,
+        0.1255, 0.1551, 0.1867, 0.2194, 0.2521, 0.2838, 0.3135, 0.3400, 0.3641, 0.3871, 0.4093, 0.4309, 0.4521,
+        0.4732, 0.4943, 0.5156, 0.5375, 0.5600, 0.5833, 0.6073, 0.6317, 0.6563, 0.6811, 0.7058, 0.7302, 0.7541,
+        0.7775, 0.8000, 0.8219, 0.8432, 0.8634, 0.8825, 0.9026, 0.9228, 0.9419, 0.9586, 0.9717, 0.9800, 0.9853,
+        0.9901, 0.9941, 0.9973, 0.9993, 1.0000};
+    const double x = std::max(0.0, tau_scaled) / 0.1;
+    const std::size_t i = static_cast<std::size_t>(std::floor(x));
+    if (i + 1 >= kP.size()) return 1.0;
+    const double w = x - static_cast<double>(i);
+    return kP[i] * (1.0 - w) + kP[i + 1] * w;
+  }
+
+  std::vector<RxBranch> rxBranches(const smpc_lane_change::TargetVehicleSet& t, double p_rear) const {
+    if (reactive_single_) return {{"yield", "base", "", 1.0}};
+    const auto tvs = rxVehicles(t);
+    bool rears = false, fronts = false;
+    for (const auto& x : tvs) {
+      rears |= x.role == "rear";
+      fronts |= x.role == "cf" || x.role == "tf";
+    }
+    const double fl = rx_.p_exc_floor;
+    const double pr = p_rear >= 0.0 ? p_rear : fl;
+    std::vector<std::tuple<std::string, double, std::string>> rb, fb;
+    if (rears) rb = {{"yield", 1.0 - pr, ""}, {"nonyield", pr, "rear"}};
+    else rb = {{"yield", 1.0, ""}};
+    if (fronts) fb = {{"base", 1.0 - 2.0 * fl, ""}, {"brake", fl, "front"}, {"accel", fl, ""}};
+    else fb = {{"base", 1.0, ""}};
+    std::vector<RxBranch> out;
+    for (const auto& r : rb) {
+      for (const auto& f : fb) {
+        out.push_back({std::get<0>(r), std::get<0>(f), !std::get<2>(f).empty() ? std::get<2>(f) : std::get<2>(r),
+                       std::get<1>(r) * std::get<1>(f)});
+      }
+    }
+    return out;
+  }
+
+  // tree_reactive.py _solve: 루트마다 가지별 대응(계속/복귀) 조합 중 Σ p_b r_b(k) ≤ ε 를 지키는 최소 기대 비용.
+  TreeResult rxSolveRoot(RxResult& r, const std::vector<RxBranch>& br, int n, double root_cost, double eps) const {
+    TreeResult out;
+    const int B = static_cast<int>(br.size());
+    std::vector<int> opts_count(static_cast<std::size_t>(B));
+    std::size_t combos = 1;
+    for (int b = 0; b < B; ++b) {
+      opts_count[static_cast<std::size_t>(b)] = br[static_cast<std::size_t>(b)].tb.empty() ? 1 : 2;
+      combos *= static_cast<std::size_t>(opts_count[static_cast<std::size_t>(b)]);
+    }
+    const double cost_return = tree_response_cost_[kTreeReturn];
+    double best_peak_any = std::numeric_limits<double>::infinity();
+    for (std::size_t c = 0; c < combos; ++c) {
+      std::size_t rem = c;
+      std::vector<int> q(static_cast<std::size_t>(B));
+      bool ok = true;
+      double jc = 0.0;
+      for (int b = B - 1; b >= 0; --b) {          // itertools.product 순서(마지막 가지가 가장 빨리 바뀜)
+        const std::size_t oc = static_cast<std::size_t>(opts_count[static_cast<std::size_t>(b)]);
+        q[static_cast<std::size_t>(b)] = static_cast<int>(rem % oc);
+        rem /= oc;
+      }
+      for (int b = 0; b < B; ++b) {
+        const int qq = q[static_cast<std::size_t>(b)];
+        if (!r.allowed[static_cast<std::size_t>((b * 2 + qq) * r.N + n)]) ok = false;
+        jc += br[static_cast<std::size_t>(b)].p * (qq == 1 ? cost_return : 0.0);
+      }
+      if (!ok) continue;
+      double peak = 0.0;
+      for (int k = 0; k < r.K; ++k) {
+        double rk = 0.0;
+        for (int b = 0; b < B; ++b) rk += br[static_cast<std::size_t>(b)].p * r.at(b, q[static_cast<std::size_t>(b)], n, k);
+        peak = std::max(peak, rk);
+      }
+      best_peak_any = std::min(best_peak_any, peak);
+      const double total = root_cost + jc + tree_risk_weight_ * peak;
+      if (peak <= eps && total < out.cost) {
+        out.feasible = true;
+        out.cost = total;
+        out.peak_risk = peak;
+        out.combo = q;
+      }
+    }
+    if (!out.feasible && std::isfinite(best_peak_any)) out.peak_risk = best_peak_any;
+    return out;
+  }
+
+  RxSpec rxSpecOf(const ActionSpec& a) const {
+    RxSpec s;
+    s.change = a.change_left;
+    s.t_sw = a.change_left ? effectiveLaneChangeStartSec(a) : std::numeric_limits<double>::infinity();
+    s.dur = std::max(0.1, a.lane_change_duration_sec);
+    s.action = a.action;
+    s.prep_a = a.prep_accel_mps2;
+    return s;
+  }
+
+  bool rxConnectorNow(const smpc_lane_change::TargetVehicleSet& t) const {
+    return t.distance_to_lane_end <= 30.0 && ego_speed_mps_ <= 1.0;
+  }
+
+  // 실행 중 모니터 (tree_reactive.py monitor_core + _update_rear_belief).
+  bool rxMonitorReturn(const smpc_lane_change::TargetVehicleSet& t, double now, std::string* detail) {
+    const double W = lane_width_m_;
+    const double d_t = std::abs(t.ego_d_target);
+    // 뒤차 관측 갱신
+    const double intr = 0.5 * W + 0.5 * ego_width_m_ - d_t;
+    if (intr < rx_.rear_react_intrusion_m) {
+      rx_intr_since_ = -1.0;
+      rx_p_rear_post_ = -1.0;
+    } else {
+      if (rx_intr_since_ < 0.0) rx_intr_since_ = now;
+      const auto tvs = rxVehicles(t);
+      const RxTv* rear = nullptr;
+      for (const auto& x : tvs) if (x.role == "rear") { rear = &x; break; }
+      if (rear && now - rx_intr_since_ >= rx_.rear_react_delay_s + rx_.rear_detect_s) {
+        if (rear->v.accel <= -0.5) rx_p_rear_post_ = rx_.p_exc_floor * 0.2;
+        else if (rear->v.accel > -0.1 && rear->v.v_long > ego_speed_mps_ + 0.5) rx_p_rear_post_ = 0.9;
+      }
+    }
+    if (d_t <= tree_abort_before_abs_d_m_) return false;
+    const double T_rem = std::max(0.5, egoChangeBlendDuration() * d_t / W);
+    const bool connector = rxConnectorNow(t);
+    const double join = (have_reference_preview_ && reference_preview_.mode == waypoint_system::PathSwitchPreview::CONNECTOR &&
+                         std::isfinite(reference_preview_.connector_join_arc_m)) ? reference_preview_.connector_join_arc_m : 20.0;
+    auto br = rxBranches(t, rx_p_rear_post_);
+    for (auto& b : br) b.tb = "now";
+    RxSpec go;
+    go.change = true;
+    go.t_sw = 0.0;
+    go.dur = T_rem;
+    go.action = BehaviorAction::kChangeNow;
+    RxResult r = rxRollout(t, {go}, br, ego_speed_mps_, currentTargetSpeedMps(), connector, join, ego_speed_mps_, T_rem);
+    double go_peak = 0.0, back_peak = 0.0;
+    bool back_ok = true;
+    for (int b = 0; b < r.B; ++b) back_ok &= r.allowed[static_cast<std::size_t>((b * 2 + 1) * r.N)] != 0;
+    for (int k = 0; k < r.K; ++k) {
+      double g = 0.0, bk = 0.0;
+      for (int b = 0; b < r.B; ++b) {
+        g += br[static_cast<std::size_t>(b)].p * r.at(b, 0, 0, k);
+        bk += br[static_cast<std::size_t>(b)].p * r.at(b, 1, 0, k);
+      }
+      go_peak = std::max(go_peak, g);
+      back_peak = std::max(back_peak, bk);
+    }
+    const double eps = activeRiskEpsilon(t);
+    const bool ret = back_ok && go_peak > tree_abort_risk_factor_ * eps && back_peak < go_peak;
+    if (detail) {
+      std::ostringstream os;
+      os.setf(std::ios::fixed);
+      os.precision(4);
+      os << "rx_monitor go_peak=" << go_peak << " back_peak=" << back_peak << " back_ok=" << back_ok
+         << " p_rear_post=" << rx_p_rear_post_;
+      *detail = os.str();
+    }
+    return ret;
+  }
+
+  // treeSelect 의 반응형 판(tree_reactive.py decide 의 평가 부분).
+  void treeSelectReactive(const smpc_lane_change::TargetVehicleSet& t,
+                          const ActionSpec& change_now_spec, bool common_ok, double target_gap_cost,
+                          double allowed_risk, bool* request_change, CandidateEval* best_future,
+                          bool* have_future, std::string* detail) {
+    *request_change = false;
+    *have_future = false;
+    if (!reactive_drop_common_ && !common_ok) {
+      if (detail) *detail = "rx common_gate_fail";
+      return;
+    }
+    const ros::WallTime wall0 = ros::WallTime::now();
+    std::vector<ActionSpec> specs;
+    specs.push_back(change_now_spec);
+    for (const auto& c : buildBehaviorCandidates(t)) {
+      if (c.action != BehaviorAction::kChangeNow && candidateFitsHorizon(c)) specs.push_back(c);
+    }
+    std::vector<RxSpec> rs;
+    std::vector<uint8_t> compat(specs.size(), 1);
+    const double base_cap = egoPredictionTargetSpeedMps();
+    for (std::size_t i = 0; i < specs.size(); ++i) {
+      rs.push_back(rxSpecOf(specs[i]));
+      if (i > 0 && !preparationLongitudinalModelCompatible(t, specs[i], base_cap)) compat[i] = 0;
+    }
+    const bool connector = rxConnectorNow(t);
+    const double join = (have_reference_preview_ && reference_preview_.mode == waypoint_system::PathSwitchPreview::CONNECTOR &&
+                         std::isfinite(reference_preview_.connector_join_arc_m)) ? reference_preview_.connector_join_arc_m : 20.0;
+    const auto br = rxBranches(t, -1.0);
+    RxResult r = rxRollout(t, rs, br, ego_speed_mps_, currentTargetSpeedMps(), connector, join, ego_speed_mps_, -1.0);
+    // 승인–모니터 일치: 같은 상태에서 모니터가 곧바로 복귀를 고르면 지금 바꾸기는 승인하지 않는다.
+    bool now_monitor_return = false;
+    if (tree_monitor_enabled_) {
+      const double keep_intr = rx_intr_since_, keep_p = rx_p_rear_post_;
+      now_monitor_return = rxMonitorReturn(t, ros::Time::now().toSec(), nullptr);
+      rx_intr_since_ = keep_intr;
+      rx_p_rear_post_ = keep_p;
+    }
+    auto root_cost_of = [&](const ActionSpec& sp) {
+      return lane_change_base_cost_ + target_gap_cost +
+          behavior_delay_cost_weight_ * std::max(0.0, sp.lane_change_start_sec) +
+          behavior_accel_cost_weight_ * sp.prep_accel_mps2 * sp.prep_accel_mps2;
+    };
+    std::ostringstream os;
+    os.setf(std::ios::fixed);
+    os.precision(3);
+    os << "rx br=";
+    for (const auto& b : br) os << b.rear << "/" << b.front << ":" << b.p << ",";
+    double best_cost = std::numeric_limits<double>::infinity();
+    int best_index = -1;
+    std::vector<int> best_combo;
+    for (std::size_t i = 0; i < specs.size(); ++i) {
+      if (!r.valid[i] || !compat[i]) continue;
+      if (i == 0 && now_monitor_return) {
+        os << " change_now_monitor_return";
+        continue;
+      }
+      const TreeResult tr = rxSolveRoot(r, br, static_cast<int>(i), root_cost_of(specs[i]), allowed_risk);
+      if (tr.feasible && tr.cost < best_cost) {
+        best_cost = tr.cost;
+        best_index = static_cast<int>(i);
+        best_combo = tr.combo;
+      }
+    }
+    os << " roots=" << specs.size() << " ms=" << (ros::WallTime::now() - wall0).toSec() * 1000.0;
+    if (best_index < 0) {
+      os << " none_feasible";
+      if (detail) *detail = os.str();
+      return;
+    }
+    os << " pick=" << specs[static_cast<std::size_t>(best_index)].name << " cost=" << best_cost << " resp=";
+    for (const int q : best_combo) os << q;
+    if (detail) *detail = os.str();
+    if (best_index == 0) {
+      *request_change = true;
+      return;
+    }
+    std::vector<smpc_lane_change::TargetVehicle> vehicles;
+    for (const auto& x : rxVehicles(t)) if (x.role != "ctx") vehicles.push_back(x.v);
+    CandidateEval ev = evaluateCandidate(t, vehicles, specs[static_cast<std::size_t>(best_index)], allowed_risk, target_gap_cost);
+    ev.feasible = true;
+    ev.cost = best_cost;
+    *best_future = ev;
+    *have_future = true;
+  }
+
   void laneChangeStatusCallback(const smpc_lane_change::LaneChangeStatus::ConstPtr& msg) {
     lc_status_ = *msg;
     have_lc_status_ = true;
@@ -4671,7 +5410,9 @@ class SmpcDecisionNode {
           lc_status_.source_lane_id == t.current_lane_id &&
           lc_status_.target_lane_id == t.target_lane_id) {
         std::string detail;
-        abort_msg.data = treeMonitorReturn(t, vehicles, effective_target_rear, activeRiskEpsilon(t), &detail);
+        abort_msg.data = reactive_tree_enabled_
+            ? rxMonitorReturn(t, ros::Time::now().toSec(), &detail)
+            : treeMonitorReturn(t, vehicles, effective_target_rear, activeRiskEpsilon(t), &detail);
         std_msgs::String dm;
         dm.data = std::string("tree_monitor return=") + (abort_msg.data ? "1 " : "0 ") + detail;
         tree_debug_pub_.publish(dm);
@@ -4925,9 +5666,14 @@ class SmpcDecisionNode {
       clearYieldCandidateConfirmation();
       yield_candidate_confirmation_pending = false;
       if (desire_change) {
-        treeSelect(t, vehicles, effective_target_rear, passing_front, change_now_spec, change_traj,
-                   change_now_gates_ok, common_ok, target_gap_cost, allowed_risk, &tree_change,
-                   &best_future_candidate, &have_future_candidate, &tree_detail);
+        if (reactive_tree_enabled_) {
+          treeSelectReactive(t, change_now_spec, common_ok, target_gap_cost, allowed_risk, &tree_change,
+                             &best_future_candidate, &have_future_candidate, &tree_detail);
+        } else {
+          treeSelect(t, vehicles, effective_target_rear, passing_front, change_now_spec, change_traj,
+                     change_now_gates_ok, common_ok, target_gap_cost, allowed_risk, &tree_change,
+                     &best_future_candidate, &have_future_candidate, &tree_detail);
+        }
       } else {
         have_future_candidate = false;
       }
@@ -5121,6 +5867,34 @@ class SmpcDecisionNode {
   bool tree_planner_enabled_{false};
   bool tree_keep_gates_{true};
   bool tree_monitor_enabled_{true};
+  // research/docs/plan_v2.md 반응형 트리(기본 꺼짐 = 지금 동작). 값은 Python reactive.ReactiveParams 와 같다.
+  bool reactive_tree_enabled_{false};
+  bool reactive_drop_common_{true};
+  bool reactive_single_{false};
+  struct RxParams {
+    double plant_tau{0.7}, plant_a_max{3.0}, plant_a_min{-6.0}, plant_a_stop{-9.0}, plant_jerk{12.0};
+    double acc_up{4.0}, acc_dn{7.0}, mission_ramp{0.0}, cruise_max{0.0}, lane_end_decel{2.5};
+    double rear_react_intrusion_m{0.3}, rear_react_delay_s{1.0}, rear_detect_s{0.5};
+    double rear_idm_s0{3.0}, rear_idm_T{1.0}, rear_idm_a{1.0}, rear_idm_b{2.0}, rear_max_brake{3.0};
+    double front_brake{-2.5}, front_accel{1.0}, front_detect_s{0.3}, accel_decay_s{1.5};
+    double front_idm_s0{3.0}, front_idm_T{1.0}, front_idm_a{1.0}, front_idm_b{2.0};
+    double p_exc_floor{0.05}, follow_sigma_cap_s{1.0}, abort_before_abs_d{1.75};
+    bool connector_cap{false};   // ACC 의 정지 connector 속도 상한(MORAI 대회 스택). 파이썬 시뮬에는 없다
+  } rx_;
+  // acc_planner.yaml 의 같은 키(이 노드에는 ns 'acc' 로 올린다)
+  struct RxAcc {
+    double standstill_gap_m{5.0}, time_headway_sec{1.2}, closing_speed_gap_time_sec{1.6}, gap_gain{1.05};
+    double max_follow_speed_drop_mps{8.0}, emergency_gap_m{5.0}, critical_gap_m{3.0}, critical_ttc_sec{2.2};
+    double soft_ttc_sec{7.0}, hard_ttc_sec{2.8}, target_front_acc_entry_abs_d_m{0.75};
+    double target_front_overlap_soft_acc_start_abs_d_m{2.7}, lane_end_merge_wait_stop_distance_m{25.0};
+    double lane_change_lane_end_margin_m{3.0}, lane_change_lane_end_min_cap_mps{3.0};
+    double lane_change_lane_end_cap_release_abs_d_m{1.5}, closing_decel_boost_start_mps{1.0};
+    double closing_decel_boost_full_mps{6.0}, lead_required_decel_limit_gain{1.5};
+    double lead_required_decel_limit_headway_sec{1.2}, rapid_lead_ttc_sec{3.0}, rapid_lead_min_closing_speed_mps{4.0};
+    bool lead_required_decel_limit_enabled{true}, hard_brake_bypass_filter{true}, rapid_lead_brake_enabled{true};
+  } rx_acc_;
+  double rx_intr_since_{-1.0};
+  double rx_p_rear_post_{-1.0};
   bool baseline_keep_gates_{true};
   bool baseline_tree_monitor_{false};
   std::vector<double> tree_onsets_sec_{0.0, 1.0, 2.0, 3.0};

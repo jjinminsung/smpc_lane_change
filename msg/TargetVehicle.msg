@@ -31,3 +31,7 @@ float64 rear_delta_s
 # real median 24-35, ghost median 4-9).  Consumers use it to withhold the most
 # aggressive responses from immature tracks, never to discard the obstacle.
 int32 track_hits
+
+# Longitudinal acceleration (m/s^2). /Object_topic (MORAI GT) acceleration.x in object_topic
+# mode, 0 for the LiDAR tracker. Used by the reactive prediction (research/docs/plan_v2.md 2d).
+float64 accel

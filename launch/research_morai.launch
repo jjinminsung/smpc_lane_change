@@ -8,10 +8,13 @@
          A 기존 판단 + rear_abort:  method:=baseline baseline_keep_gates:=false
          B 기존 판단 + 트리 모니터: method:=baseline baseline_keep_gates:=false monitor:=true
          C 트리 판단 + rear_abort:  method:=tree tree_keep_gates:=false monitor:=false
-         D 트리 판단 + 트리 모니터: method:=tree tree_keep_gates:=false              -->
+         D 트리 판단 + 트리 모니터: method:=tree tree_keep_gates:=false
+       plan_v2 반응형 트리: method:=tree tree_keep_gates:=false reactive:=true (가지 없음: reactive_single:=true) -->
   <arg name="method" default="baseline"/>              <!-- baseline | tree -->
   <arg name="tree_keep_gates" default="true"/>
   <arg name="baseline_keep_gates" default="true"/>
+  <arg name="reactive" default="false"/>
+  <arg name="reactive_single" default="false"/>
   <!-- 차선 변경 중 트리 모니터로 rear_abort 를 대체할지. 기본: 트리 판단일 때만 -->
   <arg name="monitor" default="$(eval arg('method') == 'tree')"/>
   <arg name="rear_accel_table" default="gt"/>          <!-- 두 방법 모두 같은 GT 표로 비교 -->
@@ -44,6 +47,8 @@
     <arg name="tree_abort_enabled" value="$(arg monitor)"/>
     <arg name="baseline_keep_gates" value="$(arg baseline_keep_gates)"/>
     <arg name="baseline_tree_monitor" value="$(eval arg('monitor') and arg('method') == 'baseline')"/>
+    <arg name="reactive_tree" value="$(arg reactive)"/>
+    <arg name="reactive_single" value="$(arg reactive_single)"/>
     <arg name="rear_accel_table" value="$(arg rear_accel_table)"/>
   </include>
   <param name="/smpc_target_selector/object_topic_offset_x" value="0.0"/>

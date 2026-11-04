@@ -34,6 +34,8 @@ METHODS = {
     "baseline_nogate": ("baseline", "true", ["baseline_keep_gates:=false"]),
     "bdec": ("baseline", "true", ["baseline_keep_gates:=false", "monitor:=true"]),
     "tree_nomon": ("tree", "false", ["monitor:=false"]),
+    "rx": ("tree", "false", ["reactive:=true"]),                               # plan_v2 새 구조
+    "rx_single": ("tree", "false", ["reactive:=true", "reactive_single:=true"]),
 }
 S = ["research_S1_normal", "research_S2_rear_accel", "research_S3_rear_decel", "research_S4_front_decel"]
 G = [f"research_G_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]

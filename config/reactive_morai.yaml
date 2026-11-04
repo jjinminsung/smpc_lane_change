@@ -1,0 +1,14 @@
+# research/docs/plan_v2.md 반응형 트리: MORAI 대회 스택에 맞춘 값 (smpc_decision 노드의 reactive/ 아래).
+# 기본값(코드)은 파이썬 시뮬 reactive.ReactiveParams 와 같고, 여기서는 MORAI 에서 잰 값만 바꾼다.
+
+# 자차 응답: research/results/m6_ego_response.json (기준 속도를 정답으로 줄 때 4 s 거리 오차 0.9 → 0.8 m)
+plant_tau: 0.4
+plant_a_max: 2.5
+plant_a_min: -3.0
+# 차선 끝에서 미션 속도가 3.15 m/s 로 내려가 있다가 차선 전환 뒤 약 2.5 m/s² 로 회복(M6 정지 출발 107 건:
+# 3.2 → 8.1 → 14.1 → 20 m/s, 0/2/4/8 s). 회복 상한은 고속 구간 미션 속도.
+mission_ramp: 2.5
+cruise_max: 25.0
+# ACC 노드는 정지 connector 중 목표 차선별 상한(stopped_launch_connector_speed_cap_by_target_lane_mps)을 건다.
+connector_cap: true
+# 뒤차 반응(양보)은 단계 5 측정 전까지 코드 기본값(침범 0.3 m, 지연 1.0 s, 감속 ≤ 3 m/s²)을 쓴다.

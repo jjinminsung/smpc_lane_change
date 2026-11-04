@@ -235,6 +235,7 @@ class TargetSelectorNode {
     double vy{0.0};
     double v_long{0.0};
     double v_lat{0.0};
+    double accel{0.0};   // 종방향 가속도(m/s²). /Object_topic 경로만 채운다
     double length{0.0};
     double width{0.0};
     // LiDAR 트래커에서만 채워진다.  /Object_topic (MORAI GT) 경로는 NaN 으로
@@ -786,6 +787,7 @@ class TargetSelectorNode {
     }
     out.length = obj.length;
     out.width = obj.width;
+    out.accel = obj.accel;
     return out;
   }
 
@@ -1058,6 +1060,8 @@ class TargetSelectorNode {
       obj.velocity_in_map = false;
       obj.v_long = npc.velocity.x / 3.6;
       obj.v_lat = npc.velocity.y / 3.6;
+      // acceleration.x 는 m/s² (속도 미분과 기울기 1.05, 2026-11-04 v4_H bag 43 대)
+      obj.accel = npc.acceleration.x;
       // Some MORAI versions/documentation swap size x/y labels. Vehicle length is safely the larger horizontal dimension.
       obj.length = std::max(npc.size.x, npc.size.y);
       obj.width = std::min(npc.size.x, npc.size.y);
