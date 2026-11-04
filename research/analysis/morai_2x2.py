@@ -45,12 +45,13 @@ def boot(d, n=10000, seed=0):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--prefix", default="v4_")
+    ap.add_argument("--phase", default="E", help="E = S1–S4, H = highway_spawn50 속도 격자")
     a = ap.parse_args()
     rows = {}
     for line in LOG.read_text().splitlines():
         if line.strip():
             r = json.loads(line)
-            if r["tag"].startswith(f"{a.prefix}E_") and r.get("metrics") and "error" not in r["metrics"]:
+            if r["tag"].startswith(f"{a.prefix}{a.phase}_") and r.get("metrics") and "error" not in r["metrics"]:
                 rows[r["tag"]] = r
     for r in rows.values():
         r["contacts"] = contacts_with_speed(r)
@@ -101,7 +102,7 @@ def main():
                 "t_merge": r["metrics"].get("t_merge"), "aborts": len(r["metrics"]["aborts"]) // 2,
                 "lane_end_stops": r["metrics"]["lane_end_stops"], "stop_time": r["metrics"]["stop_time"],
                 "contacts": [c["kind"] for c in r["contacts"]]} for (s, m, k), r in sorted(by.items())]
-    (RES / "morai_2x2.json").write_text(json.dumps({"summary": summary, "effects": effects, "runs": per_run},
+    (RES / f"morai_2x2_{a.phase}.json").write_text(json.dumps({"summary": summary, "effects": effects, "runs": per_run},
                                                    indent=1, ensure_ascii=False))
 
 

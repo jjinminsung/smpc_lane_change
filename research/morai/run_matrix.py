@@ -5,6 +5,7 @@
     python3 run_matrix.py --phase B        # 문서 계획: S1–S4 × {기존, 트리+게이트 정리} × 3
     python3 run_matrix.py --phase C        # 속도 격자 12 개 × {기존, 트리+게이트 정리} × 2
     python3 run_matrix.py --phase E        # 2×2: S1–S4 × {기존, A, B, C, D} × 3 (같은 세션에서 번갈아)
+    python3 run_matrix.py --phase H        # 2×2: highway_spawn50 속도 격자 12 개 × {기존, A, B, C, D} × 1
 
 2×2 방법(모두 게이트 정리): baseline_nogate = A 기존 판단 + rear_abort, bdec = B 기존 판단 + 트리 모니터,
 tree_nomon = C 트리 판단 + rear_abort, tree_nogate = D 트리 판단 + 트리 모니터(제안).
@@ -36,12 +37,15 @@ METHODS = {
 }
 S = ["research_S1_normal", "research_S2_rear_accel", "research_S3_rear_decel", "research_S4_front_decel"]
 G = [f"research_G_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]
+H = [f"research_H_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]   # make_scenarios.py
+M2X2 = ["baseline", "baseline_nogate", "bdec", "tree_nomon", "tree_nogate"]
 PHASES = {
     "A": ([S[1]], ["tree", "tree_nogate"], 3),
     "B": (S, ["baseline", "tree_nogate"], 3),
     "C": (G, ["baseline", "tree_nogate"], 2),
     "D": (S, ["tree"], 2),
-    "E": (S, ["baseline", "baseline_nogate", "bdec", "tree_nomon", "tree_nogate"], 3),
+    "E": (S, M2X2, 3),
+    "H": (H, M2X2, 1),
 }
 
 
