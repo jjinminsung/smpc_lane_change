@@ -61,6 +61,8 @@ def make_scene(rng, P):
 
     if rng.random() < 0.7:
         add("current_front", cur, rng.uniform(10.0, 50.0), max(0.0, v0 + rng.uniform(-6, 3)))
+    if rng.random() < 0.2:          # 옆에 겹친 차(중심이 자차 뒤): 선택기는 앞끝만 넘어도 target_front 로 고른다(MORAI H_s70_d40)
+        add("target_front", tgt, -rng.uniform(0.2, 2.2), max(0.0, rng.uniform(1.0, 16.0)))
     if rng.random() < 0.85:
         add("target_front", tgt, rng.uniform(4.0, 40.0), max(0.0, rng.uniform(1.0, 16.0)))
         if rng.random() < 0.25:     # 선택기가 target_front 를 비운 경우(MORAI S1): 앞차는 nearby 에만 있다

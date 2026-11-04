@@ -5,24 +5,49 @@
 
 H 격자(12 개, 1 회): 기존·A·D = 단계 H(v4_H_*), rx·rx_single = 단계 V. 같은 날 다른 시각.
 S1–S4(3 회): 기존·D = 단계 B(v2_B_*, D 는 v3_B_* 우선), rx·rx_single = 단계 W. 세션이 달라 교통이 같지 않다.
-rx·rx_single 은 v6_ = 승인–모니터 불일치 수정 뒤(자차의 목표 차선 투영, 선택기가 비운 목표 차선 앞차), v5_ = 수정 전.
+rx·rx_single: v5_ = 수정 전, v6_ = 1차 수정(자차의 목표 차선 투영, 선택기가 비운 목표 차선 앞차),
+v7_ = 2차 수정(맞는 path-switch 미리보기 없이 승인하지 않음, 목표 차선 차량을 중심 위치로 나누고 앞차 너머 차량도 예측).
+'직접 전환' = waypoint 가 미리보기 없이 blend 없이 앞 차선으로 바로 바꾼 횟수(실행 로그).
 짝 = 같은 (시나리오, 반복). 실패 = 180 s. 접촉 분류는 morai_final.py 와 같다.
 """
 import json
+import re
 import statistics
 
 import numpy as np
 
-from morai_final import FAIL_T, LOG, RES, contacts_with_speed, refine_kind
+from morai_final import BAGS, FAIL_T, LOG, RES, contacts_with_speed, refine_kind
 
 ARMS = {
     "H": {"기존 SMPC": ("v4_H_", "baseline"), "A. 게이트 정리": ("v4_H_", "baseline_nogate"),
-          "현재 D": ("v4_H_", "tree_nogate"), "새 구조(수정 전)": ("v5_V_", "rx"), "가지 없음(수정 전)": ("v5_V_", "rx_single"),
-          "새 구조": ("v6_V_", "rx"), "새 구조-가지 없음": ("v6_V_", "rx_single")},
+          "현재 D": ("v4_H_", "tree_nogate"), "새 구조(수정 전)": ("v5_V_", "rx"),
+          "새 구조(1차 수정)": ("v6_V_", "rx"), "가지 없음(1차 수정)": ("v6_V_", "rx_single"),
+          "새 구조": ("v7_V_", "rx"), "새 구조-가지 없음": ("v7_V_", "rx_single")},
     "S": {"기존 SMPC": ("v2_B_", "baseline"), "현재 D": ("v3_B_", "tree_nogate"),
-          "새 구조(수정 전)": ("v5_W_", "rx"), "가지 없음(수정 전)": ("v5_W_", "rx_single"),
-          "새 구조": ("v6_W_", "rx"), "새 구조-가지 없음": ("v6_W_", "rx_single")},
+          "새 구조(수정 전)": ("v5_W_", "rx"),
+          "새 구조(1차 수정)": ("v6_W_", "rx"), "가지 없음(1차 수정)": ("v6_W_", "rx_single"),
+          "새 구조": ("v7_W_", "rx"), "새 구조-가지 없음": ("v7_W_", "rx_single")},
 }
+
+
+def direct_forward_switches(tag):
+    """실행 로그에서 waypoint 가 미리보기 없이 앞 차선으로 바로 바꾼 횟수(복귀 쪽 직접 전환은 세지 않는다)."""
+    log = BAGS / f"{tag}.launch.log"
+    if not log.exists():
+        return None
+    cur, n = 0, 0
+    for line in log.read_text(errors="ignore").splitlines():
+        m = re.search(r"timed blend armed: path (\d+) -> (\d+)|endpoint connector armed: path (\d+) -> (\d+)|"
+                      r"switching directly to path (\d+)", line)
+        if not m:
+            continue
+        if m.group(5) is not None:
+            to = int(m.group(5))
+            n += to > cur
+        else:
+            to = int(m.group(2) or m.group(4))
+        cur = to
+    return n
 
 
 def t_of(r):
@@ -60,8 +85,8 @@ def main():
             for c in r["contacts"]:
                 c["kind"] = refine_kind(r, c)
         print(f"\n### {'H 격자' if grid == 'H' else 'S1–S4'}\n")
-        print("| 방법 | n | 성공 | 합류 시간 중앙값 (s) | 복귀/주행 | 차선 끝 정지/주행 | 접촉: 자차 차선 변경 중 / 그 밖 |")
-        print("|---|---|---|---|---|---|---|")
+        print("| 방법 | n | 성공 | 합류 시간 중앙값 (s) | 복귀/주행 | 차선 끝 정지/주행 | 직접 전환/주행 | 접촉: 자차 차선 변경 중 / 그 밖 |")
+        print("|---|---|---|---|---|---|---|---|")
         summ = []
         for name, d in by.items():
             rs = list(d.values())
@@ -72,10 +97,13 @@ def main():
                  "aborts_per_run": statistics.mean([len(r["metrics"]["aborts"]) / 2 for r in rs]),
                  "lane_end_stops_per_run": statistics.mean([r["metrics"]["lane_end_stops"] for r in rs]),
                  "contacts_lc": lc, "contacts_other": oth}
+            dfs = [direct_forward_switches(r["tag"]) for r in rs]
+            s["direct_switches_per_run"] = statistics.mean([x for x in dfs if x is not None]) if any(x is not None for x in dfs) else None
             summ.append(s)
             tm = f"{s['t_merge_median']:.1f}" if ok else "–"
+            dsw = f"{s['direct_switches_per_run']:.2f}" if s["direct_switches_per_run"] is not None else "–"
             print(f"| {name} | {len(rs)} | {len(ok)}/{len(rs)} | {tm} | {s['aborts_per_run']:.2f} | "
-                  f"{s['lane_end_stops_per_run']:.2f} | {lc} / {oth} |")
+                  f"{s['lane_end_stops_per_run']:.2f} | {dsw} | {lc} / {oth} |")
         ref_names = [n for n in by if n != "새 구조"]
         effs = []
         if "새 구조" in by:

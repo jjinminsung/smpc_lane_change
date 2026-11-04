@@ -106,18 +106,17 @@ class _Tv:
 def target_lane_vehicles(t, vehicles):
     """(현재 차선 앞차, 목표 차선 앞차, 목표 차선 뒤·옆 차량들). G7 이 보던 차량 전부를 트리가 본다."""
     cf = t.current_front if t.current_front.valid else None
-    tf = t.target_front if t.target_front.valid else None
-    # 목표 차선 앞차 = target_front 와 목표 차선에서 자차 앞(rear_delta_s > 0)에 있는 차 중 가장 가까운 차
-    # (선택기가 차선을 넘나드는 차를 target_front 에서 잠깐 빼도 예측에서 빠지지 않게. C++ rxVehicles 와 같다).
+    # 목표 차선 차량은 중심 위치로 나눈다: 중심이 자차 앞(delta_s > 0)인 차 중 가장 가까운 차 = 앞차, 중심이 자차 뒤인 차 =
+    # 뒤·옆 차 (실제 ACC 의 앞차 조건과 같은 기준. 선택기의 target_front 는 옆에 겹친 차도 골라 진짜 앞차를 가린다.
+    # C++ rxVehicles 와 같다).
+    tf = None
     for v in vehicles:
-        if v.valid and v.lane_id == t.target_lane_id and v.rear_delta_s > 0.0 and (tf is None or v.delta_s < tf.delta_s):
+        if v.valid and v.lane_id == t.target_lane_id and v.delta_s > 0.0 and (tf is None or v.delta_s < tf.delta_s):
             tf = v
-    seen = {tf.unique_id} if tf else set()
+    seen = set()
     rears = []
     for v in vehicles:
-        if not v.valid or v.unique_id in seen or v.lane_id != t.target_lane_id or v.rear_delta_s > 0.0:
-            continue
-        if tf is not None and v.s >= tf.s:
+        if not v.valid or v.unique_id in seen or v.lane_id != t.target_lane_id or v.delta_s > 0.0:
             continue
         seen.add(v.unique_id)
         rears.append(v)
@@ -170,15 +169,23 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
     L_rem = max(2.0, ctx.connector_join_arc * abs(ctx.ego_d_target) / W) if mid else max(1.0, ctx.connector_join_arc)
 
     cf, tf, rears = target_lane_vehicles(t, vehicles)
+    # 앞차보다 더 앞의 목표 차선 차량(tf2): 자차가 느린 앞차를 지나치면 그 다음 차가 앞차가 된다(C++ rxVehicles 와 같다)
+    far = sorted((w for w in vehicles if tf is not None and w.valid and w.lane_id == t.target_lane_id and w.delta_s > 0.0
+                  and w.unique_id != tf.unique_id), key=lambda w: w.delta_s)
     tvs = ([_Tv(cf, M, "cf", accel_of(cf))] if cf else []) + ([_Tv(tf, M, "tf", accel_of(tf))] if tf else []) + \
-        [_Tv(r, M, "rear", accel_of(r)) for r in rears]
+        [_Tv(w, M, "tf2", accel_of(w)) for w in far] + [_Tv(r, M, "rear", accel_of(r)) for r in rears]
     ctx_rows = []
-    for x in [o for o in tvs if o.role in ("cf", "tf")]:
+    for x in [o for o in tvs if o.role in ("cf", "tf", "tf2")]:
         ahead = [w for w in vehicles if w.valid and w.lane_id == x.lane and w.s > x.s[0] + 1e-3 and w.unique_id != x.uid]
         if ahead:
-            c = _Tv(min(ahead, key=lambda w: w.s), M, "ctx", 0.0)
-            ctx_rows.append(c)
-            x.lead = c
+            w = min(ahead, key=lambda w: w.s)
+            main = [o for o in tvs if o.uid == w.unique_id]      # 리더가 이미 예측하는 차(tf2)면 그 차를 따른다
+            if main:
+                x.lead = main[0]
+            else:
+                c = _Tv(w, M, "ctx", 0.0)
+                ctx_rows.append(c)
+                x.lead = c
     for x in tvs:
         if x.role == "rear":
             ahead = [o for o in tvs if o is not x and o.lane == x.lane and o.s[0] > x.s[0]]
@@ -240,6 +247,8 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             if x.role in ("cf", "tf"):
                 acc = np.where(front_mode == "brake", RP.front_brake,
                       np.where(front_mode == "accel", np.where(x.v < x.v0 + 5.0, RP.front_accel, 0.0), base))
+            elif x.role == "tf2":
+                acc = base
             else:
                 react = (rear_mode == "yield") & (tau0 >= t_in + RP.rear_react_delay_s) & (intr > 0.0) & (s > x.s)
                 gap_e = (s - P.ego_rear_extent_m) - (x.s + 0.5 * x.len)
@@ -260,10 +269,11 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         bind_c = np.full(M, np.nan)
         bind_g = np.full(M, np.nan)
         c_max = np.zeros(M)
+        front_ahead = np.zeros(M, dtype=bool)      # 더 가까운 목표 차선 앞차가 아직 자차 앞에 있나
         for x in tvs:
             if x.role == "cf":
                 use, allow_hard = ~in_target | returning, np.ones(M, dtype=bool)
-            elif x.role == "tf":
+            elif x.role in ("tf", "tf2"):
                 # 목표 차선 앞차: 중앙 0.75 m 안(또는 이미 그 차선)이면 정상 추종, 차선 변경 중 2.7 m 안이면
                 # 약한 추종(감속 ≤ 1.5 m/s², hard 없음) — acc.py candidates
                 entry = d_t <= A.target_front_acc_entry_abs_d_m
@@ -273,6 +283,10 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
                 continue
             gap = (x.s - 0.5 * x.len) - (s + P.ego_front_extent_m)
             ahead = gap > -x.len
+            if x.role == "tf2":         # 더 가까운 앞차를 모두 지나친 뒤에만 따른다(선택기·ACC 가 그때 그 차를 앞차로 잡는다)
+                use = use & ~front_ahead
+            if x.role != "cf":
+                front_ahead = front_ahead | ahead
             cmd, hd = speed_for_lead(gap, x.v, v, cruise_k, A)
             c = np.maximum(0.0, v - np.minimum(np.maximum(x.v, 0.0), cruise_k))
             closing = v - np.maximum(0.0, x.v)
@@ -350,7 +364,7 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         brake_rows = (front_mode == "brake")[:, None] if front else np.zeros((M, 1), dtype=bool)
         if x.role == "cf":
             t_sig = np.minimum(taus, RP.follow_sigma_cap_s)[None, :]
-        elif x.role == "tf":
+        elif x.role in ("tf", "tf2"):
             t_sig = np.where(np.stack(tf_hard_follow, axis=1), np.minimum(taus, RP.follow_sigma_cap_s)[None, :], taus[None, :])
         else:
             t_sig = taus[None, :]

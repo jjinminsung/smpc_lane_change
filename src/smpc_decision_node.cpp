@@ -4754,33 +4754,45 @@ class SmpcDecisionNode {
     add(t.target_front);
     add(t.target_rear);
     for (const auto& v : t.nearby_vehicles) add(v);
-    // 목표 차선 앞차 = 선택기의 target_front 와 목표 차선에서 자차 앞(rear_delta_s > 0)에 있는 차 중 가장 가까운 차.
-    // 선택기는 차선을 넘나드는 차를 잠깐 target_front 에서 빼기도 하는데(MORAI S1), 그때 예측에서 빠지면 위험이 0 이 된다.
-    const smpc_lane_change::TargetVehicle* tf = t.target_front.valid ? &t.target_front : nullptr;
+    // 목표 차선 차량은 중심 위치로 나눈다: 중심이 자차 앞(delta_s > 0)인 차 중 가장 가까운 차 = 앞차, 중심이 자차 뒤인 차 =
+    // 뒤·옆 차. 실제 ACC 의 앞차 조건(lead_requires_center_ahead)과 같은 기준이다. 선택기의 target_front 는 앞끝만 자차를
+    // 넘은 차(옆에 겹친 차)도 고르므로, 그대로 쓰면 자차가 추월 중인 옆 차가 앞차가 되고 진짜 앞차는 그 차의 리더(ctx)로
+    // 밀려 위험에서 빠진다(MORAI H_s70_d40: 선택기가 옆 차를 target_rear 로 넘기는 순간 위험 0 → 0.86).
+    // 선택기가 차선을 넘나드는 차를 target_front 에서 잠깐 빼도(MORAI S1) 같은 기준으로 다시 잡힌다.
+    // 앞차보다 더 앞의 차(tf2)도 넣는다: 자차가 느린 앞차를 지나치면 그 다음 차가 앞차가 되는데, 리더(ctx)로만 두면
+    // 위험·자차 ACC 에서 빠져 지나치는 순간 위험이 뛴다(H_s70_d40). tf2 는 자기 앞차를 따르고 앞차 예외 가지는 받지 않는다.
+    std::vector<smpc_lane_change::TargetVehicle> fronts;
     for (const auto& v : all) {
-      if (v.lane_id == t.target_lane_id && v.rear_delta_s > 0.0 && (!tf || v.delta_s < tf->delta_s)) tf = &v;
+      if (v.lane_id == t.target_lane_id && v.delta_s > 0.0) fronts.push_back(v);
     }
+    std::sort(fronts.begin(), fronts.end(), [](const auto& a, const auto& b) { return a.delta_s < b.delta_s; });
     std::vector<RxTv> out;
     if (t.current_front.valid) out.push_back({t.current_front, "cf", -1});
-    if (tf) out.push_back({*tf, "tf", -1});
+    for (std::size_t i = 0; i < fronts.size(); ++i) out.push_back({fronts[i], i == 0 ? "tf" : "tf2", -1});
     std::vector<smpc_lane_change::TargetVehicle> rears;
     for (const auto& v : all) {
-      if (v.lane_id != t.target_lane_id || v.rear_delta_s > 0.0) continue;
-      if (tf && (v.unique_id == tf->unique_id || v.delta_s >= tf->delta_s)) continue;
+      if (v.lane_id != t.target_lane_id || v.delta_s > 0.0) continue;
       rears.push_back(v);
     }
     std::sort(rears.begin(), rears.end(), [](const auto& a, const auto& b) { return a.delta_s > b.delta_s; });
     for (const auto& r : rears) out.push_back({r, "rear", -1});
     const std::size_t n_main = out.size();
     for (std::size_t i = 0; i < n_main; ++i) {
-      if (out[i].role != "cf" && out[i].role != "tf") continue;
+      if (out[i].role != "cf" && out[i].role != "tf" && out[i].role != "tf2") continue;
       const smpc_lane_change::TargetVehicle* best = nullptr;
       for (const auto& w : all) {
         if (w.lane_id != out[i].v.lane_id || w.unique_id == out[i].v.unique_id) continue;
         if (w.delta_s <= out[i].v.delta_s + 1e-3) continue;
         if (!best || w.delta_s < best->delta_s) best = &w;
       }
-      if (best) {
+      if (!best) continue;
+      int main_j = -1;            // 리더가 이미 예측하는 차(tf2)면 그 차를 따른다
+      for (std::size_t j = 0; j < n_main; ++j) {
+        if (out[j].v.unique_id == best->unique_id) main_j = static_cast<int>(j);
+      }
+      if (main_j >= 0) {
+        out[i].lead = main_j;
+      } else {
         out.push_back({*best, "ctx", -1});
         out[i].lead = static_cast<int>(out.size()) - 1;
       }
@@ -4933,6 +4945,8 @@ class SmpcDecisionNode {
                 if (front_mode == "brake") acc = rx_.front_brake;
                 else if (front_mode == "accel") acc = xv[ui] < v0x + 5.0 ? rx_.front_accel : 0.0;
                 else acc = base;
+              } else if (x.role == "tf2") {
+                acc = base;
               } else {
                 const bool react = rear_mode == "yield" && tau0 >= t_in + rx_.rear_react_delay_s && intr > 0.0 && s > xs[ui];
                 if (react) {
@@ -4952,12 +4966,13 @@ class SmpcDecisionNode {
             double raw = cruise_k, c_max = 0.0, bind_c = std::numeric_limits<double>::quiet_NaN(), bind_g = 0.0;
             bool hard = false, soft_bind = false;
             const bool entry = d_t <= rx_acc_.target_front_acc_entry_abs_d_m;
+            bool front_ahead = false;     // 더 가까운 목표 차선 앞차가 아직 자차 앞에 있나
             for (int i = 0; i < V; ++i) {
               const auto& x = tvs[static_cast<std::size_t>(i)];
               bool use = false, allow_hard = true;
               if (x.role == "cf") {
                 use = !in_target || returning;
-              } else if (x.role == "tf") {
+              } else if (x.role == "tf" || x.role == "tf2") {
                 use = entry || (lc_active && d_t <= rx_acc_.target_front_overlap_soft_acc_start_abs_d_m);
                 allow_hard = entry;
               } else {
@@ -4965,6 +4980,9 @@ class SmpcDecisionNode {
               }
               const double len = std::max(0.1, x.v.length);
               const double gap = (xs[static_cast<std::size_t>(i)] - 0.5 * len) - (s + ego_front_extent_m_);
+              // tf2 는 더 가까운 앞차를 모두 지나친 뒤에만 따른다(선택기·ACC 가 그때 그 차를 앞차로 잡는다)
+              if (x.role == "tf2" && front_ahead) use = false;
+              if (x.role != "cf") front_ahead = front_ahead || gap > -len;
               if (!use || gap <= -len) continue;
               double cmd;
               bool hd;
@@ -5114,7 +5132,7 @@ class SmpcDecisionNode {
           tv.y = ts.y;
           tv.yaw = ts.yaw;
           const bool front = x.role == "cf" || x.role == "tf";
-          ego.t = (x.role == "cf" || (x.role == "tf" && tf_hard[mk])) ? std::min(tau, sig_cap) : tau;
+          ego.t = (x.role == "cf" || ((x.role == "tf" || x.role == "tf2") && tf_hard[mk])) ? std::min(tau, sig_cap) : tau;
           TvMode mode{front && brake_row ? "front_brake" : "nominal", 1.0, 0.0, 0.0};
           const auto c = collisionProbability(ego, tv, x.v, mode);
           no_coll *= 1.0 - c.probability;
@@ -5320,6 +5338,11 @@ class SmpcDecisionNode {
       rx_intr_since_ = keep_intr;
       rx_p_rear_post_ = keep_p;
     }
+    // 기존 경로(buildEgoTrajectory)처럼 맞는 path-switch 미리보기가 없으면 지금 바꾸기는 승인하지 않는다. 미리보기 없이
+    // 명령하면 waypoint 가 blend 없이 곧바로 경로를 바꿔(약 2.2 s) 예측한 blend(약 4.5 s)보다 훨씬 빨리 옆 차선에 들어간다
+    // (MORAI H_s30_d100: 직전 차선 변경이 끝난 직후 미리보기가 다시 맞춰지기 전에 승인, 옆 차와 접촉).
+    const bool preview_missing = ego_reference_preview_enabled_ && ego_reference_preview_required_for_change_ &&
+        !referencePreviewFreshFor(t);
     auto root_cost_of = [&](const ActionSpec& sp) {
       return lane_change_base_cost_ + target_gap_cost +
           behavior_delay_cost_weight_ * std::max(0.0, sp.lane_change_start_sec) +
@@ -5337,6 +5360,10 @@ class SmpcDecisionNode {
       if (!r.valid[i] || !compat[i]) continue;
       if (i == 0 && now_monitor_return) {
         os << " change_now_monitor_return";
+        continue;
+      }
+      if (i == 0 && preview_missing) {
+        os << " change_now_no_preview";
         continue;
       }
       const TreeResult tr = rxSolveRoot(r, br, static_cast<int>(i), root_cost_of(specs[i]), allowed_risk);

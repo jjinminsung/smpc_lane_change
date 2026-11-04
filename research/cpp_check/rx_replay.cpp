@@ -140,6 +140,41 @@ int main(int argc, char** argv) {
         for (int k = 0; k < r.K; k += 5) std::cout << (k ? "," : "") << r.tv_s[i][static_cast<std::size_t>(k)];
         std::cout << "]";
       }
+      std::cout << "]";
+      // 승인 평가: treeSelectReactive 의 change_now 루트(실행 전, 실행 지연 포함)
+      SmpcDecisionNode::ActionSpec cn;
+      cn.action = SmpcDecisionNode::BehaviorAction::kChangeNow;
+      cn.lane_change_start_sec = 0.0;
+      cn.lane_change_duration_sec = node.egoChangeBlendDuration();
+      cn.change_left = true;
+      cn.name = "change_now";
+      const auto abr = node.rxBranches(t, -1.0);
+      auto ar = node.rxRollout(t, {node.rxSpecOf(cn)}, abr, node.ego_speed_mps_, node.currentTargetSpeedMps(),
+                               node.rxConnectorNow(t), 20.0, node.ego_speed_mps_, -1.0);
+      const auto ts = node.rxSolveRoot(ar, abr, 0, 0.0, node.activeRiskEpsilon(t));
+      std::cout << ",\"acc_feasible\":" << ts.feasible << ",\"acc_peak\":" << ts.peak_risk << ",\"acc_eps\":"
+                << node.activeRiskEpsilon(t) << ",\"acc_branch\":[";
+      for (int b = 0; b < ar.B; ++b) {
+        double pk0 = 0.0, pk1 = 0.0;
+        for (int k = 0; k < ar.K; ++k) {
+          pk0 = std::max(pk0, ar.at(b, 0, 0, k));
+          pk1 = std::max(pk1, ar.at(b, 1, 0, k));
+        }
+        std::cout << (b ? "," : "") << "[\"" << abr[static_cast<std::size_t>(b)].rear << "/" << abr[static_cast<std::size_t>(b)].front
+                  << "\"," << abr[static_cast<std::size_t>(b)].p << "," << pk0 << "," << pk1 << ","
+                  << static_cast<int>(ar.allowed[static_cast<std::size_t>((b * 2 + 1) * ar.N)]) << "]";
+      }
+      const auto atvs = node.rxVehicles(t);
+      std::cout << "],\"acc_ego\":[";
+      for (int k = 0; k < ar.K; k += 2)
+        std::cout << (k ? "," : "") << "[" << ar.ego_s[static_cast<std::size_t>(k)] << "," << ar.ego_d[static_cast<std::size_t>(k)] << ","
+                  << ar.ego_v[static_cast<std::size_t>(k)] << "]";
+      std::cout << "],\"acc_tvs\":[";
+      for (std::size_t i = 0; i < atvs.size(); ++i) {
+        std::cout << (i ? "," : "") << "[";
+        for (int k = 0; k < ar.K; k += 2) std::cout << (k ? "," : "") << ar.tv_s[i][static_cast<std::size_t>(k)];
+        std::cout << "]";
+      }
       std::cout << "]}" << std::endl;
     }
   }
