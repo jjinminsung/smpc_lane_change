@@ -40,6 +40,7 @@ class ReactiveParams:
     acc_up: float = 4.0
     acc_dn: float = 7.0
     mission_ramp: float = 0.0            # 시뮬은 미션 속도 일정. MORAI 는 차선 전환 뒤 약 2.5 m/s² 로 회복
+    cruise_max: float = 0.0              # 회복 상한(0 이면 지금 미션 속도). MORAI: 차선 끝 서행 3.15 m/s → 순항
     lane_end_decel: float = 2.5          # acc.py 차선 끝 정지 한계 감속
     # 뒤차 반응 (임시값, 단계 5 측정 전)
     rear_react_intrusion_m: float = 0.3
@@ -179,6 +180,7 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             x.lead = min(ahead, key=lambda o: o.s[0]) if ahead else None
 
     out_x, out_y, out_v = np.zeros((M, K)), np.zeros((M, K)), np.zeros((M, K))
+    tf_hard_follow = []
     for k, tau in enumerate(taus):
         tau0 = tau - dt
         # ---- 횡 위치 -------------------------------------------------------------------
@@ -241,38 +243,82 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             vn = np.maximum(0.0, x.v + acc * dt)
             new.append((x, x.s + 0.5 * (x.v + vn) * dt, vn))
 
-        # ---- 자차 ACC 목표 속도 ------------------------------------------------------
-        cruise_k = min(cruise, ctx.mission + RP.mission_ramp * tau0) if RP.mission_ramp > 0 else cruise
-        raw = np.full(M, cruise_k)
+        # ---- 자차 ACC 목표 속도 (acc.py AccPlanner.step 과 같은 규칙) --------------------------
+        # 미션 속도: 차선 전환(t_sw) 뒤부터 mission_ramp 로 cruise_max 까지 회복(MORAI 대회 스택). 시뮬은 일정.
+        if RP.mission_ramp > 0 and RP.cruise_max > 0:
+            cruise_k = np.minimum(RP.cruise_max, cruise + RP.mission_ramp * np.maximum(0.0, tau0 - np.where(change, t_sw, np.inf)))
+        else:
+            cruise_k = np.full(M, cruise)
+        raw = cruise_k.copy()
         hard = np.zeros(M, dtype=bool)
+        soft_bind = np.zeros(M, dtype=bool)
+        bind_c = np.full(M, np.nan)
+        bind_g = np.full(M, np.nan)
+        c_max = np.zeros(M)
         for x in tvs:
             if x.role == "cf":
-                use = ~in_target | returning
+                use, allow_hard = ~in_target | returning, np.ones(M, dtype=bool)
             elif x.role == "tf":
-                use = (d_t <= A.target_front_overlap_soft_acc_start_abs_d_m) & (lc_active | in_target)
+                # 목표 차선 앞차: 중앙 0.75 m 안(또는 이미 그 차선)이면 정상 추종, 차선 변경 중 2.7 m 안이면
+                # 약한 추종(감속 ≤ 1.5 m/s², hard 없음) — acc.py candidates
+                entry = d_t <= A.target_front_acc_entry_abs_d_m
+                use = entry | (lc_active & (d_t <= A.target_front_overlap_soft_acc_start_abs_d_m))
+                allow_hard = entry
             else:
                 continue
             gap = (x.s - 0.5 * x.len) - (s + P.ego_front_extent_m)
+            ahead = gap > -x.len
             cmd, hd = speed_for_lead(gap, x.v, v, cruise_k, A)
-            take = use & (gap > -x.len) & (cmd < raw)
+            c = np.maximum(0.0, v - np.minimum(np.maximum(x.v, 0.0), cruise_k))
+            closing = v - np.maximum(0.0, x.v)
+            rapid = (A.rapid_lead_brake_enabled & (c >= A.rapid_lead_min_closing_speed_mps) &
+                     ((gap / np.maximum(closing, 1e-6) <= A.rapid_lead_ttc_sec) |
+                      ((gap > A.emergency_gap_m) & (c * c / (2 * np.maximum(gap - A.emergency_gap_m, 1e-6)) >= 5.0))))
+            act_l = use & ahead
+            c_max = np.where(act_l, np.maximum(c_max, c), c_max)
+            take = act_l & (cmd < raw)
             raw = np.where(take, cmd, raw)
-            hard |= use & (gap > -x.len) & hd & ((x.role == "cf") | (d_t <= A.target_front_acc_entry_abs_d_m))
+            soft_bind = np.where(take, ~allow_hard, soft_bind)
+            bind_c = np.where(take, c, bind_c)
+            bind_g = np.where(take, gap, bind_g)
+            hard |= act_l & (hd | rapid) & allow_hard
         dist = src_end - s
         stay = ~lc_active & ~in_target & (dist < 200.0)
         lim_stay = np.sqrt(2.0 * RP.lane_end_decel * np.maximum(0.0, dist - A.lane_end_merge_wait_stop_distance_m))
-        raw = np.where(stay & (lim_stay < raw), lim_stay, raw)
+        lim = stay & (lim_stay < raw)
+        raw = np.where(lim, lim_stay, raw)
+        soft_bind &= ~lim
+        bind_c = np.where(lim, np.nan, bind_c)
         elapsed = np.maximum(0.0, tau0 - t_sw)
-        lim_lc = np.clip((dist - A.lane_change_lane_end_margin_m) / np.maximum(0.5, 4.2 - elapsed),
-                         min(A.lane_change_lane_end_min_cap_mps, cruise_k), cruise_k)
-        cap_lc = lc_active & (d_t > A.lane_change_lane_end_cap_release_abs_d_m)
-        raw = np.where(cap_lc & (lim_lc < raw), lim_lc, raw)
+        lim_lc = np.minimum(np.maximum((dist - A.lane_change_lane_end_margin_m) / np.maximum(0.5, 4.2 - elapsed),
+                                       np.minimum(A.lane_change_lane_end_min_cap_mps, cruise_k)), cruise_k)
+        lim = lc_active & (d_t > A.lane_change_lane_end_cap_release_abs_d_m) & (lim_lc < raw)
+        raw = np.where(lim, lim_lc, raw)
+        soft_bind &= ~lim
+        bind_c = np.where(lim, np.nan, bind_c)
         pre = ~(change & (tau0 >= t_sw))
         cap = np.where(act == HOLD, ctx.v0,
               np.where(act == YIELD, np.maximum(yield_floor, ctx.v0 + prep_a * tau0),
               np.where(act == ACCEL, np.minimum(cruise_k, ctx.v0 + prep_a * tau0), np.inf)))
-        raw = np.where(pre & (cap < raw), cap, raw)
-        f = np.where(hard, raw, np.clip(raw, f - RP.acc_dn * dt, f + RP.acc_up * dt))
+        lim = pre & (cap < raw)
+        raw = np.where(lim, cap, raw)
+        soft_bind &= ~lim
+        bind_c = np.where(lim, np.nan, bind_c)
+        # 필터: 감속 한계 = hard 12 / 기본 7 + 접근 속도 가산(최대 11), 약한 추종 1.5, 앞차 요구 감속 한계
+        boost = np.clip((c_max - A.closing_decel_boost_start_mps) /
+                        (A.closing_decel_boost_full_mps - A.closing_decel_boost_start_mps), 0.0, 1.0)
+        dec = np.where(hard, 12.0, RP.acc_dn + boost * (11.0 - RP.acc_dn))
+        dec = np.where(soft_bind, np.minimum(dec, 1.5), dec)
+        if A.lead_required_decel_limit_enabled:
+            margin = bind_g - A.emergency_gap_m - A.lead_required_decel_limit_headway_sec * v
+            lim = ~np.isnan(bind_c) & ~hard & (margin > 0.5)
+            req = np.maximum(1.5, A.lead_required_decel_limit_gain * np.nan_to_num(bind_c) ** 2 /
+                             (2 * np.maximum(np.nan_to_num(margin), 1e-6)))
+            dec = np.where(lim, np.minimum(dec, req), dec)
+        bypass = hard & A.hard_brake_bypass_filter
+        f = np.where(bypass, raw, np.clip(raw, f - dec * dt, f + RP.acc_up * dt))
         f = np.clip(f, 0.0, cruise_k)
+        tf_hard_follow.append(np.zeros(M, dtype=bool) if tf is None else (d_t <= A.target_front_acc_entry_abs_d_m))
 
         # ---- 자차 응답 -----------------------------------------------------------------
         ff = (f - ref_prev) / dt
@@ -297,7 +343,12 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         ty = (track.center_y(x.lane) + x.d0 * np.exp(-taus / max(0.1, P.lane_center_decay_tau_sec)))[None, :]
         front = x.role in ("cf", "tf")
         brake_rows = (front_mode == "brake")[:, None] if front else np.zeros((M, 1), dtype=bool)
-        t_sig = (np.minimum(taus, RP.follow_sigma_cap_s) if front else taus)[None, :]
+        if x.role == "cf":
+            t_sig = np.minimum(taus, RP.follow_sigma_cap_s)[None, :]
+        elif x.role == "tf":
+            t_sig = np.where(np.stack(tf_hard_follow, axis=1), np.minimum(taus, RP.follow_sigma_cap_s)[None, :], taus[None, :])
+        else:
+            t_sig = taus[None, :]
         cn, _ = collision_probability(out_x, out_y, 0.0, t_sig, tx, ty, 0.0, x.len, x.wid, "nominal", P)
         if brake_rows.any():
             cb, _ = collision_probability(out_x, out_y, 0.0, t_sig, tx, ty, 0.0, x.len, x.wid, "front_brake", P)

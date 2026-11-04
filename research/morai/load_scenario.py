@@ -94,6 +94,11 @@ def main():
         sys.exit(2)
     run("wclick", w, 1100, 754)             # 검색창
     time.sleep(0.3)
+    # Caps Lock 이 켜져 있으면 이름이 대소문자 뒤집혀 들어가 검색이 비어 버린다(2026-11-04 21:12 실패)
+    caps = subprocess.run(["xset", "q"], capture_output=True, text=True, env=ENV).stdout
+    if re.search(r"Caps Lock:\s+on", caps):
+        run("key", "Caps_Lock")
+        time.sleep(0.2)
     run("key", "a", "Control_L")
     run("key", "BackSpace")
     run("type", name)
