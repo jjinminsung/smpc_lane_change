@@ -22,6 +22,10 @@
   <arg name="reactive_tree" default="false"/>
   <arg name="reactive_single" default="false"/>       <!-- 비교군: 가지 없이 기본 예측 하나 -->
   <arg name="reactive_drop_common" default="true"/>
+  <!-- plan_v2 단계 5 측정용: gap_test 간격 기준, supervisor 뒤차 보호 복귀 끄기 -->
+  <arg name="gap_test_min_front_gap" default="20.0"/>
+  <arg name="gap_test_min_rear_gap" default="15.0"/>
+  <arg name="rear_guard" default="true"/>
   <!-- yaml: 기존(라이다 트래커로 맞춘) 표. gt: /Object_topic GT 로 다시 맞춘 표(research 1단계 M4) -->
   <arg name="rear_accel_table" default="yaml"/>
   <arg name="rviz_config" default="$(find smpc_lane_change)/rviz/smpc_debug.rviz"/>
@@ -175,6 +179,8 @@
   <node if="$(arg use_gap_test_decision)" pkg="smpc_lane_change" type="gap_test_decision_node"
         name="gap_test_decision" output="screen">
     <param name="enabled" value="true"/>
+    <param name="min_target_front_gap" value="$(arg gap_test_min_front_gap)"/>
+    <param name="min_target_rear_gap" value="$(arg gap_test_min_rear_gap)"/>
     <param name="ego_length_m" value="4.635"/>
     <param name="ego_front_extent_m" value="3.845"/>
     <param name="ego_rear_extent_m" value="0.790"/>
@@ -185,6 +191,7 @@
     <rosparam command="load" file="$(find smpc_lane_change)/config/supervisor.yaml"/>
     <param name="waypoint_directory" value="$(arg waypoint_directory)"/>
     <param name="tree_abort_enabled" value="$(arg tree_abort_enabled)"/>
+    <param name="active_rear_guard_enabled" value="$(arg rear_guard)"/>
   </node>
 
   <node if="$(arg use_rviz)" type="rviz" name="smpc_debug_rviz" pkg="rviz"

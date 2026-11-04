@@ -15,6 +15,11 @@
   <arg name="baseline_keep_gates" default="true"/>
   <arg name="reactive" default="false"/>
   <arg name="reactive_single" default="false"/>
+  <!-- plan_v2 단계 5: gap_test 로 일부러 합류해 NPC 반응을 잰다(SMPC 판단 대신) -->
+  <arg name="gap_test" default="false"/>
+  <arg name="gap_front" default="20.0"/>
+  <arg name="gap_rear" default="15.0"/>
+  <arg name="rear_guard" default="true"/>
   <!-- 차선 변경 중 트리 모니터로 rear_abort 를 대체할지. 기본: 트리 판단일 때만 -->
   <arg name="monitor" default="$(eval arg('method') == 'tree')"/>
   <arg name="rear_accel_table" default="gt"/>          <!-- 두 방법 모두 같은 GT 표로 비교 -->
@@ -49,6 +54,10 @@
     <arg name="baseline_tree_monitor" value="$(eval arg('monitor') and arg('method') == 'baseline')"/>
     <arg name="reactive_tree" value="$(arg reactive)"/>
     <arg name="reactive_single" value="$(arg reactive_single)"/>
+    <arg name="use_gap_test_decision" value="$(arg gap_test)"/>
+    <arg name="gap_test_min_front_gap" value="$(arg gap_front)"/>
+    <arg name="gap_test_min_rear_gap" value="$(arg gap_rear)"/>
+    <arg name="rear_guard" value="$(arg rear_guard)"/>
     <arg name="rear_accel_table" value="$(arg rear_accel_table)"/>
   </include>
   <param name="/smpc_target_selector/object_topic_offset_x" value="0.0"/>

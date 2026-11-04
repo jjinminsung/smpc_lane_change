@@ -6,6 +6,8 @@
     python3 run_matrix.py --phase C        # 속도 격자 12 개 × {기존, 트리+게이트 정리} × 2
     python3 run_matrix.py --phase E        # 2×2: S1–S4 × {기존, A, B, C, D} × 3 (같은 세션에서 번갈아)
     python3 run_matrix.py --phase H        # 2×2: highway_spawn50 속도 격자 12 개 × {기존, A, B, C, D} × 1
+    python3 run_matrix.py --phase N        # plan_v2 단계 5: gap_test 일부러 합류(뒤차 간격 8/12/16/20 m) → NPC 반응
+    python3 run_matrix.py --phase V        # plan_v2 단계 7: H 격자 × {새 구조, 가지 없음}
 
 2×2 방법(모두 게이트 정리): baseline_nogate = A 기존 판단 + rear_abort, bdec = B 기존 판단 + 트리 모니터,
 tree_nomon = C 트리 판단 + rear_abort, tree_nogate = D 트리 판단 + 트리 모니터(제안).
@@ -37,6 +39,10 @@ METHODS = {
     "rx": ("tree", "false", ["reactive:=true"]),                               # plan_v2 새 구조
     "rx_single": ("tree", "false", ["reactive:=true", "reactive_single:=true"]),
 }
+# plan_v2 단계 5: 뒤차 간격 기준 R m 에서 일부러 합류(gap_test), 뒤차 보호 복귀·트리 복귀 끔
+for _r in (8, 12, 16, 20):
+    METHODS[f"gt{_r}"] = ("baseline", "true", ["gap_test:=true", f"gap_rear:={_r}", "gap_front:=8",
+                                               "rear_guard:=false", "monitor:=false"])
 S = ["research_S1_normal", "research_S2_rear_accel", "research_S3_rear_decel", "research_S4_front_decel"]
 G = [f"research_G_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]
 H = [f"research_H_s{s}_d{d}" for s in (30, 50, 70) for d in (40, 60, 80, 100)]   # make_scenarios.py
@@ -48,6 +54,9 @@ PHASES = {
     "D": (S, ["tree"], 2),
     "E": (S, M2X2, 3),
     "H": (H, M2X2, 1),
+    "N": (["research_H_s50_d40", "research_H_s50_d60", "research_H_s50_d80"], ["gt8", "gt12", "gt16", "gt20"], 1),
+    "V": (H, ["rx", "rx_single"], 1),                        # plan_v2 단계 7: 새 구조 vs 가지 없음
+    "W": (S, ["rx", "rx_single"], 3),
 }
 
 
