@@ -11,4 +11,9 @@ mission_ramp: 2.5
 cruise_max: 25.0
 # ACC 노드는 정지 connector 중 목표 차선별 상한(stopped_launch_connector_speed_cap_by_target_lane_mps)을 건다.
 connector_cap: true
-# 뒤차 반응(양보)은 단계 5 측정 전까지 코드 기본값(침범 0.3 m, 지연 1.0 s, 감속 ≤ 3 m/s²)을 쓴다.
+# 뒤차 반응(양보): plan_v2 단계 5 측정(research/results/m7_npc_reaction.json, gap_test 일부러 합류 31 건).
+#   감속 시작 = 자차 0.3 m 진입 뒤 중앙 0.57 s, 그때 진입 깊이 중앙 0.17 m, 양보가 필요했던 3 건 최소 가속도
+#   −3.4 ~ −4.2 m/s², 무반응 0/31. 감속 한계는 그보다 약간 보수적으로 둔다.
+rear_react_intrusion_m: 0.2
+rear_react_delay_s: 0.6
+rear_max_brake: 3.5
