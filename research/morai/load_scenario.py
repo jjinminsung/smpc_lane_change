@@ -52,6 +52,22 @@ def green(p):
     return p[1] > 90 and p[1] > p[0] + 50
 
 
+def net_dialog_open(w, tag):
+    """네트워크 설정 창(F4)이 열려 있으면 Status 점이 초록(연결) 또는 빨강(끊김)이다. 평소 그 자리는 도로다."""
+    p = px(shot(w, tag), 976, 846, 2)
+    return green(p) or (p[0] > 150 and p[0] > p[1] + 60)
+
+
+def close_net_dialog(w, tag):
+    """열려 있는 네트워크 창을 닫는다. 이 창이 남아 있으면 메뉴가 열리지 않는다(2026-11-04 18:56 부터 22 회 실패)."""
+    for _ in range(3):
+        if not net_dialog_open(w, tag):
+            return True
+        run("wclick", w, 1606, 708)
+        time.sleep(0.8)
+    return not net_dialog_open(w, tag)
+
+
 def main():
     name = sys.argv[1]
     w = win()
@@ -59,6 +75,7 @@ def main():
     time.sleep(1.0)
     run("activate", w)
     time.sleep(0.5)
+    close_net_dialog(w, "ls_pre.png")
     for attempt in range(4):
         run("wclick", w, 52, 17)            # Edit
         time.sleep(0.8)
@@ -71,7 +88,9 @@ def main():
             break
         run("wclick", w, 1200, 17)
         time.sleep(0.6)
+        close_net_dialog(w, "ls_retry.png")
     else:
+        print("load dialog not opened")
         sys.exit(2)
     run("wclick", w, 1100, 754)             # 검색창
     time.sleep(0.3)
@@ -110,6 +129,9 @@ def main():
         ok = green(px(im, 976, 846, 2))
     run("wclick", w, 1606, 708)             # 네트워크 창 닫기
     time.sleep(0.8)
+    if not close_net_dialog(w, "ls_post.png"):
+        print("network dialog still open")
+        sys.exit(6)
     print("loaded %s, network %s" % (name, "connected" if ok else "DISCONNECTED"))
     sys.exit(0 if ok else 5)
 
