@@ -181,13 +181,21 @@ class ReactiveTreePlanner(TreePlanner):
 
 
 def make_reactive_planner(name):
-    """run_batch.py 용: 'rx' (새 구조), 'rx_single' (가지 없음 비교군), 'rx_common' (G6–G8 유지)."""
+    """run_batch.py 용: 'rx' (새 구조), 'rx_single' (가지 없음 비교군), 'rx_common' (G6–G8 유지).
+    민감도: 'fNN' = 예외 확률 최솟값 0.NN, 'mK' = 모니터 복귀 문턱 Kε (예: rx_f10, rx_m3)."""
     from .tree import TreeConfig
     flags = set(name.split("_"))
     cfg = TreeConfig(probability_table="gt", keep_gates=False, decision="tree", monitor=True)
+    floor = next((int(f[1:]) / 100.0 for f in flags if f.startswith("f") and f[1:].isdigit()), None)
+    factor = next((float(f[1:]) for f in flags if f.startswith("m") and f[1:].isdigit()), None)
+    if factor is not None:
+        cfg.abort_risk_factor = factor
 
     def factory(P, track):
-        tp = ReactiveTreePlanner(P, track, cfg=TreeConfig(**cfg.__dict__), single="single" in flags,
+        rp = ReactiveParams()
+        if floor is not None:
+            rp.p_exc_floor = floor
+        tp = ReactiveTreePlanner(P, track, cfg=TreeConfig(**cfg.__dict__), rp=rp, single="single" in flags,
                                  drop_common="common" not in flags)
         tp.name = name
         return tp
