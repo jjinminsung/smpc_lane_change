@@ -63,6 +63,8 @@ def make_scene(rng, P):
         add("current_front", cur, rng.uniform(10.0, 50.0), max(0.0, v0 + rng.uniform(-6, 3)))
     if rng.random() < 0.85:
         add("target_front", tgt, rng.uniform(4.0, 40.0), max(0.0, rng.uniform(1.0, 16.0)))
+        if rng.random() < 0.25:     # 선택기가 target_front 를 비운 경우(MORAI S1): 앞차는 nearby 에만 있다
+            vehicles[-1].role = "nearby_front"
         if rng.random() < 0.5:
             add("nearby_front", tgt, vehicles[-1].delta_s + rng.uniform(8.0, 25.0), rng.uniform(0.0, 15.0))
     for _ in range(int(rng.integers(0, 3))):
@@ -82,9 +84,11 @@ def make_scene(rng, P):
     if mid:
         specs = [ActionSpec(CHANGE_NOW, 0.0, 0.0, rng.uniform(1.0, 4.0), True)]
     else:
+        # 시간이 0.2 s 격자에 딱 맞으면(예: 4.0 s) 자차 d 가 차선 경계 −1.75 m 에 정확히 걸려, 파이썬(절대 y)과
+        # C++(상대 d)의 부동소수점 순서 차이로 in_target 판정이 갈린다. 실제 입력에서는 생기지 않는 동률이라 피한다.
         specs = [ActionSpec(CHANGE_NOW, 0.0, 0.0, rng.uniform(3.0, 4.5), True), ActionSpec(KEEP),
-                 ActionSpec(HOLD, 0.0, 0.8, 4.0, True), ActionSpec(YIELD, -0.6, 1.2, 4.0, True),
-                 ActionSpec(ACCEL, 1.0, 0.4, 4.0, True)]
+                 ActionSpec(HOLD, 0.0, 0.8, rng.uniform(3.6, 4.4), True), ActionSpec(YIELD, -0.6, 1.2, rng.uniform(3.6, 4.4), True),
+                 ActionSpec(ACCEL, 1.0, 0.4, rng.uniform(3.6, 4.4), True)]
     connector = stopped and rng.random() < 0.8
     return dict(t=t, vehicles=vehicles, specs=specs, v0=v0, s0=s0, d0=d0, mid=mid, connector=connector,
                 mission=rng.uniform(15.0, 25.0), join=rng.uniform(15.0, 25.0),

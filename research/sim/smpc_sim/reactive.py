@@ -107,6 +107,11 @@ def target_lane_vehicles(t, vehicles):
     """(현재 차선 앞차, 목표 차선 앞차, 목표 차선 뒤·옆 차량들). G7 이 보던 차량 전부를 트리가 본다."""
     cf = t.current_front if t.current_front.valid else None
     tf = t.target_front if t.target_front.valid else None
+    # 목표 차선 앞차 = target_front 와 목표 차선에서 자차 앞(rear_delta_s > 0)에 있는 차 중 가장 가까운 차
+    # (선택기가 차선을 넘나드는 차를 target_front 에서 잠깐 빼도 예측에서 빠지지 않게. C++ rxVehicles 와 같다).
+    for v in vehicles:
+        if v.valid and v.lane_id == t.target_lane_id and v.rear_delta_s > 0.0 and (tf is None or v.delta_s < tf.delta_s):
+            tf = v
     seen = {tf.unique_id} if tf else set()
     rears = []
     for v in vehicles:

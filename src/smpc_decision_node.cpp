@@ -4754,13 +4754,19 @@ class SmpcDecisionNode {
     add(t.target_front);
     add(t.target_rear);
     for (const auto& v : t.nearby_vehicles) add(v);
+    // 목표 차선 앞차 = 선택기의 target_front 와 목표 차선에서 자차 앞(rear_delta_s > 0)에 있는 차 중 가장 가까운 차.
+    // 선택기는 차선을 넘나드는 차를 잠깐 target_front 에서 빼기도 하는데(MORAI S1), 그때 예측에서 빠지면 위험이 0 이 된다.
+    const smpc_lane_change::TargetVehicle* tf = t.target_front.valid ? &t.target_front : nullptr;
+    for (const auto& v : all) {
+      if (v.lane_id == t.target_lane_id && v.rear_delta_s > 0.0 && (!tf || v.delta_s < tf->delta_s)) tf = &v;
+    }
     std::vector<RxTv> out;
     if (t.current_front.valid) out.push_back({t.current_front, "cf", -1});
-    if (t.target_front.valid) out.push_back({t.target_front, "tf", -1});
+    if (tf) out.push_back({*tf, "tf", -1});
     std::vector<smpc_lane_change::TargetVehicle> rears;
     for (const auto& v : all) {
       if (v.lane_id != t.target_lane_id || v.rear_delta_s > 0.0) continue;
-      if (t.target_front.valid && (v.unique_id == t.target_front.unique_id || v.delta_s >= t.target_front.delta_s)) continue;
+      if (tf && (v.unique_id == tf->unique_id || v.delta_s >= tf->delta_s)) continue;
       rears.push_back(v);
     }
     std::sort(rears.begin(), rears.end(), [](const auto& a, const auto& b) { return a.delta_s > b.delta_s; });
@@ -4816,7 +4822,10 @@ class SmpcDecisionNode {
       std::fill(res.valid.begin(), res.valid.end(), 0);
       return res;
     }
-    const auto ego_proj = target_lane->projectExtended(ego_x_, ego_y_, 400.0, 400.0);
+    // 목표 차선 위 자차 위치: 선택기(target_selector_node)와 같은 투영(시작 전 연장만, 끝 뒤 연장 없음).
+    // 끝 뒤 400 m 연장을 허용하면 연장선이 옆 차선의 자차 가까이 지나는 곳(MORAI H 격자 차선 2→3)에서 자차가
+    // 연장선에 붙어(s > 차선 길이) 모든 단계가 '목표 차선 끝 뒤'로 빠지고 위험이 0 이 됐다.
+    const auto ego_proj = target_lane->projectExtended(ego_x_, ego_y_, tv_lane_projection_extension_before_m_, 0.0);
     const double tgt_end = target_lane->length() - ego_proj.s;
     const double half_w = 0.5 * ego_width_m_;
     const auto tvs = rxVehicles(t);

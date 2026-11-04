@@ -1,0 +1,1453 @@
+{
+ "H": {
+  "summary": [
+   {
+    "arm": "기존 SMPC",
+    "n": 12,
+    "success": 9,
+    "t_merge_median": 98.54590892791748,
+    "aborts_per_run": 0.0,
+    "lane_end_stops_per_run": 1.75,
+    "contacts_lc": 0,
+    "contacts_other": 0
+   },
+   {
+    "arm": "A. 게이트 정리",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 72.48880851268768,
+    "aborts_per_run": 0.5416666666666666,
+    "lane_end_stops_per_run": 1.6666666666666667,
+    "contacts_lc": 0,
+    "contacts_other": 2
+   },
+   {
+    "arm": "현재 D",
+    "n": 12,
+    "success": 8,
+    "t_merge_median": 53.47826290130615,
+    "aborts_per_run": 1.5,
+    "lane_end_stops_per_run": 2.1666666666666665,
+    "contacts_lc": 0,
+    "contacts_other": 0
+   },
+   {
+    "arm": "새 구조",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 24.07671308517456,
+    "aborts_per_run": 0.5,
+    "lane_end_stops_per_run": 0.4166666666666667,
+    "contacts_lc": 0,
+    "contacts_other": 0
+   },
+   {
+    "arm": "새 구조-가지 없음",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 21.851557850837708,
+    "aborts_per_run": 0.0,
+    "lane_end_stops_per_run": 0.08333333333333333,
+    "contacts_lc": 0,
+    "contacts_other": 1
+   }
+  ],
+  "effects": [
+   {
+    "vs": "기존 SMPC",
+    "n": 12,
+    "mean": -87.60629381736119,
+    "lo": -107.80472736457983,
+    "hi": -69.57349755565326,
+    "faster": 12,
+    "success_diff": 3,
+    "pairs": [
+     {
+      "key": [
+       "H_s30_d100",
+       0
+      ],
+      "diff": -86.10769009590149
+     },
+     {
+      "key": [
+       "H_s30_d40",
+       0
+      ],
+      "diff": -97.69173216819763
+     },
+     {
+      "key": [
+       "H_s30_d60",
+       0
+      ],
+      "diff": -83.9256157875061
+     },
+     {
+      "key": [
+       "H_s30_d80",
+       0
+      ],
+      "diff": -72.9360511302948
+     },
+     {
+      "key": [
+       "H_s50_d100",
+       0
+      ],
+      "diff": -48.306830644607544
+     },
+     {
+      "key": [
+       "H_s50_d40",
+       0
+      ],
+      "diff": -142.5322380065918
+     },
+     {
+      "key": [
+       "H_s50_d60",
+       0
+      ],
+      "diff": -44.475685596466064
+     },
+     {
+      "key": [
+       "H_s50_d80",
+       0
+      ],
+      "diff": -75.91411352157593
+     },
+     {
+      "key": [
+       "H_s70_d100",
+       0
+      ],
+      "diff": -47.355228424072266
+     },
+     {
+      "key": [
+       "H_s70_d40",
+       0
+      ],
+      "diff": -112.00880074501038
+     },
+     {
+      "key": [
+       "H_s70_d60",
+       0
+      ],
+      "diff": -157.9147379398346
+     },
+     {
+      "key": [
+       "H_s70_d80",
+       0
+      ],
+      "diff": -82.10680174827576
+     }
+    ]
+   },
+   {
+    "vs": "A. 게이트 정리",
+    "n": 12,
+    "mean": -36.58939677476883,
+    "lo": -52.94657456328471,
+    "hi": -21.06324450820685,
+    "faster": 11,
+    "success_diff": 0,
+    "pairs": [
+     {
+      "key": [
+       "H_s30_d100",
+       0
+      ],
+      "diff": -49.79591345787048
+     },
+     {
+      "key": [
+       "H_s30_d40",
+       0
+      ],
+      "diff": -36.1258761882782
+     },
+     {
+      "key": [
+       "H_s30_d60",
+       0
+      ],
+      "diff": -46.597824573516846
+     },
+     {
+      "key": [
+       "H_s30_d80",
+       0
+      ],
+      "diff": -15.257477521896362
+     },
+     {
+      "key": [
+       "H_s50_d100",
+       0
+      ],
+      "diff": -11.710052013397217
+     },
+     {
+      "key": [
+       "H_s50_d40",
+       0
+      ],
+      "diff": -61.969995737075806
+     },
+     {
+      "key": [
+       "H_s50_d60",
+       0
+      ],
+      "diff": 8.932214498519897
+     },
+     {
+      "key": [
+       "H_s50_d80",
+       0
+      ],
+      "diff": -17.509735107421875
+     },
+     {
+      "key": [
+       "H_s70_d100",
+       0
+      ],
+      "diff": -4.427227735519409
+     },
+     {
+      "key": [
+       "H_s70_d40",
+       0
+      ],
+      "diff": -39.204524993896484
+     },
+     {
+      "key": [
+       "H_s70_d60",
+       0
+      ],
+      "diff": -88.10377550125122
+     },
+     {
+      "key": [
+       "H_s70_d80",
+       0
+      ],
+      "diff": -77.30257296562195
+     }
+    ]
+   },
+   {
+    "vs": "현재 D",
+    "n": 12,
+    "mean": -66.66288169225056,
+    "lo": -100.73874264409145,
+    "hi": -34.01231205761433,
+    "faster": 10,
+    "success_diff": 4,
+    "pairs": [
+     {
+      "key": [
+       "H_s30_d100",
+       0
+      ],
+      "diff": -158.9537136554718
+     },
+     {
+      "key": [
+       "H_s30_d40",
+       0
+      ],
+      "diff": -139.1853437423706
+     },
+     {
+      "key": [
+       "H_s30_d60",
+       0
+      ],
+      "diff": 0.3697926998138428
+     },
+     {
+      "key": [
+       "H_s30_d80",
+       0
+      ],
+      "diff": -63.28783941268921
+     },
+     {
+      "key": [
+       "H_s50_d100",
+       0
+      ],
+      "diff": -1.92679762840271
+     },
+     {
+      "key": [
+       "H_s50_d40",
+       0
+      ],
+      "diff": 4.166244745254517
+     },
+     {
+      "key": [
+       "H_s50_d60",
+       0
+      ],
+      "diff": -46.82515001296997
+     },
+     {
+      "key": [
+       "H_s50_d80",
+       0
+      ],
+      "diff": -60.04905295372009
+     },
+     {
+      "key": [
+       "H_s70_d100",
+       0
+      ],
+      "diff": -49.617871046066284
+     },
+     {
+      "key": [
+       "H_s70_d40",
+       0
+      ],
+      "diff": -112.00880074501038
+     },
+     {
+      "key": [
+       "H_s70_d60",
+       0
+      ],
+      "diff": -157.9147379398346
+     },
+     {
+      "key": [
+       "H_s70_d80",
+       0
+      ],
+      "diff": -14.72131061553955
+     }
+    ]
+   },
+   {
+    "vs": "새 구조-가지 없음",
+    "n": 12,
+    "mean": 4.742572565873464,
+    "lo": 0.16988265663385396,
+    "hi": 9.581618075072761,
+    "faster": 4,
+    "success_diff": 0,
+    "pairs": [
+     {
+      "key": [
+       "H_s30_d100",
+       0
+      ],
+      "diff": -0.8357083797454834
+     },
+     {
+      "key": [
+       "H_s30_d40",
+       0
+      ],
+      "diff": 20.084595203399658
+     },
+     {
+      "key": [
+       "H_s30_d60",
+       0
+      ],
+      "diff": 6.5837297439575195
+     },
+     {
+      "key": [
+       "H_s30_d80",
+       0
+      ],
+      "diff": 2.014253616333008
+     },
+     {
+      "key": [
+       "H_s50_d100",
+       0
+      ],
+      "diff": -8.880375862121582
+     },
+     {
+      "key": [
+       "H_s50_d40",
+       0
+      ],
+      "diff": 15.780486583709717
+     },
+     {
+      "key": [
+       "H_s50_d60",
+       0
+      ],
+      "diff": 9.812775373458862
+     },
+     {
+      "key": [
+       "H_s50_d80",
+       0
+      ],
+      "diff": -2.968655824661255
+     },
+     {
+      "key": [
+       "H_s70_d100",
+       0
+      ],
+      "diff": -1.747345209121704
+     },
+     {
+      "key": [
+       "H_s70_d40",
+       0
+      ],
+      "diff": 14.32437801361084
+     },
+     {
+      "key": [
+       "H_s70_d60",
+       0
+      ],
+      "diff": 2.6336216926574707
+     },
+     {
+      "key": [
+       "H_s70_d80",
+       0
+      ],
+      "diff": 0.1091158390045166
+     }
+    ]
+   }
+  ],
+  "runs": {
+   "기존 SMPC": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 107.15397644042969,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 138.50638842582703,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 111.46320843696594,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 98.54590892791748,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 68.88884806632996,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 76.10292625427246,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 97.49262022972107,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 67.4290041923523,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 104.6503701210022,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "A. 게이트 정리": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 70.84219980239868,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 76.94053244590759,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 74.13541722297668,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 40.86733531951904,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 32.29206943511963,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 99.43775773048401,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 22.6950261592865,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 39.08824181556702,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 24.50100350379944,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 107.19572424888611,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 110.18903756141663,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 99.84614133834839,
+     "aborts": 2,
+     "contacts": []
+    }
+   },
+   "현재 D": {
+    "H_s30_d100_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 2,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 27.167799949645996,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 88.89769721031189,
+     "aborts": 2,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 22.508815050125122,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 33.30151724815369,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 78.45239067077637,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 81.62755966186523,
+     "aborts": 2,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 69.69164681434631,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 6,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 1,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 37.26487898826599,
+     "aborts": 1,
+     "contacts": []
+    }
+   },
+   "새 구조": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 21.0462863445282,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 40.814656257629395,
+     "aborts": 3,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 27.53759264945984,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 25.60985779762268,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 20.582017421722412,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 37.4677619934082,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 31.627240657806396,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 21.57850670814514,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 20.07377576828003,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 67.99119925498962,
+     "aborts": 3,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 22.085262060165405,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 22.54356837272644,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "새 구조-가지 없음": {
+    "H_s30_d100_r0": {
+     "success": true,
+     "t_merge": 21.88199472427368,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d40_r0": {
+     "success": true,
+     "t_merge": 20.730061054229736,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d60_r0": {
+     "success": true,
+     "t_merge": 20.95386290550232,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s30_d80_r0": {
+     "success": true,
+     "t_merge": 23.595604181289673,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d100_r0": {
+     "success": true,
+     "t_merge": 29.462393283843994,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d40_r0": {
+     "success": true,
+     "t_merge": 21.687275409698486,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d60_r0": {
+     "success": true,
+     "t_merge": 21.814465284347534,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s50_d80_r0": {
+     "success": true,
+     "t_merge": 24.547162532806396,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d100_r0": {
+     "success": true,
+     "t_merge": 21.821120977401733,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d40_r0": {
+     "success": true,
+     "t_merge": 53.666821241378784,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d60_r0": {
+     "success": true,
+     "t_merge": 19.451640367507935,
+     "aborts": 0,
+     "contacts": []
+    },
+    "H_s70_d80_r0": {
+     "success": true,
+     "t_merge": 22.434452533721924,
+     "aborts": 0,
+     "contacts": [
+      "ego_lane_keeping"
+     ]
+    }
+   }
+  }
+ },
+ "S": {
+  "summary": [
+   {
+    "arm": "기존 SMPC",
+    "n": 12,
+    "success": 6,
+    "t_merge_median": 87.157794713974,
+    "aborts_per_run": 0.16666666666666666,
+    "lane_end_stops_per_run": 1.5833333333333333,
+    "contacts_lc": 0,
+    "contacts_other": 2
+   },
+   {
+    "arm": "현재 D",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 42.643879771232605,
+    "aborts_per_run": 1.6666666666666667,
+    "lane_end_stops_per_run": 2.3333333333333335,
+    "contacts_lc": 0,
+    "contacts_other": 1
+   },
+   {
+    "arm": "새 구조",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 23.563037395477295,
+    "aborts_per_run": 0.08333333333333333,
+    "lane_end_stops_per_run": 0.08333333333333333,
+    "contacts_lc": 0,
+    "contacts_other": 1
+   },
+   {
+    "arm": "새 구조-가지 없음",
+    "n": 12,
+    "success": 12,
+    "t_merge_median": 24.156081080436707,
+    "aborts_per_run": 0.08333333333333333,
+    "lane_end_stops_per_run": 0.16666666666666666,
+    "contacts_lc": 0,
+    "contacts_other": 0
+   }
+  ],
+  "effects": [
+   {
+    "vs": "기존 SMPC",
+    "n": 12,
+    "mean": -104.71002276738484,
+    "lo": -127.95032986799876,
+    "hi": -81.88986269235612,
+    "faster": 12,
+    "success_diff": 6,
+    "pairs": [
+     {
+      "key": [
+       "S1_normal",
+       0
+      ],
+      "diff": -66.0978217124939
+     },
+     {
+      "key": [
+       "S1_normal",
+       1
+      ],
+      "diff": -75.587411403656
+     },
+     {
+      "key": [
+       "S1_normal",
+       2
+      ],
+      "diff": -58.59647798538208
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       0
+      ],
+      "diff": -68.08536386489868
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       1
+      ],
+      "diff": -66.28457236289978
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       2
+      ],
+      "diff": -58.43938755989075
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       0
+      ],
+      "diff": -160.9786093235016
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       1
+      ],
+      "diff": -155.68851256370544
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       2
+      ],
+      "diff": -143.93946051597595
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       0
+      ],
+      "diff": -157.18541264533997
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       1
+      ],
+      "diff": -115.33053469657898
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       2
+      ],
+      "diff": -130.30670857429504
+     }
+    ]
+   },
+   {
+    "vs": "현재 D",
+    "n": 12,
+    "mean": -21.192367672920227,
+    "lo": -36.926433710257214,
+    "hi": -6.580277045567837,
+    "faster": 9,
+    "success_diff": 0,
+    "pairs": [
+     {
+      "key": [
+       "S1_normal",
+       0
+      ],
+      "diff": 1.8938236236572266
+     },
+     {
+      "key": [
+       "S1_normal",
+       1
+      ],
+      "diff": -3.7979390621185303
+     },
+     {
+      "key": [
+       "S1_normal",
+       2
+      ],
+      "diff": 4.480084657669067
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       0
+      ],
+      "diff": -9.61095643043518
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       1
+      ],
+      "diff": -60.83421730995178
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       2
+      ],
+      "diff": -2.933647871017456
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       0
+      ],
+      "diff": -32.36286163330078
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       1
+      ],
+      "diff": -28.256526947021484
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       2
+      ],
+      "diff": -17.22012758255005
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       0
+      ],
+      "diff": -45.159852027893066
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       1
+      ],
+      "diff": -76.29597568511963
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       2
+      ],
+      "diff": 15.78978419303894
+     }
+    ]
+   },
+   {
+    "vs": "새 구조-가지 없음",
+    "n": 12,
+    "mean": 2.32044525941213,
+    "lo": -4.094769760966301,
+    "hi": 10.659269713858762,
+    "faster": 5,
+    "success_diff": 0,
+    "pairs": [
+     {
+      "key": [
+       "S1_normal",
+       0
+      ],
+      "diff": 3.4849131107330322
+     },
+     {
+      "key": [
+       "S1_normal",
+       1
+      ],
+      "diff": -0.3220055103302002
+     },
+     {
+      "key": [
+       "S1_normal",
+       2
+      ],
+      "diff": 1.4400041103363037
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       0
+      ],
+      "diff": 0.009214162826538086
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       1
+      ],
+      "diff": 0.09219598770141602
+     },
+     {
+      "key": [
+       "S2_rear_accel",
+       2
+      ],
+      "diff": -9.925265073776245
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       0
+      ],
+      "diff": -1.5516247749328613
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       1
+      ],
+      "diff": -10.128484725952148
+     },
+     {
+      "key": [
+       "S3_rear_decel",
+       2
+      ],
+      "diff": 14.020171403884888
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       0
+      ],
+      "diff": -11.61348843574524
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       1
+      ],
+      "diff": 40.00549817085266
+     },
+     {
+      "key": [
+       "S4_front_decel",
+       2
+      ],
+      "diff": 2.334214687347412
+     }
+    ]
+   }
+  ],
+  "runs": {
+   "기존 SMPC": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 93.23092985153198,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 94.82262635231018,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 86.60600757598877,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 87.70958185195923,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 86.02898788452148,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 79.48628854751587,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": false,
+     "t_merge": null,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "현재 D": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 25.23928451538086,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 23.033154010772705,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 23.529444932937622,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 29.235174417495728,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 80.57863283157349,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 23.980548858642578,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 51.384252309799194,
+     "aborts": 2,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 52.56801438331604,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 53.2806670665741,
+     "aborts": 1,
+     "contacts": [
+      "npc_side_merge"
+     ]
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 67.9744393825531,
+     "aborts": 5,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 140.96544098854065,
+     "aborts": 10,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 33.903507232666016,
+     "aborts": 0,
+     "contacts": []
+    }
+   },
+   "새 구조": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 27.133108139038086,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 19.235214948654175,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 28.00952959060669,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 19.624217987060547,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 19.744415521621704,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 21.046900987625122,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 19.021390676498413,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 24.311487436294556,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 36.06053948402405,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 22.814587354660034,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 64.66946530342102,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 49.693291425704956,
+     "aborts": 0,
+     "contacts": [
+      "npc_cut_in_after_merge"
+     ]
+    }
+   },
+   "새 구조-가지 없음": {
+    "S1_normal_r0": {
+     "success": true,
+     "t_merge": 23.648195028305054,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r1": {
+     "success": true,
+     "t_merge": 19.557220458984375,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S1_normal_r2": {
+     "success": true,
+     "t_merge": 26.569525480270386,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r0": {
+     "success": true,
+     "t_merge": 19.61500382423401,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r1": {
+     "success": true,
+     "t_merge": 19.652219533920288,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S2_rear_accel_r2": {
+     "success": true,
+     "t_merge": 30.972166061401367,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r0": {
+     "success": true,
+     "t_merge": 20.573015451431274,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S3_rear_decel_r1": {
+     "success": true,
+     "t_merge": 34.439972162246704,
+     "aborts": 1,
+     "contacts": []
+    },
+    "S3_rear_decel_r2": {
+     "success": true,
+     "t_merge": 22.04036808013916,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r0": {
+     "success": true,
+     "t_merge": 34.42807579040527,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r1": {
+     "success": true,
+     "t_merge": 24.66396713256836,
+     "aborts": 0,
+     "contacts": []
+    },
+    "S4_front_decel_r2": {
+     "success": true,
+     "t_merge": 47.359076738357544,
+     "aborts": 0,
+     "contacts": []
+    }
+   }
+  }
+ }
+}
