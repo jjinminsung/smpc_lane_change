@@ -194,7 +194,7 @@ class ReactiveTreePlanner(TreePlanner):
 def make_reactive_planner(name):
     """run_batch.py 용: 'rx' (새 구조), 'rx_single' (가지 없음 비교군), 'rx_common' (G6–G8 유지).
     민감도: 'fNN' = 예외 확률 최솟값 0.NN, 'mK' = 모니터 복귀 문턱 Kε (예: rx_f10, rx_m3),
-    'mt' = 모니터 계속 위험에 가지별 나중 대응(예: rx_mt, rx_mt_m5)."""
+    'mt' = 모니터 계속 위험에 가지별 나중 대응(11-05 부터 기본), 'mo' = 옛 모니터 규칙(예: rx_mo, rx_mo_m5)."""
     from .tree import TreeConfig
     flags = set(name.split("_"))
     cfg = TreeConfig(probability_table="gt", keep_gates=False, decision="tree", monitor=True)
@@ -202,8 +202,10 @@ def make_reactive_planner(name):
     factor = next((float(f[1:]) for f in flags if f.startswith("m") and f[1:].isdigit()), None)
     if factor is not None:
         cfg.abort_risk_factor = factor
-    if "mt" in flags:                     # 'rx_mt' = 모니터가 계속 쪽에도 가지별 나중 대응을 넣음
+    if "mt" in flags:                     # 'rx_mt' = 모니터가 계속 쪽에도 가지별 나중 대응을 넣음(지금 기본)
         cfg.monitor_tree = True
+    if "mo" in flags:                     # 'rx_mo' = 옛 모니터 규칙(끝까지 그냥 계속 vs 지금 복귀)
+        cfg.monitor_tree = False
 
     def factory(P, track):
         rp = ReactiveParams()

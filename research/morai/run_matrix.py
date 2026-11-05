@@ -38,6 +38,8 @@ METHODS = {
     "tree_nomon": ("tree", "false", ["monitor:=false"]),
     "rx": ("tree", "false", ["reactive:=true"]),                               # plan_v2 새 구조
     "rx_single": ("tree", "false", ["reactive:=true", "reactive_single:=true"]),
+    "rx_m5": ("tree", "false", ["reactive:=true", "tree_abort_risk_factor:=5.0"]),     # 복귀 문턱 5ε
+    "rx_mo": ("tree", "false", ["reactive:=true", "reactive_monitor_tree:=false"]),    # 옛 모니터 규칙(v9 까지)
 }
 # plan_v2 단계 5: 뒤차 간격 기준 R m 에서 일부러 합류(gap_test), 뒤차 보호 복귀·트리 복귀 끔
 for _r in (8, 12, 16, 20):
@@ -57,6 +59,8 @@ PHASES = {
     "N": (["research_H_s50_d40", "research_H_s50_d60", "research_H_s50_d80"], ["gt8", "gt12", "gt16", "gt20"], 1),
     "V": (H, ["rx", "rx_single"], 1),                        # plan_v2 단계 7: 새 구조 vs 가지 없음
     "W": (S, ["rx", "rx_single"], 3),
+    "X": (H, ["rx", "rx_m5"], 1),                            # 모니터 (가) 2ε·5ε (v9 V 의 rx = 옛 규칙 2ε 와 짝)
+    "Y": (S, ["rx", "rx_m5"], 3),
 }
 
 

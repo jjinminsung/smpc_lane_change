@@ -62,7 +62,7 @@ class TreeConfig:
     probability_table: str = "yaml"     # 'yaml' (기존 SMPC) | 'gt' (GT 입력으로 다시 맞춘 표)
     keep_gates: bool = True             # False 면 연구 방향 2: G3/G5 제거, hard safety 만
     abort_risk_factor: float = 2.0      # 실행 중 복귀 판단 문턱 = 2ε
-    monitor_tree: bool = False          # 반응형: 실행 중 계속 위험도 승인처럼 가지별 나중 대응을 넣어 푼다(C++ reactive/monitor_tree)
+    monitor_tree: bool = True           # 반응형: 실행 중 계속 위험도 승인처럼 가지별 나중 대응을 넣어 푼다(C++ reactive/monitor_tree)
     use_value: bool = False
     wait_root: bool = False             # V 가 있을 때 '기다리기' 루트를 함께 비교(차선 끝 비용 대신 V)
     # 실행 계층이 실제로 하는 대응만 쓴다(리뷰 #8): 계속(ACC 그대로), 복귀(supervisor abort),

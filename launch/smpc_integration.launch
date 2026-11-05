@@ -21,6 +21,8 @@
   <!-- research/docs/plan_v2.md 반응형 트리(자차 ACC 폐루프 + 뒤차 양보 예측, G6–G8 제거). tree_planner_enabled 와 함께 -->
   <arg name="reactive_tree" default="false"/>
   <arg name="reactive_single" default="false"/>       <!-- 비교군: 가지 없이 기본 예측 하나 -->
+  <arg name="reactive_monitor_tree" default="true"/>  <!-- 모니터 (가): 계속 위험에도 가지별 나중 대응(false = 옛 규칙) -->
+  <arg name="tree_abort_risk_factor" default="2.0"/>  <!-- 실행 중 복귀 문턱 = 이 값 × ε -->
   <arg name="reactive_drop_common" default="true"/>
   <!-- plan_v2 단계 5 측정용: gap_test 간격 기준, supervisor 뒤차 보호 복귀 끄기 -->
   <arg name="gap_test_min_front_gap" default="20.0"/>
@@ -169,6 +171,8 @@
       <!-- 반응형 예측의 ACC 법칙은 ACC 노드와 같은 yaml 을 읽는다 -->
       <rosparam command="load" file="$(find smpc_lane_change)/config/acc_planner.yaml" ns="acc"/>
       <rosparam if="$(arg reactive_tree)" command="load" file="$(find smpc_lane_change)/config/reactive_morai.yaml" ns="reactive"/>
+      <param name="reactive/monitor_tree" value="$(arg reactive_monitor_tree)"/>
+      <param name="tree_abort_risk_factor" value="$(arg tree_abort_risk_factor)"/>
       <rosparam if="$(eval arg('rear_accel_table') == 'gt')">
         rear_accel_probability_by_accel: [0.006, 0.007, 0.079, 0.275, 0.672]
         min_rear_accel_probability: 0.0

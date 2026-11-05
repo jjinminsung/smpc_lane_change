@@ -15,6 +15,8 @@
   <arg name="baseline_keep_gates" default="true"/>
   <arg name="reactive" default="false"/>
   <arg name="reactive_single" default="false"/>
+  <arg name="reactive_monitor_tree" default="true"/>
+  <arg name="tree_abort_risk_factor" default="2.0"/>
   <!-- plan_v2 단계 5: gap_test 로 일부러 합류해 NPC 반응을 잰다(SMPC 판단 대신) -->
   <arg name="gap_test" default="false"/>
   <arg name="gap_front" default="20.0"/>
@@ -54,6 +56,8 @@
     <arg name="baseline_tree_monitor" value="$(eval arg('monitor') and arg('method') == 'baseline')"/>
     <arg name="reactive_tree" value="$(arg reactive)"/>
     <arg name="reactive_single" value="$(arg reactive_single)"/>
+    <arg name="reactive_monitor_tree" value="$(arg reactive_monitor_tree)"/>
+    <arg name="tree_abort_risk_factor" value="$(arg tree_abort_risk_factor)"/>
     <arg name="use_gap_test_decision" value="$(arg gap_test)"/>
     <arg name="gap_test_min_front_gap" value="$(arg gap_front)"/>
     <arg name="gap_test_min_rear_gap" value="$(arg gap_rear)"/>

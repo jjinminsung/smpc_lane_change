@@ -5958,7 +5958,7 @@ class SmpcDecisionNode {
     double front_idm_s0{3.0}, front_idm_T{1.0}, front_idm_a{1.0}, front_idm_b{2.0};
     double p_exc_floor{0.05}, follow_sigma_cap_s{1.0}, abort_before_abs_d{1.75};
     bool connector_cap{false};   // ACC 의 정지 connector 속도 상한(MORAI 대회 스택, 파이썬 시뮬 world 도 같다)
-    bool monitor_tree{false};    // 실행 중 모니터의 계속 위험도 승인처럼 가지별 나중 대응을 넣어 푼다(비교 중)
+    bool monitor_tree{true};     // 실행 중 모니터의 계속 위험도 승인처럼 가지별 나중 대응을 넣어 푼다(false = 옛 규칙)
   } rx_;
   // acc_planner.yaml 의 같은 키(이 노드에는 ns 'acc' 로 올린다)
   struct RxAcc {
