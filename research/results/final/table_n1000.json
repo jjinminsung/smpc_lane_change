@@ -1,0 +1,92 @@
+{
+ "baseline": {
+  "label": "기존 SMPC (dd1cf54)",
+  "n": 1000,
+  "success_pct": 40.7,
+  "collision_pct": 0.8,
+  "offroad_pct": 5.9,
+  "timeout_pct": 52.6,
+  "merge_median_success_s": 43.499999999997534,
+  "lane_end_stops_per_ep": 1.458,
+  "paired_mean_vs_ref_s": 59.241550000000295,
+  "ci95": [
+   56.399265000000234,
+   61.96651125000031
+  ]
+ },
+ "tree_gt_nogate": {
+  "label": "D 트리 + 옛 모니터 + 게이트 정리",
+  "n": 1000,
+  "success_pct": 66.3,
+  "collision_pct": 0.4,
+  "offroad_pct": 0.7,
+  "timeout_pct": 32.6,
+  "merge_median_success_s": 32.29999999999817,
+  "lane_end_stops_per_ep": 1.232,
+  "paired_mean_vs_ref_s": 36.784699999999994,
+  "ci95": [
+   34.04434749999992,
+   39.50044500000004
+  ]
+ },
+ "rx_mt": {
+  "label": "새 구조: 반응형 트리, 모니터 (가) 2ε",
+  "n": 1000,
+  "success_pct": 93.4,
+  "collision_pct": 0.3,
+  "offroad_pct": 2.3,
+  "timeout_pct": 4.0,
+  "merge_median_success_s": 19.64999999999889,
+  "lane_end_stops_per_ep": 0.353,
+  "paired_mean_vs_ref_s": 0.0,
+  "ci95": [
+   0.0,
+   0.0
+  ]
+ },
+ "rx_mt_m5": {
+  "label": "새 구조, 모니터 (가) 5ε",
+  "n": 1000,
+  "success_pct": 93.7,
+  "collision_pct": 0.5,
+  "offroad_pct": 2.2,
+  "timeout_pct": 3.6,
+  "merge_median_success_s": 19.199999999998916,
+  "lane_end_stops_per_ep": 0.318,
+  "paired_mean_vs_ref_s": -1.0329999999999844,
+  "ci95": [
+   -1.6804049999999893,
+   -0.4137974999999719
+  ]
+ },
+ "rx_mo": {
+  "label": "새 구조, 옛 모니터 규칙 2ε",
+  "n": 1000,
+  "success_pct": 93.7,
+  "collision_pct": 0.3,
+  "offroad_pct": 2.0,
+  "timeout_pct": 4.0,
+  "merge_median_success_s": 19.699999999998887,
+  "lane_end_stops_per_ep": 0.362,
+  "paired_mean_vs_ref_s": 0.05449999999999577,
+  "ci95": [
+   -0.49005499999999647,
+   0.591902500000007
+  ]
+ },
+ "rx_single": {
+  "label": "새 구조 - 가지 없음",
+  "n": 1000,
+  "success_pct": 94.6,
+  "collision_pct": 0.3,
+  "offroad_pct": 2.0,
+  "timeout_pct": 3.1,
+  "merge_median_success_s": 19.29999999999891,
+  "lane_end_stops_per_ep": 0.317,
+  "paired_mean_vs_ref_s": -1.9299499999999645,
+  "ci95": [
+   -2.7798287499999565,
+   -1.1392924999999516
+  ]
+ }
+}
