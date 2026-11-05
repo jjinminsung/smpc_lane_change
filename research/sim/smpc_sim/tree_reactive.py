@@ -199,13 +199,15 @@ def make_reactive_planner(name):
     민감도: 'fNN' = 예외 확률 최솟값 0.NN, 'mK' = 모니터 복귀 문턱 Kε (예: rx_f10, rx_m3),
     'mt' = 모니터 계속 위험에 가지별 나중 대응(11-05 부터 기본), 'mo' = 옛 모니터 규칙(예: rx_mo, rx_mo_m5).
     예측 수정(11-06): 'pf' = 지나친 목표 차선 앞차를 뒤차로, 'fl' = ACC merge_keep_rolling 하한(예: rx_mt_pf_fl).
-    'hNN' = 예측 지평선 NN 스텝(0.2 s, 기본 40 = 8 s). 이 플래너의 P 사본에만 적용(롤아웃·위험·모니터·지평선 맞춤 검사 모두)."""
+    'hNN' = 예측 지평선 NN 스텝(0.2 s, 기본 40 = 8 s). 이 플래너의 P 사본에만 적용(롤아웃·위험·모니터·지평선 맞춤 검사 모두).
+    'adNN' = 앞차 없는 차의 가속도 감쇠 시간 NN/10 s(기본 1.5 s, 예: rx_mt_pf_fl_ad25 = 2.5 s; C++ reactive/accel_decay_s)."""
     from .tree import TreeConfig
     flags = set(name.split("_"))
     cfg = TreeConfig(probability_table="gt", keep_gates=False, decision="tree", monitor=True)
     floor = next((int(f[1:]) / 100.0 for f in flags if f.startswith("f") and f[1:].isdigit()), None)
     factor = next((float(f[1:]) for f in flags if f.startswith("m") and f[1:].isdigit()), None)
     horizon = next((int(f[1:]) for f in flags if f.startswith("h") and f[1:].isdigit()), None)
+    decay = next((int(f[2:]) / 10.0 for f in flags if f.startswith("ad") and f[2:].isdigit()), None)
     if factor is not None:
         cfg.abort_risk_factor = factor
     if "mt" in flags:                     # 'rx_mt' = 모니터가 계속 쪽에도 가지별 나중 대응을 넣음(지금 기본)
@@ -220,6 +222,8 @@ def make_reactive_planner(name):
         rp = ReactiveParams()
         if floor is not None:
             rp.p_exc_floor = floor
+        if decay is not None:
+            rp.accel_decay_s = decay
         rp.passed_front_as_rear = "pf" in flags
         rp.merge_floor = "fl" in flags
         tp = ReactiveTreePlanner(P, track, cfg=TreeConfig(**cfg.__dict__), rp=rp, single="single" in flags,
