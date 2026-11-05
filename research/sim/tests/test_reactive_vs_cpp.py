@@ -77,6 +77,14 @@ def make_scene(rng, P):
     t = TargetSet(stamp=0.0, current_lane_id=cur, target_lane_id=tgt)
     t.ego_s_current, t.ego_d_target = s0, d0
     t.distance_to_lane_end = LANE_END[cur] - s0
+    # 차선 끝 압박(선택기와 같은 문턱; merge_floor 판정용). 가끔 required 꺼짐·emergency 켜짐도 섞는다
+    # 따로 뽑는다(기존 장면 순서를 그대로 둔다: 같은 rng 를 쓰면 장면이 바뀐다)
+    rf = np.random.default_rng(int(s0 * 1000) % (2 ** 32))
+    ttle = t.distance_to_lane_end / v0 if v0 > 0.1 else float("inf")
+    t.lane_change_required = rf.random() < 0.9
+    t.lane_change_prepare = t.lane_change_required and (t.distance_to_lane_end <= 400.0 or ttle <= 8.0)
+    t.lane_change_urgent = t.lane_change_required and (t.distance_to_lane_end <= 120.0 or ttle <= 5.0)
+    t.emergency_stop_required = t.lane_change_required and rf.random() < 0.2
     for v in vehicles:
         if v.role == "target_front":
             t.target_front = v
@@ -110,6 +118,8 @@ def scene_text(sc, br, P):
     t = sc["t"]
     lines = [f"ego_speed {sc['v0']:.17g}", f"mission {sc['mission']:.17g}", f"yield_ref {sc['v0']:.17g}",
              f"targets {t.current_lane_id} {t.target_lane_id} {t.ego_d_target:.17g} {t.distance_to_lane_end:.17g}",
+             f"flags {int(t.lane_change_required)} {int(t.lane_change_prepare)} {int(t.lane_change_urgent)} "
+             f"{int(t.emergency_stop_required)}",
              f"ego_xy {sc['s0']:.17g} {t.target_lane_id * P.lane_width_m + t.ego_d_target:.17g}",
              f"mode {int(sc['connector'])} {sc['join']:.17g} {sc['T_rem'] if sc['mid'] else -1.0:.17g}",
              f"vehicles {len(sc['vehicles'])}"]
@@ -165,7 +175,19 @@ class ReactiveVsCpp(unittest.TestCase):
         self.assertTrue(line, out.stdout + out.stderr)
         return json.loads(line[-1])
 
+    def set_opts(self, pf, fl):
+        for key, val in (("passed_front_as_rear", pf), ("merge_floor", fl)):
+            subprocess.run(["rosparam", "set", f"{NODE}/reactive/{key}", "true" if val else "false"], env=ros_env(), check=True)
+        self.RP.passed_front_as_rear, self.RP.merge_floor = pf, fl
+
     def test_random_scenes(self):
+        for pf, fl in ((False, False), (True, False), (False, True), (True, True)):
+            with self.subTest(passed_front_as_rear=pf, merge_floor=fl):
+                self.set_opts(pf, fl)
+                self._random_scenes(f"pf={int(pf)} fl={int(fl)}")
+        self.set_opts(False, False)
+
+    def _random_scenes(self, tag):
         rng = np.random.default_rng(20261104)
         worst = {"ego_s": 0.0, "ego_v": 0.0, "ego_d": 0.0, "tv_s": 0.0, "risk": 0.0}
         n = 0
@@ -204,7 +226,7 @@ class ReactiveVsCpp(unittest.TestCase):
                     np.testing.assert_allclose(arr, ref, atol=1e-5, err_msg=f"tv_s {uid}")
                     worst["tv_s"] = max(worst["tv_s"], float(np.max(np.abs(arr - ref))))
             n += 1
-        print(f"\n{n} scenes: max diff " + ", ".join(f"{k} {v:.2e}" for k, v in worst.items()))
+        print(f"\n[{tag}] {n} scenes: max diff " + ", ".join(f"{k} {v:.2e}" for k, v in worst.items()))
 
 
 if __name__ == "__main__":

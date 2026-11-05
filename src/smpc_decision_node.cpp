@@ -402,6 +402,10 @@ class SmpcDecisionNode {
     pnh_.param("reactive_single", reactive_single_, false);
     pnh_.param("reactive/connector_cap", rx_.connector_cap, rx_.connector_cap);
     pnh_.param("reactive/monitor_tree", rx_.monitor_tree, rx_.monitor_tree);
+    pnh_.param("reactive/passed_front_as_rear", rx_.passed_front_as_rear, rx_.passed_front_as_rear);
+    pnh_.param("reactive/merge_floor", rx_.merge_floor, rx_.merge_floor);
+    pnh_.param("reactive/floor_urgent_distance_m", rx_.floor_urgent_distance_m, rx_.floor_urgent_distance_m);
+    pnh_.param("reactive/floor_urgent_time_s", rx_.floor_urgent_time_s, rx_.floor_urgent_time_s);
     pnh_.param("reactive/plant_tau", rx_.plant_tau, rx_.plant_tau);
     pnh_.param("reactive/plant_a_max", rx_.plant_a_max, rx_.plant_a_max);
     pnh_.param("reactive/plant_a_min", rx_.plant_a_min, rx_.plant_a_min);
@@ -456,6 +460,15 @@ class SmpcDecisionNode {
     pnh_.param("acc/lead_required_decel_limit_enabled", rx_acc_.lead_required_decel_limit_enabled, rx_acc_.lead_required_decel_limit_enabled);
     pnh_.param("acc/hard_brake_bypass_filter", rx_acc_.hard_brake_bypass_filter, rx_acc_.hard_brake_bypass_filter);
     pnh_.param("acc/rapid_lead_brake_enabled", rx_acc_.rapid_lead_brake_enabled, rx_acc_.rapid_lead_brake_enabled);
+    pnh_.param("acc/merge_keep_rolling_enabled", rx_acc_.merge_keep_rolling_enabled, rx_acc_.merge_keep_rolling_enabled);
+    pnh_.param("acc/merge_keep_rolling_min_speed_mps", rx_acc_.merge_keep_rolling_min_speed_mps, rx_acc_.merge_keep_rolling_min_speed_mps);
+    pnh_.param("acc/merge_keep_rolling_front_block_gap_m", rx_acc_.merge_keep_rolling_front_block_gap_m, rx_acc_.merge_keep_rolling_front_block_gap_m);
+    pnh_.param("acc/merge_keep_rolling_low_speed_lead_mps", rx_acc_.merge_keep_rolling_low_speed_lead_mps, rx_acc_.merge_keep_rolling_low_speed_lead_mps);
+    pnh_.param("acc/merge_keep_rolling_low_speed_lead_max_gap_m", rx_acc_.merge_keep_rolling_low_speed_lead_max_gap_m, rx_acc_.merge_keep_rolling_low_speed_lead_max_gap_m);
+    pnh_.param("acc/min_target_front_gap_m", rx_acc_.min_target_front_gap_m, rx_acc_.min_target_front_gap_m);
+    pnh_.param("acc/lane_end_stop_prepare_distance_m", rx_acc_.lane_end_stop_prepare_distance_m, rx_acc_.lane_end_stop_prepare_distance_m);
+    pnh_.param("acc/lane_end_stop_prepare_time_sec", rx_acc_.lane_end_stop_prepare_time_sec, rx_acc_.lane_end_stop_prepare_time_sec);
+    pnh_.param("acc/lane_end_stop_lane_ids", rx_acc_.lane_end_stop_lane_ids, rx_acc_.lane_end_stop_lane_ids);
     pnh_.param("tree_risk_weight", tree_risk_weight_, 80.0);
     pnh_.param("tree_abort_risk_factor", tree_abort_risk_factor_, 2.0);
     // 실행 계층이 실제로 하는 대응만(계속·복귀·제동). 계속+가속, 복귀+감속은 아무도 명령하지 않는다.
@@ -4851,6 +4864,8 @@ class SmpcDecisionNode {
     res.ego_v.assign(static_cast<std::size_t>(M * K), 0.0);
     res.tv_s.assign(static_cast<std::size_t>(V), std::vector<double>(static_cast<std::size_t>(M * K), 0.0));
     std::vector<uint8_t> tf_hard(static_cast<std::size_t>(M * K), 0);
+    // 자차가 지나친 목표 차선 앞차(passed_front_as_rear): 차량별 [m*K + k], 한 번 지나치면 그 행에서 계속 뒤차
+    std::vector<std::vector<uint8_t>> passed_mk(static_cast<std::size_t>(V), std::vector<uint8_t>(static_cast<std::size_t>(M * K), 0));
     std::vector<double> tau_m_row(static_cast<std::size_t>(M), std::numeric_limits<double>::quiet_NaN());
     std::vector<double> ds_sw_row(static_cast<std::size_t>(M), std::numeric_limits<double>::quiet_NaN());
     std::vector<double> ret_row(static_cast<std::size_t>(M), std::numeric_limits<double>::infinity());
@@ -4868,9 +4883,13 @@ class SmpcDecisionNode {
           double y_m = mid ? d0 : std::numeric_limits<double>::quiet_NaN();   // 횡이동 시작 때 자차 위치
           double t_in = std::numeric_limits<double>::infinity();
           std::vector<double> xs(static_cast<std::size_t>(V)), xv(static_cast<std::size_t>(V));
+          std::vector<uint8_t> passed(static_cast<std::size_t>(V), 0);
           for (int i = 0; i < V; ++i) {
             xs[static_cast<std::size_t>(i)] = tvs[static_cast<std::size_t>(i)].v.delta_s;
             xv[static_cast<std::size_t>(i)] = std::max(0.0, tvs[static_cast<std::size_t>(i)].v.v_long);
+            const auto& role = tvs[static_cast<std::size_t>(i)].role;
+            passed[static_cast<std::size_t>(i)] =
+                rx_.passed_front_as_rear && (role == "tf" || role == "tf2") && xs[static_cast<std::size_t>(i)] < 0.0;
           }
           for (int k = 0; k < K; ++k) {
             const double tau0 = dt * k;
@@ -4946,7 +4965,16 @@ class SmpcDecisionNode {
                 base = x.v.accel * std::exp(-tau0 / rx_.accel_decay_s);
               }
               double acc;
-              if (x.role == "cf" || x.role == "tf") {
+              if (passed[ui]) {
+                // 지나친 목표 차선 앞차 = 뒤차: yield 가지면 반응 지연 뒤 자차를 따르고, nonyield 면 자기 앞차만 본다.
+                // 앞차 예외(급감속·가속)는 지나친 뒤엔 없다.
+                const bool react = rear_mode == "yield" && tau0 >= t_in + rx_.rear_react_delay_s - 1e-9 && intr > 0.0 && s > xs[ui];
+                if (react) {
+                  const double gap_e = (s - ego_rear_extent_m_) - (xs[ui] + 0.5 * len);
+                  base = std::min(base, rxIdm(xv[ui], gap_e, v, std::max(v0x, 0.5), rx_.rear_idm_a, rx_.rear_idm_b, rx_.rear_idm_s0, rx_.rear_idm_T));
+                }
+                acc = std::max(base, -rx_.rear_max_brake);
+              } else if (x.role == "cf" || x.role == "tf") {
                 if (front_mode == "brake") {
                   acc = rx_.front_brake;
                 } else if (front_mode == "accel") {
@@ -4983,6 +5011,8 @@ class SmpcDecisionNode {
             bool hard = false, soft_bind = false;
             const bool entry = d_t <= rx_acc_.target_front_acc_entry_abs_d_m;
             bool front_ahead = false;     // 더 가까운 목표 차선 앞차가 아직 자차 앞에 있나
+            bool floor_block = false;     // merge_floor: 8 m 안 앞차 또는 80 m 안 느린(≤ 11.1 m/s) 앞차가 있어 하한을 걸지 않음
+            bool tf_blocks = false;       // merge_floor: 목표 차선 앞차가 11 m 안(targetFrontBlocksMerge)
             for (int i = 0; i < V; ++i) {
               const auto& x = tvs[static_cast<std::size_t>(i)];
               bool use = false, allow_hard = true;
@@ -4997,8 +5027,20 @@ class SmpcDecisionNode {
               const double len = std::max(0.1, x.v.length);
               const double gap = (xs[static_cast<std::size_t>(i)] - 0.5 * len) - (s + ego_front_extent_m_);
               // tf2 는 더 가까운 앞차를 모두 지나친 뒤에만 따른다(선택기·ACC 가 그때 그 차를 앞차로 잡는다)
+              const bool closer_ahead = front_ahead;
               if (x.role == "tf2" && front_ahead) use = false;
               if (x.role != "cf") front_ahead = front_ahead || gap > -len;
+              // 실제 ACC 는 하한 판정에 현재 차선 앞차와 목표 차선 앞차를 따르든 말든 본다(mergeRollingFrontBlocked,
+              // mergeRollingLowSpeedLeadBlocked). 앞 = 중심이 자차 기준점보다 앞(leadIsInFront).
+              if (rx_.merge_floor && xs[static_cast<std::size_t>(i)] > s) {
+                const bool chk = x.role == "cf" ? (!in_target || returning) : (x.role == "tf" || !closer_ahead);
+                if (chk && (gap <= rx_acc_.merge_keep_rolling_front_block_gap_m ||
+                            (xv[static_cast<std::size_t>(i)] <= rx_acc_.merge_keep_rolling_low_speed_lead_mps &&
+                             gap <= rx_acc_.merge_keep_rolling_low_speed_lead_max_gap_m))) {
+                  floor_block = true;
+                }
+                if (x.role == "tf" && gap <= rx_acc_.min_target_front_gap_m) tf_blocks = true;
+              }
               if (!use || gap <= -len) continue;
               double cmd;
               bool hd;
@@ -5019,12 +5061,38 @@ class SmpcDecisionNode {
               if ((hd || rapid) && allow_hard) hard = true;
             }
             const double dist = src_end - s;
-            if (!lc_active && !in_target && dist < 200.0) {
+            // merge_floor: 차선 끝 대기(정지) = 차선 변경 전, 급함(남은 거리 ≤ 120 m 또는 시간 ≤ 5 s), 목표 차선 앞차가
+            // 11 m 안(acc mergeWaitStopRequired; WAIT_FOR_GAP 은 루트에 없다). 실제 ACC 는 이때만 차선 끝 앞에서 선다.
+            bool merge_wait = false;
+            if (rx_.merge_floor) {
+              const bool urgent = t.lane_change_required &&
+                  (dist <= rx_.floor_urgent_distance_m || (v > 0.1 && dist / v <= rx_.floor_urgent_time_s));
+              merge_wait = !lc_active && urgent && tf_blocks;
+            }
+            if (!lc_active && !in_target && dist < 200.0 && (!rx_.merge_floor || merge_wait)) {
               const double lim = std::sqrt(2.0 * rx_.lane_end_decel * std::max(0.0, dist - rx_acc_.lane_end_merge_wait_stop_distance_m));
               if (lim < raw) {
                 raw = lim;
                 soft_bind = false;
                 bind_c = std::numeric_limits<double>::quiet_NaN();
+              }
+            }
+            // merge_floor: 실제 ACC 의 merge_keep_rolling 하한 — 앞차·차선 끝 제한 뒤, 차선 변경 중 차선 끝 상한·
+            // HOLD/YIELD 상한·connector 상한 앞(acc_speed_planner applyMergeRollingFloor 순서).
+            if (rx_.merge_floor && rx_acc_.merge_keep_rolling_enabled && !hard && !merge_wait && !floor_block) {
+              const bool pressure = lc_active ||
+                  (t.lane_change_required && (t.lane_change_prepare || t.lane_change_urgent || t.emergency_stop_required));
+              bool stop_zone = false;     // 차선 끝에서 서는 차로(3)의 정지 준비 구간
+              if (in_target && !returning &&
+                  std::find(rx_acc_.lane_end_stop_lane_ids.begin(), rx_acc_.lane_end_stop_lane_ids.end(), t.target_lane_id) !=
+                      rx_acc_.lane_end_stop_lane_ids.end()) {
+                const double d3 = tgt_end - s;
+                stop_zone = d3 <= rx_acc_.lane_end_stop_prepare_distance_m || (v > 0.1 && d3 / v <= rx_acc_.lane_end_stop_prepare_time_sec);
+              }
+              const double fl = std::min(std::max(0.0, rx_acc_.merge_keep_rolling_min_speed_mps), cruise_k);
+              if (pressure && !stop_zone && fl > 1e-3 && raw < fl) {
+                raw = fl;
+                soft_bind = false;
               }
             }
             // 실제 ACC 처럼 connector 실행 중에는 이 상한을 걸지 않는다(connector 상한만, acc_speed_planner
@@ -5088,6 +5156,8 @@ class SmpcDecisionNode {
                 xv[ui] = nv[ui];
               }
               res.tv_s[ui][static_cast<std::size_t>(m * K + k)] = xs[ui];
+              if (rx_.passed_front_as_rear && (tvs[ui].role == "tf" || tvs[ui].role == "tf2") && s > xs[ui]) passed[ui] = 1;
+              passed_mk[ui][static_cast<std::size_t>(m * K + k)] = passed[ui];
             }
             res.ego_s[static_cast<std::size_t>(m * K + k)] = s;
             res.ego_d[static_cast<std::size_t>(m * K + k)] = y;
@@ -5150,8 +5220,9 @@ class SmpcDecisionNode {
           tv.x = ts.x;
           tv.y = ts.y;
           tv.yaw = ts.yaw;
-          const bool front = x.role == "cf" || x.role == "tf";
-          ego.t = (x.role == "cf" || ((x.role == "tf" || x.role == "tf2") && tf_hard[mk])) ? std::min(tau, sig_cap) : tau;
+          const bool pf = passed_mk[static_cast<std::size_t>(i)][mk] != 0;
+          const bool front = (x.role == "cf" || x.role == "tf") && !pf;
+          ego.t = (x.role == "cf" || ((x.role == "tf" || x.role == "tf2") && tf_hard[mk] && !pf)) ? std::min(tau, sig_cap) : tau;
           TvMode mode{front && brake_row ? "front_brake" : "nominal", 1.0, 0.0, 0.0};
           const auto c = collisionProbability(ego, tv, x.v, mode);
           no_coll *= 1.0 - c.probability;
@@ -5182,7 +5253,7 @@ class SmpcDecisionNode {
     const auto tvs = rxVehicles(t);
     bool rears = false, fronts = false;
     for (const auto& x : tvs) {
-      rears |= x.role == "rear";
+      rears |= x.role == "rear" || (rx_.passed_front_as_rear && (x.role == "tf" || x.role == "tf2"));
       fronts |= x.role == "cf" || x.role == "tf";
     }
     const double fl = rx_.p_exc_floor;
@@ -5959,6 +6030,13 @@ class SmpcDecisionNode {
     double p_exc_floor{0.05}, follow_sigma_cap_s{1.0}, abort_before_abs_d{1.75};
     bool connector_cap{false};   // ACC 의 정지 connector 속도 상한(MORAI 대회 스택, 파이썬 시뮬 world 도 같다)
     bool monitor_tree{true};     // 실행 중 모니터의 계속 위험도 승인처럼 가지별 나중 대응을 넣어 푼다(false = 옛 규칙)
+    // 자차가 지나친 목표 차선 앞차(tf·tf2)를 뒤차로 본다(11-06): 뒤차 가지(yield/nonyield)를 함께 쓰고, yield 면
+    // 반응 지연 뒤 자차를 IDM 으로 따르며, 지나친 뒤엔 앞차 예외(급감속·가속)가 없고 σ 도 뒤차처럼(상한 없음).
+    bool passed_front_as_rear{false};
+    // 실제 ACC 의 merge_keep_rolling 하한(acc_speed_planner applyMergeRollingFloor)과 차선 끝 대기 조건(mergeWaitStopRequired)을
+    // 예측 ACC 에 넣는다(11-06). 차선 끝 정지 제한은 대기 상태일 때만 건다.
+    bool merge_floor{false};
+    double floor_urgent_distance_m{120.0}, floor_urgent_time_s{5.0};   // target_selector lane_end_urgent_*
   } rx_;
   // acc_planner.yaml 의 같은 키(이 노드에는 ns 'acc' 로 올린다)
   struct RxAcc {
@@ -5971,6 +6049,11 @@ class SmpcDecisionNode {
     double closing_decel_boost_full_mps{6.0}, lead_required_decel_limit_gain{1.5};
     double lead_required_decel_limit_headway_sec{1.2}, rapid_lead_ttc_sec{3.0}, rapid_lead_min_closing_speed_mps{4.0};
     bool lead_required_decel_limit_enabled{true}, hard_brake_bypass_filter{true}, rapid_lead_brake_enabled{true};
+    bool merge_keep_rolling_enabled{true};
+    double merge_keep_rolling_min_speed_mps{11.1}, merge_keep_rolling_front_block_gap_m{8.0};
+    double merge_keep_rolling_low_speed_lead_mps{11.1}, merge_keep_rolling_low_speed_lead_max_gap_m{80.0};
+    double min_target_front_gap_m{11.0}, lane_end_stop_prepare_distance_m{45.0}, lane_end_stop_prepare_time_sec{4.0};
+    std::vector<int> lane_end_stop_lane_ids{3};
   } rx_acc_;
   double rx_intr_since_{-1.0};
   double rx_p_rear_post_{-1.0};

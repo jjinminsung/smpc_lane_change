@@ -70,7 +70,9 @@ class ReactiveTreePlanner(TreePlanner):
             return [("yield", "base", None, 1.0)]
         fl = self.rp.p_exc_floor
         pr = fl if p_rear is None else p_rear
-        rb = [("yield", 1.0 - pr, None), ("nonyield", pr, "rear")] if rears else [("yield", 1.0, None)]
+        # passed_front_as_rear: 지나칠 수 있는 목표 차선 앞차가 있으면 뒤차 가지를 만든다(C++ rxBranches 와 같다)
+        has_rear = bool(rears) or (self.rp.passed_front_as_rear and tf is not None)
+        rb = [("yield", 1.0 - pr, None), ("nonyield", pr, "rear")] if has_rear else [("yield", 1.0, None)]
         fb = [("base", 1.0 - 2 * fl, None), ("brake", fl, "front"), ("accel", fl, None)] if (cf or tf) else [("base", 1.0, None)]
         out = []
         for (rm, p1, t1), (fm, p2, t2) in itertools.product(rb, fb):
@@ -194,7 +196,8 @@ class ReactiveTreePlanner(TreePlanner):
 def make_reactive_planner(name):
     """run_batch.py 용: 'rx' (새 구조), 'rx_single' (가지 없음 비교군), 'rx_common' (G6–G8 유지).
     민감도: 'fNN' = 예외 확률 최솟값 0.NN, 'mK' = 모니터 복귀 문턱 Kε (예: rx_f10, rx_m3),
-    'mt' = 모니터 계속 위험에 가지별 나중 대응(11-05 부터 기본), 'mo' = 옛 모니터 규칙(예: rx_mo, rx_mo_m5)."""
+    'mt' = 모니터 계속 위험에 가지별 나중 대응(11-05 부터 기본), 'mo' = 옛 모니터 규칙(예: rx_mo, rx_mo_m5).
+    예측 수정(11-06): 'pf' = 지나친 목표 차선 앞차를 뒤차로, 'fl' = ACC merge_keep_rolling 하한(예: rx_mt_pf_fl)."""
     from .tree import TreeConfig
     flags = set(name.split("_"))
     cfg = TreeConfig(probability_table="gt", keep_gates=False, decision="tree", monitor=True)
@@ -211,6 +214,8 @@ def make_reactive_planner(name):
         rp = ReactiveParams()
         if floor is not None:
             rp.p_exc_floor = floor
+        rp.passed_front_as_rear = "pf" in flags
+        rp.merge_floor = "fl" in flags
         tp = ReactiveTreePlanner(P, track, cfg=TreeConfig(**cfg.__dict__), rp=rp, single="single" in flags,
                                  drop_common="common" not in flags)
         tp.name = name

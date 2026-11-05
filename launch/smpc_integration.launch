@@ -22,6 +22,8 @@
   <arg name="reactive_tree" default="false"/>
   <arg name="reactive_single" default="false"/>       <!-- 비교군: 가지 없이 기본 예측 하나 -->
   <arg name="reactive_monitor_tree" default="true"/>  <!-- 모니터 (가): 계속 위험에도 가지별 나중 대응(false = 옛 규칙) -->
+  <arg name="reactive_passed_front_as_rear" default="false"/>  <!-- 예측 수정(11-06): 지나친 목표 차선 앞차 = 뒤차 -->
+  <arg name="reactive_merge_floor" default="false"/>           <!-- 예측 수정(11-06): ACC merge_keep_rolling 하한 -->
   <arg name="tree_abort_risk_factor" default="2.0"/>  <!-- 실행 중 복귀 문턱 = 이 값 × ε -->
   <arg name="reactive_drop_common" default="true"/>
   <!-- plan_v2 단계 5 측정용: gap_test 간격 기준, supervisor 뒤차 보호 복귀 끄기 -->
@@ -172,6 +174,8 @@
       <rosparam command="load" file="$(find smpc_lane_change)/config/acc_planner.yaml" ns="acc"/>
       <rosparam if="$(arg reactive_tree)" command="load" file="$(find smpc_lane_change)/config/reactive_morai.yaml" ns="reactive"/>
       <param name="reactive/monitor_tree" value="$(arg reactive_monitor_tree)"/>
+      <param name="reactive/passed_front_as_rear" value="$(arg reactive_passed_front_as_rear)"/>
+      <param name="reactive/merge_floor" value="$(arg reactive_merge_floor)"/>
       <param name="tree_abort_risk_factor" value="$(arg tree_abort_risk_factor)"/>
       <rosparam if="$(eval arg('rear_accel_table') == 'gt')">
         rear_accel_probability_by_accel: [0.006, 0.007, 0.079, 0.275, 0.672]

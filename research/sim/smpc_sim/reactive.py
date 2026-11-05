@@ -68,6 +68,13 @@ class ReactiveParams:
     # 움직여도 자차가 반응(피드백)하므로 열린 루프처럼 σ 가 끝없이 커지지 않는다(Nair 외 TCST 2025 의 상태 피드백과 같은 취지).
     follow_sigma_cap_s: float = 1.0
     abort_before_abs_d: float = 1.75     # 목표 차선 경계(이 안쪽이면 복귀 불가, supervisor 와 같다)
+    # 자차가 지나친 목표 차선 앞차(tf·tf2) = 뒤차(C++ reactive/passed_front_as_rear, 11-06): 뒤차 가지 공유, yield 면 반응
+    # 지연 뒤 자차를 따름, 지나친 뒤 앞차 예외 없음, σ 상한 없음
+    passed_front_as_rear: bool = False
+    # 실제 ACC 의 merge_keep_rolling 하한과 차선 끝 대기 조건(C++ reactive/merge_floor, 11-06)
+    merge_floor: bool = False
+    floor_urgent_distance_m: float = 120.0   # target_selector lane_end_urgent_distance_m
+    floor_urgent_time_s: float = 5.0         # target_selector lane_end_urgent_time_sec
 
 
 def _idm(v, gap, v_lead, v0, a, b, s0, T):
@@ -103,6 +110,8 @@ class _Tv:
         self.a0 = accel0
         self.lead = None
         self.out_s = []
+        self.passed = np.zeros(M, dtype=bool)     # passed_front_as_rear: 자차가 지나쳤나(행마다 래치)
+        self.passed_hist = []
 
 
 def target_lane_vehicles(t, vehicles):
@@ -189,6 +198,10 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
                 c = _Tv(w, M, "ctx", 0.0)
                 ctx_rows.append(c)
                 x.lead = c
+    if RP.passed_front_as_rear:
+        for x in tvs:
+            if x.role in ("tf", "tf2"):
+                x.passed = x.s < s
     for x in tvs:
         if x.role == "rear":
             ahead = [o for o in tvs if o is not x and o.lane == x.lane and o.s[0] > x.s[0]]
@@ -256,6 +269,14 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             elif x.role == "tf2":
                 acc = base
             else:
+                acc = None
+            if acc is not None and RP.passed_front_as_rear and x.role in ("tf", "tf2"):
+                # 지나친 목표 차선 앞차 = 뒤차(C++ rxRollout 과 같다)
+                react = (rear_mode == "yield") & (tau0 >= t_in + RP.rear_react_delay_s - 1e-9) & (intr > 0.0) & (s > x.s)
+                gap_e = (s - P.ego_rear_extent_m) - (x.s + 0.5 * x.len)
+                a_e = _idm(x.v, gap_e, v, max(x.v0, 0.5), RP.rear_idm_a, RP.rear_idm_b, RP.rear_idm_s0, RP.rear_idm_T)
+                acc = np.where(x.passed, np.maximum(np.where(react, np.minimum(base, a_e), base), -RP.rear_max_brake), acc)
+            if acc is None:
                 react = (rear_mode == "yield") & (tau0 >= t_in + RP.rear_react_delay_s - 1e-9) & (intr > 0.0) & (s > x.s)
                 gap_e = (s - P.ego_rear_extent_m) - (x.s + 0.5 * x.len)
                 a_e = _idm(x.v, gap_e, v, max(x.v0, 0.5), RP.rear_idm_a, RP.rear_idm_b, RP.rear_idm_s0, RP.rear_idm_T)
@@ -276,6 +297,8 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         bind_g = np.full(M, np.nan)
         c_max = np.zeros(M)
         front_ahead = np.zeros(M, dtype=bool)      # 더 가까운 목표 차선 앞차가 아직 자차 앞에 있나
+        floor_block = np.zeros(M, dtype=bool)      # merge_floor: 8 m 안 앞차 또는 80 m 안 느린 앞차
+        tf_blocks = np.zeros(M, dtype=bool)        # merge_floor: 목표 차선 앞차가 11 m 안
         for x in tvs:
             if x.role == "cf":
                 use, allow_hard = ~in_target | returning, np.ones(M, dtype=bool)
@@ -289,10 +312,24 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
                 continue
             gap = (x.s - 0.5 * x.len) - (s + P.ego_front_extent_m)
             ahead = gap > -x.len
+            closer_ahead = front_ahead
             if x.role == "tf2":         # 더 가까운 앞차를 모두 지나친 뒤에만 따른다(선택기·ACC 가 그때 그 차를 앞차로 잡는다)
                 use = use & ~front_ahead
             if x.role != "cf":
                 front_ahead = front_ahead | ahead
+            if RP.merge_floor:          # 하한 판정(C++ rxRollout 과 같다): 따르든 말든 앞에 있는 현재·목표 차선 앞차
+                inf = x.s > s
+                if x.role == "cf":
+                    chk = ~in_target | returning
+                elif x.role == "tf":
+                    chk = np.ones(M, dtype=bool)
+                else:
+                    chk = ~closer_ahead
+                floor_block |= inf & chk & ((gap <= A.merge_keep_rolling_front_block_gap_m) |
+                                            ((x.v <= A.merge_keep_rolling_low_speed_lead_mps) &
+                                             (gap <= A.merge_keep_rolling_low_speed_lead_max_gap_m)))
+                if x.role == "tf":
+                    tf_blocks |= inf & (gap <= A.min_target_front_gap_m)
             cmd, hd = speed_for_lead(gap, x.v, v, cruise_k, A)
             c = np.maximum(0.0, v - np.minimum(np.maximum(x.v, 0.0), cruise_k))
             closing = v - np.maximum(0.0, x.v)
@@ -309,11 +346,31 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
             hard |= act_l & (hd | rapid) & allow_hard
         dist = src_end - s
         stay = ~lc_active & ~in_target & (dist < 200.0)
+        merge_wait = np.zeros(M, dtype=bool)
+        if RP.merge_floor:
+            # 차선 끝 대기 = 차선 변경 전 · 급함 · 목표 차선 앞차 11 m 안(acc mergeWaitStopRequired). 이때만 차선 끝에서 선다.
+            urgent = bool(t.lane_change_required) & ((dist <= RP.floor_urgent_distance_m) |
+                                                     ((v > 0.1) & (dist / np.maximum(v, 0.1) <= RP.floor_urgent_time_s)))
+            merge_wait = ~lc_active & urgent & tf_blocks
+            stay &= merge_wait
         lim_stay = np.sqrt(2.0 * RP.lane_end_decel * np.maximum(0.0, dist - A.lane_end_merge_wait_stop_distance_m))
         lim = stay & (lim_stay < raw)
         raw = np.where(lim, lim_stay, raw)
         soft_bind &= ~lim
         bind_c = np.where(lim, np.nan, bind_c)
+        if RP.merge_floor and A.merge_keep_rolling_enabled:
+            # 실제 ACC merge_keep_rolling 하한: 앞차·차선 끝 제한 뒤, 차선 변경 중 차선 끝·HOLD/YIELD·connector 상한 앞
+            pressure = lc_active | bool(t.lane_change_required and (t.lane_change_prepare or t.lane_change_urgent or
+                                                                    t.emergency_stop_required))
+            stop_zone = np.zeros(M, dtype=bool)
+            if ctx.target_lane in list(A.lane_end_stop_lane_ids):
+                d3 = tgt_end - s
+                stop_zone = in_target & ~returning & ((d3 <= A.lane_end_stop_prepare_distance_m) |
+                                                      ((v > 0.1) & (d3 / np.maximum(v, 0.1) <= A.lane_end_stop_prepare_time_sec)))
+            fl = np.minimum(max(0.0, A.merge_keep_rolling_min_speed_mps), cruise_k)
+            lift = ~hard & ~merge_wait & ~floor_block & pressure & ~stop_zone & (fl > 1e-3) & (raw < fl)
+            raw = np.where(lift, fl, raw)
+            soft_bind &= ~lift
         elapsed = np.maximum(0.0, tau0 - t_sw)
         lim_lc = np.minimum(np.maximum((dist - A.lane_change_lane_end_margin_m) / np.maximum(0.5, 4.2 - elapsed),
                                        np.minimum(A.lane_change_lane_end_min_cap_mps, cruise_k)), cruise_k)
@@ -362,6 +419,9 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         v = vn
         for x, sn, vx in new:
             x.s, x.v = sn, vx
+            if RP.passed_front_as_rear and x.role in ("tf", "tf2"):
+                x.passed = x.passed | (s > x.s)
+            x.passed_hist.append(x.passed.copy())
             x.out_s.append(sn)
         for c in ctx_rows:
             c.s = c.s + c.v * dt
@@ -373,11 +433,12 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         tx = np.stack(x.out_s, axis=1)
         ty = (track.center_y(x.lane) + x.d0 * np.exp(-taus / max(0.1, P.lane_center_decay_tau_sec)))[None, :]
         front = x.role in ("cf", "tf")
-        brake_rows = (front_mode == "brake")[:, None] if front else np.zeros((M, 1), dtype=bool)
+        pf = np.stack(x.passed_hist, axis=1)          # 지나친 목표 차선 앞차 = 뒤차 σ, 앞차 급감속 모드 없음
+        brake_rows = ((front_mode == "brake")[:, None] & ~pf) if front else np.zeros((M, 1), dtype=bool)
         if x.role == "cf":
             t_sig = np.minimum(taus, RP.follow_sigma_cap_s)[None, :]
         elif x.role in ("tf", "tf2"):
-            t_sig = np.where(np.stack(tf_hard_follow, axis=1), np.minimum(taus, RP.follow_sigma_cap_s)[None, :], taus[None, :])
+            t_sig = np.where(np.stack(tf_hard_follow, axis=1) & ~pf, np.minimum(taus, RP.follow_sigma_cap_s)[None, :], taus[None, :])
         else:
             t_sig = taus[None, :]
         cn, _ = collision_probability(out_x, out_y, 0.0, t_sig, tx, ty, 0.0, x.len, x.wid, "nominal", P)

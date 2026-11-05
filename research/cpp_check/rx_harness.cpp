@@ -3,6 +3,7 @@
 //
 // 입력 (공백 구분):
 //   ego_speed <v>  mission <v>  yield_ref <v>  targets <cur> <tgt> <ego_d_target> <distance_to_lane_end>
+//   flags <required> <prepare> <urgent> <emergency>  (0/1, 없으면 모두 0)
 //   ego_xy <x> <y>  mode <connector 0/1> <join_arc> <mid_T_rem (<0 이면 판단)>
 //   vehicles <M>  다음마다: uid role lane s d delta_s v_long length width rear_delta_s front_delta_s accel
 //   specs <N>     다음마다: change t_sw dur action prep_a      (action: keep hold yield accel change_now)
@@ -80,6 +81,13 @@ int main(int argc, char** argv) {
       in >> yield_ref;
     } else if (key == "targets") {
       in >> t.current_lane_id >> t.target_lane_id >> t.ego_d_target >> t.distance_to_lane_end;
+    } else if (key == "flags") {      // lane_change_required prepare urgent emergency_stop_required (0/1)
+      int a = 0, b = 0, c = 0, d = 0;
+      in >> a >> b >> c >> d;
+      t.lane_change_required = a != 0;
+      t.lane_change_prepare = b != 0;
+      t.lane_change_urgent = c != 0;
+      t.emergency_stop_required = d != 0;
     } else if (key == "ego_xy") {
       in >> node.ego_x_ >> node.ego_y_;
     } else if (key == "mode") {

@@ -41,6 +41,10 @@ METHODS = {
     "rx_m5": ("tree", "false", ["reactive:=true", "tree_abort_risk_factor:=5.0"]),     # 복귀 문턱 5ε
     "rx_mo": ("tree", "false", ["reactive:=true", "reactive_monitor_tree:=false"]),    # 옛 모니터 규칙(v9 까지)
 }
+# 예측 수정 두 가지(11-06): 지나친 목표 차선 앞차 = 뒤차, ACC merge_keep_rolling 하한
+_FIX = ["reactive_passed_front_as_rear:=true", "reactive_merge_floor:=true"]
+METHODS["rx_fix"] = ("tree", "false", ["reactive:=true"] + _FIX)
+METHODS["rx_single_fix"] = ("tree", "false", ["reactive:=true", "reactive_single:=true"] + _FIX)
 # plan_v2 단계 5: 뒤차 간격 기준 R m 에서 일부러 합류(gap_test), 뒤차 보호 복귀·트리 복귀 끔
 for _r in (8, 12, 16, 20):
     METHODS[f"gt{_r}"] = ("baseline", "true", ["gap_test:=true", f"gap_rear:={_r}", "gap_front:=8",
@@ -61,6 +65,8 @@ PHASES = {
     "W": (S, ["rx", "rx_single"], 3),
     "X": (H, ["rx", "rx_m5"], 1),                            # 모니터 (가) 2ε·5ε (v9 V 의 rx = 옛 규칙 2ε 와 짝)
     "Y": (S, ["rx", "rx_m5"], 3),
+    "P": (H, ["rx_fix", "rx_single_fix"], 1),                # 예측 수정 뒤(모니터 (가) 2ε) — v9 V 와 짝
+    "Q": (S, ["rx_fix", "rx_single_fix"], 3),                # v9 W 와 짝
 }
 
 
