@@ -178,14 +178,23 @@ class ReactiveTreePlanner(TreePlanner):
         if not r["allowed"][:, RETURN, 0].all():
             return None
         back = (p[:, None] * r["risk"][:, RETURN, 0]).sum(axis=0).max()
-        if go > c.abort_risk_factor * P.risk_epsilon and back < go:
+        cont = go
+        if c.monitor_tree:
+            # 계속 쪽도 승인처럼 가지별 나중 대응(앞차 급감속은 알아챈 뒤, 뒤차 비양보는 관측했으면 지금)을 넣어 푼다
+            br2 = [(b[0], b[1], "now" if (b[2] == "rear" and self.p_rear_post is not None) else b[2], b[3]) for b in br]
+            r2 = joint_rollout(ctx, [ActionSpec(CHANGE_NOW, 0.0, 0.0, T_rem, True)], t, self._vehicles(t), P, self.A, rp,
+                               self.track, [b[:3] for b in br2], self._accel_of, mid_T_rem=T_rem)
+            _, _, _, risk2, _ = self._solve(r2, br2, np.zeros(1), np.ones(1, dtype=bool), P.risk_epsilon)
+            cont = float(risk2[0])
+        if cont > c.abort_risk_factor * P.risk_epsilon and back < cont:
             return "return"
         return None
 
 
 def make_reactive_planner(name):
     """run_batch.py 용: 'rx' (새 구조), 'rx_single' (가지 없음 비교군), 'rx_common' (G6–G8 유지).
-    민감도: 'fNN' = 예외 확률 최솟값 0.NN, 'mK' = 모니터 복귀 문턱 Kε (예: rx_f10, rx_m3)."""
+    민감도: 'fNN' = 예외 확률 최솟값 0.NN, 'mK' = 모니터 복귀 문턱 Kε (예: rx_f10, rx_m3),
+    'mt' = 모니터 계속 위험에 가지별 나중 대응(예: rx_mt, rx_mt_m5)."""
     from .tree import TreeConfig
     flags = set(name.split("_"))
     cfg = TreeConfig(probability_table="gt", keep_gates=False, decision="tree", monitor=True)
@@ -193,6 +202,8 @@ def make_reactive_planner(name):
     factor = next((float(f[1:]) for f in flags if f.startswith("m") and f[1:].isdigit()), None)
     if factor is not None:
         cfg.abort_risk_factor = factor
+    if "mt" in flags:                     # 'rx_mt' = 모니터가 계속 쪽에도 가지별 나중 대응을 넣음
+        cfg.monitor_tree = True
 
     def factory(P, track):
         rp = ReactiveParams()

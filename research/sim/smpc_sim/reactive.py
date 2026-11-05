@@ -220,8 +220,7 @@ def joint_rollout(ctx, specs, t, vehicles, P, A, RP, track, branches, accel_of, 
         y_go = np.where(change & (s > src_end), y_tgt, y_go)
         tb = np.where(tb_rule == "front", RP.front_detect_s,
              np.where(tb_rule == "rear", t_in + RP.rear_react_delay_s + RP.rear_detect_s, np.inf))
-        if mid:
-            tb = np.where(tb_rule != "", 0.0, tb)
+        tb = np.where(tb_rule == "now", 0.0, tb)        # 실행 중 모니터: 지금 복귀
         begin = (resp == RETURN) & change & np.isinf(ret_t) & (tau0 >= tb - 1e-9) & (np.abs(y - y_tgt) > RP.abort_before_abs_d)
         if k == 0:
             begin &= np.abs(y0 - y_tgt) > RP.abort_before_abs_d

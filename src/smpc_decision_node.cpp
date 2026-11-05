@@ -401,6 +401,7 @@ class SmpcDecisionNode {
     pnh_.param("reactive_drop_common", reactive_drop_common_, true);
     pnh_.param("reactive_single", reactive_single_, false);
     pnh_.param("reactive/connector_cap", rx_.connector_cap, rx_.connector_cap);
+    pnh_.param("reactive/monitor_tree", rx_.monitor_tree, rx_.monitor_tree);
     pnh_.param("reactive/plant_tau", rx_.plant_tau, rx_.plant_tau);
     pnh_.param("reactive/plant_a_max", rx_.plant_a_max, rx_.plant_a_max);
     pnh_.param("reactive/plant_a_min", rx_.plant_a_min, rx_.plant_a_min);
@@ -4899,7 +4900,7 @@ class SmpcDecisionNode {
             if (sp.change && s > src_end) y_go = 0.0;
             double tb = std::numeric_limits<double>::infinity();
             const std::string& rule = br[static_cast<std::size_t>(b)].tb;
-            if (mid && !rule.empty()) tb = 0.0;
+            if (rule == "now") tb = 0.0;      // 실행 중 모니터: 지금 복귀
             else if (rule == "front") tb = rx_.front_detect_s;
             else if (rule == "rear") tb = t_in + rx_.rear_react_delay_s + rx_.rear_detect_s;
             const double y_now = k == 0 ? d0 : y;
@@ -5315,13 +5316,27 @@ class SmpcDecisionNode {
       back_peak = std::max(back_peak, bk);
     }
     const double eps = activeRiskEpsilon(t);
-    const bool ret = back_ok && go_peak > tree_abort_risk_factor_ * eps && back_peak < go_peak;
+    // 계속 쪽 위험. 기본은 '끝까지 그냥 계속'(가지마다 나중 대응 없음). monitor_tree 면 승인(rxSolveRoot)처럼 가지별
+    // 나중 대응을 넣는다: 앞차 급감속은 front_detect_s 뒤에 보이면 복귀, 뒤차 비양보는 이미 관측했으면 지금, 아니면
+    // 침범 + 반응 지연 + 알아채는 시간 뒤 복귀(실행 중 침범이 이미 시작됐어도 지금부터 센다: 보수적). 대응 없이 계속이면
+    // 앞차가 가까울 때 급감속 가지(p 0.05) 하나가 충돌 ≈ 1 이라 0.05 가 깔려, 승인은 괜찮다고 본 장면을 모니터가 2ε 근처로 본다.
+    double cont_peak = go_peak;
+    if (rx_.monitor_tree) {
+      auto br2 = rxBranches(t, rx_p_rear_post_);
+      for (auto& b : br2) {
+        if (b.tb == "rear" && rx_p_rear_post_ >= 0.0) b.tb = "now";
+      }
+      RxResult r2 = rxRollout(t, {go}, br2, ego_speed_mps_, currentTargetSpeedMps(), connector, join, ego_speed_mps_, T_rem);
+      cont_peak = rxSolveRoot(r2, br2, 0, 0.0, eps).peak_risk;
+    }
+    const bool ret = back_ok && cont_peak > tree_abort_risk_factor_ * eps && back_peak < cont_peak;
     if (detail) {
       std::ostringstream os;
       os.setf(std::ios::fixed);
       os.precision(4);
       os << "rx_monitor go_peak=" << go_peak << " back_peak=" << back_peak << " back_ok=" << back_ok
          << " p_rear_post=" << rx_p_rear_post_;
+      if (rx_.monitor_tree) os << " cont_peak=" << cont_peak;
       *detail = os.str();
     }
     return ret;
@@ -5943,6 +5958,7 @@ class SmpcDecisionNode {
     double front_idm_s0{3.0}, front_idm_T{1.0}, front_idm_a{1.0}, front_idm_b{2.0};
     double p_exc_floor{0.05}, follow_sigma_cap_s{1.0}, abort_before_abs_d{1.75};
     bool connector_cap{false};   // ACC 의 정지 connector 속도 상한(MORAI 대회 스택, 파이썬 시뮬 world 도 같다)
+    bool monitor_tree{false};    // 실행 중 모니터의 계속 위험도 승인처럼 가지별 나중 대응을 넣어 푼다(비교 중)
   } rx_;
   // acc_planner.yaml 의 같은 키(이 노드에는 ns 'acc' 로 올린다)
   struct RxAcc {

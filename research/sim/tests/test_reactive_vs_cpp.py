@@ -122,7 +122,7 @@ def scene_text(sc, br, P):
         lines.append(f"{int(s.change_left)} {t_sw:.17g} {s.duration:.17g} {s.action} {s.prep_accel:.17g}")
     lines.append(f"branches {len(br)}")
     for b in br:
-        tb = "now" if sc["mid"] else (b[2] or "-")
+        tb = "now" if (sc["mid"] and not sc.get("mid_rules")) else (b[2] or "-")
         lines.append(f"{b[0]} {b[1]} {tb} {b[3]:.17g}")
     return "\n".join(lines) + "\n"
 
@@ -172,7 +172,9 @@ class ReactiveVsCpp(unittest.TestCase):
         for i in range(80):
             sc = make_scene(rng, self.P)
             br = BRANCH_SETS[i % 2]
-            if sc["mid"]:
+            # 실행 중 장면의 1/3 은 가지별 나중 대응 규칙 그대로(모니터 monitor_tree), 나머지는 지금 복귀
+            sc["mid_rules"] = sc["mid"] and i % 3 == 0
+            if sc["mid"] and not sc["mid_rules"]:
                 br_py = [(b[0], b[1], "now") for b in br]
             else:
                 br_py = [b[:3] for b in br]
