@@ -1140,5 +1140,227 @@
   {
    "kind": "ego_lane_change"
   }
+ ],
+ "rx": [
+  {
+   "seed": 2005,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 116,
+    "lane": 3,
+    "s": 414.03,
+    "y": 10.5,
+    "v": 0.02,
+    "merging": false
+   },
+   "ego": {
+    "s": 407.94,
+    "y": 9.84,
+    "v": 3.13,
+    "lane": 3,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2006,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 122,
+    "lane": 2,
+    "s": 182.83,
+    "y": 7.0,
+    "v": 13.1,
+    "merging": false
+   },
+   "ego": {
+    "s": 176.75,
+    "y": 6.33,
+    "v": 17.34,
+    "lane": 2,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2007,
+   "kind": "npc_merge_alongside",
+   "rel": "alongside",
+   "npc": {
+    "uid": 124,
+    "lane": 2,
+    "s": 400.74,
+    "y": 8.68,
+    "v": 0.0,
+    "merging": true
+   },
+   "ego": {
+    "s": 402.43,
+    "y": 6.8,
+    "v": 6.34,
+    "lane": 2,
+    "lc_active": false
+   }
+  },
+  {
+   "seed": 2009,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 121,
+    "lane": 2,
+    "s": 274.33,
+    "y": 7.0,
+    "v": 12.4,
+    "merging": false
+   },
+   "ego": {
+    "s": 268.26,
+    "y": 6.22,
+    "v": 18.7,
+    "lane": 2,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2091,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 124,
+    "lane": 2,
+    "s": 162.86,
+    "y": 7.0,
+    "v": 9.55,
+    "merging": false
+   },
+   "ego": {
+    "s": 156.68,
+    "y": 5.83,
+    "v": 12.82,
+    "lane": 2,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2094,
+   "kind": "ego_rear_end",
+   "rel": "ahead",
+   "npc": {
+    "uid": 122,
+    "lane": 1,
+    "s": 45.65,
+    "y": 3.5,
+    "v": 10.04,
+    "merging": false
+   },
+   "ego": {
+    "s": 39.48,
+    "y": 3.02,
+    "v": 13.4,
+    "lane": 1,
+    "lc_active": false
+   }
+  },
+  {
+   "seed": 2114,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 119,
+    "lane": 1,
+    "s": 92.52,
+    "y": 3.5,
+    "v": 15.25,
+    "merging": false
+   },
+   "ego": {
+    "s": 86.31,
+    "y": 2.38,
+    "v": 16.62,
+    "lane": 1,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2127,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 108,
+    "lane": 3,
+    "s": 411.43,
+    "y": 10.5,
+    "v": 3.35,
+    "merging": false
+   },
+   "ego": {
+    "s": 405.22,
+    "y": 8.96,
+    "v": 4.7,
+    "lane": 3,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2149,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 123,
+    "lane": 1,
+    "s": 94.57,
+    "y": 3.5,
+    "v": 13.69,
+    "merging": false
+   },
+   "ego": {
+    "s": 88.57,
+    "y": 2.64,
+    "v": 19.95,
+    "lane": 1,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2169,
+   "kind": "ego_lane_change",
+   "rel": "ahead",
+   "npc": {
+    "uid": 112,
+    "lane": 1,
+    "s": 58.86,
+    "y": 3.5,
+    "v": 8.37,
+    "merging": false
+   },
+   "ego": {
+    "s": 52.73,
+    "y": 2.64,
+    "v": 15.59,
+    "lane": 1,
+    "lc_active": true
+   }
+  },
+  {
+   "seed": 2184,
+   "kind": "ego_rear_end",
+   "rel": "ahead",
+   "npc": {
+    "uid": 120,
+    "lane": 2,
+    "s": 252.11,
+    "y": 7.0,
+    "v": 14.18,
+    "merging": false
+   },
+   "ego": {
+    "s": 245.87,
+    "y": 6.56,
+    "v": 14.39,
+    "lane": 2,
+    "lc_active": false
+   }
+  }
  ]
 }
