@@ -45,6 +45,7 @@ class EpisodeConfig:
     npc_ego_max_brake: float = 6.0
     # 첫 차선 변경 요청부터 경로 전환까지(MORAI ≈ 0.55 s, 예측의 실행 지연과 같은 값). 0 = 11-05 까지의 시뮬(확인 즉시 전환)
     switch_delay_sec: float = 0.0
+    acc_floor_real: bool = False      # ACC 하한(merge_keep_rolling)을 실제 C++ 규칙대로(11-06, acc.py floor_real)
 
 
 @dataclass
@@ -274,6 +275,7 @@ class World:
         self.sup = Supervisor(self.P_sup, self.track, initial_lane=0)
         self.sup.switch_delay = cfg.switch_delay_sec
         self.acc = AccPlanner(self.P_acc, self.track)
+        self.acc.floor_real = cfg.acc_floor_real
         self.acc.f = v0
         self.lc_connector = False
         self.t0 = self.t

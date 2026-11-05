@@ -35,6 +35,9 @@ class AccPlanner:
         self.status = AccStatus()
         self.wait_latch_until = -1.0
         self.last_change_left = -1e9
+        # 실제 ACC(acc_speed_planner applyMergeRollingFloor·mergeRolling*Blocked)와 같은 하한 규칙(11-06, 기본 꺼짐 = 지금까지):
+        # 하한이 걸리면 약한 추종(감속 ≤ 1.5) 표시를 지우고, 하한 판정에 목표 차선 앞차를 따르든 말든 본다.
+        self.floor_real = False
 
     # ------------------------------------------------------------ 4.1
     def speed_for_lead(self, L, v_e, cruise):
@@ -136,10 +139,13 @@ class AccPlanner:
                 raw, reason = lim, "lane_end_stop"
                 lead_bind, soft_binding = None, False
         if (P.merge_keep_rolling_enabled and (intent or lane_end_pressure) and not lane3_stop and not merge_wait
-                and not hard_any and not lane_end_hard and not self._slow_lead_near(t, candidates)):
+                and not hard_any and not lane_end_hard and not self._slow_lead_near(t, candidates)
+                and not (self.floor_real and tf.valid and self._slow_lead_near(t, [("target_front", tf, True)]))):
             floor = min(P.merge_keep_rolling_min_speed_mps, cruise)
             if raw < floor:
                 raw, reason = floor, "merge_keep_rolling"
+                if self.floor_real:
+                    soft_binding = False
         # SMPC 속도 상한: C++ 처럼 합류 바닥 '뒤'에 둔다. YIELD/HOLD 가 바닥보다 낮출 수 있어야 한다.
         # external 은 상한 적용 전의 중재 결과(앞차·차선 끝)다(acc:1258).
         external = reason not in ("none", "merge_keep_rolling")
