@@ -15,7 +15,8 @@ import numpy as np
 RES = Path(__file__).resolve().parents[1] / "results" / "final"
 FAIL_T = 120.0
 LABEL = {"baseline": "기존 SMPC", "tree_gt_nogate": "현재 D", "rx": "새 구조", "rx_single": "새 구조-가지 없음",
-         "rx_common": "새 구조-G6–G8 유지", "rx_m5": "새 구조-모니터 5ε"}
+         "rx_common": "새 구조-G6–G8 유지", "rx_m5": "새 구조-모니터 5ε",
+         "rx_mo": "옛 모니터 2ε", "rx_mo_m5": "옛 모니터 5ε", "rx_mt": "모니터 (가) 2ε", "rx_mt_m5": "모니터 (가) 5ε"}
 
 
 def load(arm, n=200, suffix=""):

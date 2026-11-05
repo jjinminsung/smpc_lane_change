@@ -24,3 +24,7 @@
 {"tag": "v4_H_H_s50_d100_bdec_r0", "phase": "H", "scenario": "research_H_s50_d100", "method": "bdec", "rep": 0, "error": "load_scenario failed", "out": ""}
 {"tag": "v4_H_H_s50_d100_tree_nomon_r0", "phase": "H", "scenario": "research_H_s50_d100", "method": "tree_nomon", "rep": 0, "error": "load_scenario failed", "out": ""}
 {"tag": "v4_H_H_s70_d60_bdec_r0", "phase": "H", "scenario": "research_H_s70_d60", "method": "bdec", "rep": 0, "error": "load_scenario failed", "out": "search result row not selected (37, 36, 39)\n"}
+{"tag": "v9_W_S4_front_decel_rx_single_r0", "phase": "W", "scenario": "research_S4_front_decel", "method": "rx_single", "rep": 0, "error": "load_scenario failed", "out": "search result row not selected (19, 26, 36)\n"}
+{"tag": "v9_W_S4_front_decel_rx_single_r1", "phase": "W", "scenario": "research_S4_front_decel", "method": "rx_single", "rep": 1, "error": "load_scenario failed", "out": "load dialog not opened\n"}
+{"tag": "v9_W_S4_front_decel_rx_r1", "phase": "W", "scenario": "research_S4_front_decel", "method": "rx", "rep": 1, "error": "load_scenario failed", "out": "load dialog not opened\n"}
+{"tag": "v9_W_S1_normal_rx_r2", "phase": "W", "scenario": "research_S1_normal", "method": "rx", "rep": 2, "error": "load_scenario failed", "out": "load dialog not opened\n"}
