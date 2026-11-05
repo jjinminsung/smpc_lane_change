@@ -36,6 +36,11 @@ class Supervisor:
         self.start_pose = None
         self.events = []
         self.last_guard = ""
+        # 첫 요청부터 경로 전환까지 지연(MORAI: supervisor 확인 + /path_number → waypoint 전환 ≈ 0.55 s, 예측의
+        # behavior_execution_delay_sec 와 같은 값). 0 이면 확인 횟수를 채우는 즉시 전환(11-05 까지의 시뮬).
+        self.switch_delay = 0.0
+        self.first_valid = None
+        self.pending_at = None
 
     @property
     def forced_pair(self):
@@ -45,6 +50,11 @@ class Supervisor:
     def on_decision(self, now, change_left, t, ego):
         if self.active:
             return
+        if self.pending_at is not None:          # 확인은 끝났고 경로 전환을 기다리는 중(MORAI 처럼 되돌리지 않는다)
+            if now >= self.pending_at - 1e-9:
+                self.pending_at = None
+                self._switch(now, t, ego)
+            return
         valid = (change_left and t.current_lane_id == self.lane and t.target_lane_id == self.lane + 1)
         if not valid:
             self.consecutive = 0
@@ -52,8 +62,17 @@ class Supervisor:
         if now - self.last_switch < self.P.cooldown_sec:
             return
         self.consecutive += 1
+        if self.consecutive == 1:
+            self.first_valid = now
         if self.consecutive < self.P.confirmation_count:
             return
+        if self.switch_delay > 0.0 and now < self.first_valid + self.switch_delay - 1e-9:
+            self.pending_at = self.first_valid + self.switch_delay
+            self.consecutive = 0
+            return
+        self._switch(now, t, ego)
+
+    def _switch(self, now, t, ego):
         self.active = True
         self.source, self.target = self.lane, self.lane + 1
         self.change_start = self.last_switch = now

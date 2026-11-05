@@ -43,6 +43,8 @@ class EpisodeConfig:
     # NPC 가 자차에 반응하는 조건(리뷰 #9 민감도): 자차가 NPC 차선을 이만큼 침범하면 앞차로 보고, 이 감속까지 쓴다
     npc_ego_intrusion_m: float = 0.3
     npc_ego_max_brake: float = 6.0
+    # 첫 차선 변경 요청부터 경로 전환까지(MORAI ≈ 0.55 s, 예측의 실행 지연과 같은 값). 0 = 11-05 까지의 시뮬(확인 즉시 전환)
+    switch_delay_sec: float = 0.0
 
 
 @dataclass
@@ -270,6 +272,7 @@ class World:
         self.ego = Ego(s=s0, y=self.track.center_y(0), v=v0, lane=0)
         self.plant = EgoPlant(self.ego, self.track)
         self.sup = Supervisor(self.P_sup, self.track, initial_lane=0)
+        self.sup.switch_delay = cfg.switch_delay_sec
         self.acc = AccPlanner(self.P_acc, self.track)
         self.acc.f = v0
         self.lc_connector = False
