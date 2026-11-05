@@ -28,3 +28,8 @@
 {"tag": "v9_W_S4_front_decel_rx_single_r1", "phase": "W", "scenario": "research_S4_front_decel", "method": "rx_single", "rep": 1, "error": "load_scenario failed", "out": "load dialog not opened\n"}
 {"tag": "v9_W_S4_front_decel_rx_r1", "phase": "W", "scenario": "research_S4_front_decel", "method": "rx", "rep": 1, "error": "load_scenario failed", "out": "load dialog not opened\n"}
 {"tag": "v9_W_S1_normal_rx_r2", "phase": "W", "scenario": "research_S1_normal", "method": "rx", "rep": 2, "error": "load_scenario failed", "out": "load dialog not opened\n"}
+{"tag": "v11_P_H_s50_d40_rx_fix_r0", "phase": "P", "scenario": "research_H_s50_d40", "method": "rx_fix", "rep": 0, "error": "load_scenario failed", "out": "loaded research_H_s50_d40, network DISCONNECTED\n"}
+{"tag": "v11_Q_S3_rear_decel_rx_fix_r2", "phase": "Q", "scenario": "research_S3_rear_decel", "method": "rx_fix", "rep": 2, "error": "load_scenario failed", "out": "MORAI Simulator window not found\n"}
+{"tag": "v11_Q_S3_rear_decel_rx_single_fix_r2", "phase": "Q", "scenario": "research_S3_rear_decel", "method": "rx_single_fix", "rep": 2, "error": "load_scenario failed", "out": "MORAI Simulator window not found\n"}
+{"tag": "v11_Q_S4_front_decel_rx_fix_r2", "phase": "Q", "scenario": "research_S4_front_decel", "method": "rx_fix", "rep": 2, "error": "load_scenario failed", "out": "MORAI Simulator window not found\n"}
+{"tag": "v11_Q_S4_front_decel_rx_single_fix_r2", "phase": "Q", "scenario": "research_S4_front_decel", "method": "rx_single_fix", "rep": 2, "error": "load_scenario failed", "out": "MORAI Simulator window not found\n"}
