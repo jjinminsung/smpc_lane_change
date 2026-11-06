@@ -51,9 +51,9 @@ def main():
     R = load()
     out = {}
     for bundle, arms in ARMS.items():
-        print(f"\n=== {'H 격자 {30,50,70} → {40,60,80,100} km/h × 1' if bundle == 'H' else 'S1–S4 × 3'} ===")
+        print(f"\n=== {'H 격자: NPC 생성 {30,50,70} → 목표 {40,60,80,100} km/h × 1' if bundle == 'H' else 'S1–S4 × 3'} ===")
         print(f"{'방법':28s} {'성공':>6s} {'합류 중앙값':>10s} {'접촉(변경 중)':>12s} {'복귀':>5s} {'차선 끝 정지':>10s}"
-              + ("  목표 40·60 km/h 성공 / 중앙값" if bundle == "H" else ""))
+              + ("  NPC 목표 40·60 km/h 성공 / 중앙값" if bundle == "H" else ""))
         for name, pre, ph, meth in arms:
             runs = [r for k, r in R.items() if k[0] == pre and k[1] == ph and k[3] == meth]
             s = summarize(runs)

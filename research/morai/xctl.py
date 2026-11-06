@@ -2,6 +2,7 @@
 """X11 조작 도구 (ctypes + libXtst). xdotool 대신.
   xctl.py activate <winid>            창을 맨 앞으로, 포커스
   xctl.py geom <winid>                창의 화면 절대 좌표와 크기
+  xctl.py above <winid> on|off         항상 위 켜기/끄기 (_NET_WM_STATE_ABOVE)
   xctl.py wclick <winid> <rx> <ry> [button] [double]   창 기준 좌표 클릭
   xctl.py wmove <winid> <rx> <ry>     창 기준 좌표로 마우스 이동
   xctl.py key <keysym> [mod...]       키 (예: F4, Return, Escape, Tab / mod: Control_L Shift_L Alt_L)
@@ -96,6 +97,23 @@ def activate(win):
     x11.XSync(d, 0)
 
 
+def above(win, on):
+    """항상 위 켜기/끄기 (_NET_WM_STATE_ABOVE). 녹화 중 다른 창이 MORAI 를 가리지 않게."""
+    ev = XEvent()
+    ev.xclient.type = 33
+    ev.xclient.send_event = 1
+    ev.xclient.display = d
+    ev.xclient.window = win
+    ev.xclient.message_type = x11.XInternAtom(d, b'_NET_WM_STATE', 0)
+    ev.xclient.format = 32
+    ev.xclient.l[0] = 1 if on else 0  # 1 = add, 0 = remove
+    ev.xclient.l[1] = x11.XInternAtom(d, b'_NET_WM_STATE_ABOVE', 0)
+    ev.xclient.l[2] = 0
+    ev.xclient.l[3] = 2
+    x11.XSendEvent(d, root, 0, (1 << 20) | (1 << 19), ctypes.byref(ev))
+    x11.XSync(d, 0)
+
+
 def move(x, y):
     xtst.XTestFakeMotionEvent(d, -1, int(x), int(y), 0)
     x11.XSync(d, 0)
@@ -147,6 +165,8 @@ def main():
     elif cmd == 'resize':
         x11.XMoveResizeWindow(d, int(a[0], 0), int(a[1]), int(a[2]), int(a[3]), int(a[4]))
         x11.XSync(d, 0)
+    elif cmd == 'above':
+        above(int(a[0], 0), a[1] == 'on')
     elif cmd == 'geom':
         print('%d %d %d %d' % geom(int(a[0], 0)))
     elif cmd in ('wclick', 'wmove'):

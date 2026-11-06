@@ -96,7 +96,7 @@
 
 ### 단계 8. 정리
 - [x] README·결과 정리(한계 포함): `research/README.md`, 최상위 `README.md` (11-06)
-- [ ] 그래프, 보고서 아티팩트 갱신, 주행 영상
+- [x] 그래프(`docs/fig/`, `analysis/plot_results.py`), 보고서 문서 갱신, 주행 영상 10 회(`morai/record_videos.py`·`make_video.py`, 결과 `results/morai_videos_1106.jsonl`, 영상 모음 https://claude.ai/artifact/2tVAzjj2Mo2TWC784ssUi6) (11-06)
 
 ## 4. 열린 결정
 - 접근 단계 '목표 차선 속도에 맞추기' 후보: 지금은 넣지 않는다. 단계 4 에서 '접근하다 차선 끝 정지'가 많이 남으면 추가.
@@ -148,6 +148,6 @@
 | 5 | 완료 | 31 건(`results/m7_npc_reaction.json`) |
 | 6 | 6a·6b 완료, 6c 미완 | 일치 시험·빌드 통과. 6c 정체 버그는 따로 고치지 않음. 승인–복귀 반복이 줄어든 뒤 재현 여부는 확인하지 않음 |
 | 7 | 완료 | `results/morai_step7.json`, `research/README.md` |
-| 8 | 일부 | README·결과·한계 정리 완료. 그래프, 보고서 아티팩트, 주행 영상 남음 |
+| 8 | 완료 | README·결과·한계, 그래프 2 장, 보고서 문서 갱신, MORAI 주행 영상 10 회(새 구조 8: 모두 성공 21–49 s, 복귀·접촉 0 / 기존 2: 110.8·138.9 s). 복귀 장면은 영상에 없음 |
 
 한계 전체는 `research/README.md` "한계" 절. 보류: σ(t) 보정 확인, 앞차 급제동 사후 갱신(시드 2009), 지평선 6.8 s 확인.
